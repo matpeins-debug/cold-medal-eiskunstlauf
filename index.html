@@ -878,10 +878,11 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
     spin: { lean: -2, crouch: 2, sL: [0, 2], fL: [30, 80], aF: [42, 108], aB: [42, 108] },
     sitspin: { lean: 26, crouch: 0, sL: [86, 100], fL: [84, 0], aF: [86, -4], aB: [80, -2] },
     camel: { lean: 84, crouch: 0, sL: [1, 1], fL: [-98, 0], aF: [96, -8], aB: [-118, -8] },
-    stepA: { lean: 5, crouch: 3, sL: [7, 12], fL: [-30, 20], aF: [88, -8], aB: [-84, -8] },
-    stepB: { lean: 5, crouch: 3, sL: [-7, 12], fL: [26, 20], aF: [-76, -6], aB: [92, -8] },
-    stepU: { lean: -4, crouch: 0, sL: [0, 2], fL: [-20, 4], aF: [158, -6], aB: [-156, -6] },
-    stepD: { lean: 18, crouch: 8, sL: [10, 30], fL: [-46, 6], aF: [70, -10], aB: [-74, -10] },
+    stepA: { lean: 6, crouch: 3, sL: [8, 14], fL: [-58, 4], aF: [112, -14], aB: [-96, -12] },
+    stepB: { lean: 6, crouch: 3, sL: [-6, 14], fL: [44, 4], aF: [-90, -12], aB: [118, -14] },
+    stepU: { lean: -2, crouch: 0, sL: [24, 2], fL: [-48, 0], aF: [164, -6], aB: [-160, -6] },
+    stepD: { lean: 26, crouch: 9, sL: [44, 82], fL: [-84, 0], aF: [100, -16], aB: [-118, -16] },
+    edge: { lean: 12, crouch: 4, sL: [8, 18], fL: [-74, 0], aF: [128, -18], aB: [-126, -18] },
     final: { lean: -8, crouch: 0, sL: [0, 0], fL: [-26, 0], aF: [168, 6], aB: [-102, -16] },
     // Choreografie zwischen den Elementen
     spiral: { lean: 72, crouch: 0, sL: [1, 1], fL: [-118, 0], aF: [112, -12], aB: [-96, -14] },
@@ -1211,7 +1212,7 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
 /* COLD MEDAL EISKUNSTLAUF – Ablauf, Bildschirme, Eingabe, Taktband, Ergebnis, Spielstand. */
 (function () {
   "use strict";
-  const VERSION = "0.2.2";
+  const VERSION = "0.2.3";
   // Seiten-Einstellungen aus dem Build (eigenes Hosting: Adresse, Hoster, Impressum); im claude.ai-Artefakt leer
   const SITE = Object.assign({ web: false, url: "", impressum: null }, {"web": true, "url": "https://matpeins-debug.github.io/cold-medal-eiskunstlauf/", "hoster": "GitHub Pages (GitHub Inc., USA)", "drittland": "GitHub ist nach dem EU-US Data Privacy Framework zertifiziert; die Übermittlung in die USA stützt sich auf den Angemessenheitsbeschluss der EU-Kommission dazu.", "impressum": {"name": "", "adresse": "", "mail": ""}} || {});
   const M = window.EKMusic, K = window.EKSkate, F = window.EKFigure, SC = window.EKScene;
@@ -1391,9 +1392,9 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
     if (!best) return;
     const ms = Math.round(best.d * 1000), T = M.TIMING, a = Math.abs(ms);
     const word = !best.ok ? "Falsche Richtung" : a <= T.perfect ? "Perfekt" : a <= T.good ? "Gut" : ms < 0 ? "Zu früh" : "Zu spät";
-    pop(best.ok ? `${word} ${sg(ms)} ms` : word, !best.ok || a > T.good ? "#E8A07A" : a <= T.perfect ? "#F3C969" : "#F1E7D2");
+    pop(best.ok ? `${word} ${sg(ms)} ms` : word, !best.ok || a > T.good ? "#E8A07A" : a <= T.perfect ? "#F3C969" : "#F1E7D2", true);
   }
-  function pop(text, col) { if (run) run.pops.push({ text: nb(text), col, t: performance.now() }); }
+  function pop(text, col, near) { if (run) run.pops.push({ text: nb(text), col, t: performance.now(), near: !!near }); }
 
   // ------------------------------------------------------------------ Eingabe: Touch, Maus/Touchpad, Tastatur
   const track = { pts: [], acc: 0, lastV: null, lastMove: 0, swipeAt: 0 };
@@ -1475,7 +1476,7 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
   }
   function figureState(t, dt) {
     const r = run, bt = r.bt, el = phaseAt(t);
-    const speed = el && el.kind === "spin" && t > bt[el.from] - 0.2 ? 0 : el && el.kind === "steps" ? 0.55 : el && el.kind === "pose" && t > bt[el.at] ? 0 : 1;
+    const speed = el && el.kind === "spin" && t > bt[el.from] - 0.2 ? 0 : el && el.kind === "steps" ? 0.9 : el && el.kind === "pose" && t > bt[el.at] ? 0 : 1;
     // Takt: ein Laufschritt je Takt, Abstoß auf der Eins; Stand- und Spielbein wechseln jeden Takt
     const bi = Math.max(0, bt.findIndex((b) => b > t) - 1), ph = bi >= 0 && bt[bi + 1] ? (t - bt[bi]) / (bt[bi + 1] - bt[bi]) : 0;
     const bar = t < 0 ? Math.floor(t / (bt[3] - bt[0])) : Math.floor(bi / 3);
@@ -1520,16 +1521,24 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
     if (t < r.fallUntil) { pose = F.POSES.fallen; tilt = -1.25 * smooth((r.fallUntil - t) > 1.0 ? (1.3 - (r.fallUntil - t)) / 0.3 : 1); lift = -4; }
     else if (t < r.landUntil) pose = F.mix(F.POSES.land, pose, smooth(1 - (r.landUntil - t) / 0.6));
     if (el && el.kind === "spin" && t > bt[el.from] - 0.2 && t < bt[el.from + 12] + 0.3) {
-      pose = F.POSES[el.pose] || F.POSES.spin; r.spinV = Math.max(0.25, r.spinV - dt * 0.6); r.turn += dt * Math.PI * 2 * (0.6 + 2.2 * r.spinV); turn = r.turn;
+      pose = F.POSES[el.pose] || F.POSES.spin; r.spinV = Math.max(0.3, r.spinV - dt * 0.5); r.turn += dt * Math.PI * 2 * (1.4 + 2.8 * r.spinV); turn = r.turn;
     }
     if (el && el.kind === "steps") {
-      // Antwort auf das Wischen: links/rechts = Gewicht und Gleiten zur Seite, hoch = Hüpfer, runter = tief in die Knie
-      const sw = r.lastSwipe && t - r.lastSwipe.t < 0.45 ? r.lastSwipe : null, k2 = sw ? Math.sin(Math.PI * clamp((t - sw.t) / 0.45, 0, 1)) : 0;
+      // Antwort auf das Wischen, groß und fließend: ← → tiefe Kante mit weitem Armzug, Gleiten zur Seite und halbe Drehung (Dreier);
+      // ↑ Hüpfer mit gestreckten Beinen; ↓ tiefer Ausfallschritt, Spielbein lang auf dem Eis
+      const sw = r.lastSwipe && t - r.lastSwipe.t < 0.6 ? r.lastSwipe : null, k2 = sw ? Math.sin(Math.PI * clamp((t - sw.t) / 0.6, 0, 1)) : 0;
       pose = F.mix(F.POSES.stepA, F.POSES.stepB, (Math.sin(Math.PI * (bi + ph)) + 1) / 2);
-      if (sw && sw.dir === "u") { pose = F.mix(pose, F.POSES.stepU, k2); lift = 16 * k2; }
+      if (sw && sw.dir === "u") { pose = F.mix(pose, F.POSES.stepU, k2); lift = 26 * k2; }
       else if (sw && sw.dir === "d") pose = F.mix(pose, F.POSES.stepD, k2);
-      else if (sw) { tilt = (sw.dir === "r" ? 0.22 : -0.22) * k2; r.slideV = (sw.dir === "r" ? 1 : -1) * 90; }
+      else if (sw) {
+        pose = F.mix(pose, F.POSES.edge, k2); tilt = (sw.dir === "r" ? 0.34 : -0.34) * k2;
+        if (r.lastTurnSwipe !== sw.t) { r.lastTurnSwipe = sw.t; r.slideV = (sw.dir === "r" ? 1 : -1) * 170; r.stepTurnTo = (r.stepTurnTo || 0) + Math.PI; }
+      }
     }
+    // nach der Schrittfolge wieder vorwärts: ungerade Zahl halber Drehungen ausgleichen
+    if (!(el && el.kind === "steps") && Math.round((r.stepTurnTo || 0) / Math.PI) % 2) r.stepTurnTo += Math.PI;
+    r.stepTurn = (r.stepTurn || 0) + ((r.stepTurnTo || 0) - (r.stepTurn || 0)) * (1 - Math.exp(-dt * 7));
+    turn += r.stepTurn;
     r.slide = (r.slide || 0) + (r.slideV || 0) * dt; r.slideV = (r.slideV || 0) * Math.pow(0.04, dt); r.slide *= Math.pow(0.5, dt);
     if (el && el.kind === "pose" && (r.posed || t > bt[el.at] + 0.4)) pose = F.mix(pose, F.POSES.final, smooth((t - bt[el.at] + 0.3) / 0.4));
     return { x: x + (r.slide || 0), d, pose, lift, turn: r.face + turn, tilt, swap: r.swap && !(el && (el.kind === "spin" || el.kind === "jump")) };
@@ -1575,49 +1584,68 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
       ctx.fillStyle = "#141B25"; ctx.fillText(txt, W / 2, y0 - 18.5);
     }
   }
-  function drawRing(fx, fy, s, t) {
-    if (S.help !== "anf") return;
-    for (const m of run.marks) {
-      if (m.kind !== "hold") continue;
-      const lead = m.t - t;
-      if (lead > 0 && lead < 1.4) {
-        const r = (26 + lead * 48) * s; ctx.strokeStyle = `rgba(243,201,105,${0.9 - lead * 0.5})`; ctx.lineWidth = 3;
-        ctx.beginPath(); ctx.ellipse(fx, fy - 30 * s, r, r * 0.9, 0, 0, 7); ctx.stroke();
+  // Hilfe direkt an der Läuferin: das nächste Zeichen schwebt über ihr, ein goldener Ring schließt sich genau auf dem Schlag.
+  // Sprung: ● drücken, dann füllt sich der Bogen bis ○ loslassen. Unter den Kufen pulsieren die drei Schläge des Takts.
+  const SYM = { spin: "⟳", pose: "★" };
+  function cueMark(t) {
+    const j = run.jump;
+    if (j && j.t1 === null && t >= j.t0 && t < j.land + 0.4) return { kind: "holding", m: run.marks.find((x) => x.kind === "hold" && x.el === j.el), j };
+    return { m: run.marks.find((x) => x.t > t - 0.12 && x.t - t < 1.25 && !(x.kind === "hold" && run.jump && run.jump.el === x.el)) };
+  }
+  function drawCue(fx, fy, s, t, lift) {
+    const c = cueMark(t), m = c.m;
+    const y = Math.max(46, fy - (132 + Math.max(0, lift || 0)) * s), R = 20;
+    if (m) {
+      ctx.textAlign = "center"; ctx.textBaseline = "middle";
+      if (c.kind === "holding") {
+        const u = clamp((t - c.j.t0) / (m.t2 - c.j.t0), 0, 1), lead = m.t2 - t;
+        ctx.fillStyle = "#141B25"; ctx.strokeStyle = "#DDA43B"; ctx.lineWidth = 4; ctx.beginPath(); ctx.arc(fx, y, R, 0, 7); ctx.fill(); ctx.stroke();
+        ctx.strokeStyle = "#F3C969"; ctx.lineWidth = 6; ctx.beginPath(); ctx.arc(fx, y, R + 6, -Math.PI / 2, -Math.PI / 2 + u * Math.PI * 2); ctx.stroke();
+        if (lead > 0) { ctx.strokeStyle = "rgba(243,201,105,0.8)"; ctx.lineWidth = 2.5; ctx.beginPath(); ctx.arc(fx, y, R + 3 + lead * 28, 0, 7); ctx.stroke(); }
+        label(fx, y + R + 12, "HALTEN … LOSLASSEN");
+      } else {
+        const lead = m.t - t, hit = run.inputs.some((i) => Math.abs(i.t - m.t) < 0.3 && (m.kind === "step" ? i.type === "swipe" : m.kind === "spin" ? i.type === "circle" : i.type === "down"));
+        ctx.globalAlpha = hit ? 0.35 : 1;
+        ctx.fillStyle = m.kind === "hold" || m.kind === "pose" ? "#DDA43B" : "#F1E7D2"; ctx.strokeStyle = "#141B25"; ctx.lineWidth = 2.5;
+        ctx.beginPath(); ctx.arc(fx, y, R, 0, 7); ctx.fill(); ctx.stroke();
+        if (lead > 0) { ctx.strokeStyle = "#F3C969"; ctx.lineWidth = 3.5; ctx.beginPath(); ctx.arc(fx, y, R + 3 + lead * 28, 0, 7); ctx.stroke(); }
+        ctx.fillStyle = m.kind === "step" ? "#C23B2A" : "#141B25"; ctx.font = "bold 24px " + font();
+        ctx.fillText(m.kind === "step" ? STEP[m.dir][0] : m.kind === "hold" ? "●" : SYM[m.kind], fx, y + 1);
+        label(fx, y + R + 12, m.kind === "step" ? STEP[m.dir][1].toUpperCase() : m.kind === "hold" ? (canHover() ? "LEERTASTE DRÜCKEN" : "DRÜCKEN") : m.kind === "spin" ? "RUNDE AUF DEN SCHLAG" : "POSE");
+        ctx.globalAlpha = 1;
       }
-      const j = run.jump && run.jump.el === m.el ? run.jump : null;
-      if (j && j.t1 === null && t >= j.t0 && t < m.t2 + 0.5) {
-        const u = clamp((t - j.t0) / (m.t2 - j.t0), 0, 1), R = 30 * s;
-        ctx.strokeStyle = "rgba(241,231,210,0.35)"; ctx.lineWidth = 5; ctx.beginPath(); ctx.arc(fx, fy - 70 * s, R * 0.5, 0, 7); ctx.stroke();
-        ctx.strokeStyle = "#F3C969"; ctx.beginPath(); ctx.arc(fx, fy - 70 * s, R * 0.5, -Math.PI / 2, -Math.PI / 2 + u * Math.PI * 2); ctx.stroke();
+    }
+    // Takt unter den Kufen: Eins groß, dann zwei kleine; leuchtet auf dem Schlag
+    const bt = run.bt, bi = bt.findIndex((b) => b > t) - 1;
+    if (bi >= 0 && t < bt[bt.length - 1]) {
+      for (let k = 0; k < 3; k++) {
+        const on = bi % 3 === k, a = on ? Math.max(0, 1 - (t - bt[bi]) / 0.35) : 0, r0 = (k === 0 ? 4 : 2.8) * (1 + a * 0.5);
+        ctx.fillStyle = on ? `rgba(221,164,59,${0.45 + 0.55 * a})` : "rgba(20,27,37,0.25)";
+        ctx.beginPath(); ctx.ellipse(fx - 14 + k * 14, fy + 15, r0 * 1.4, r0 * 0.6, 0, 0, 7); ctx.fill();
       }
     }
   }
-  // nächster Schritt groß über der Läuferin: Pfeil und Bedeutung, wird zum Schlag hin voll
-  function drawStepCue(fx, fy, s, t) {
-    const m = run.marks.find((x) => x.kind === "step" && x.t > t - 0.12 && x.t - t < 1.0);
-    if (!m) return;
-    const lead = m.t - t, y = Math.max(46, fy - 132 * s), R = 20;
-    const hit = run.inputs.some((i) => i.type === "swipe" && Math.abs(i.t - m.t) < 0.3);
-    ctx.globalAlpha = hit ? 0.4 : 1;
-    ctx.fillStyle = "#F1E7D2"; ctx.strokeStyle = "#141B25"; ctx.lineWidth = 2.5;
-    ctx.beginPath(); ctx.arc(fx, y, R, 0, 7); ctx.fill(); ctx.stroke();
-    if (lead > 0) { ctx.strokeStyle = "#F3C969"; ctx.lineWidth = 3.5; ctx.beginPath(); ctx.arc(fx, y, R + 3 + lead * 28, 0, 7); ctx.stroke(); }
-    ctx.fillStyle = "#C23B2A"; ctx.textAlign = "center"; ctx.textBaseline = "middle"; ctx.font = "bold 26px " + font();
-    ctx.fillText(STEP[m.dir][0], fx, y + 1);
-    const lab = STEP[m.dir][1].toUpperCase(); ctx.font = "700 12px " + font();
-    const lw = ctx.measureText(lab).width + 12;
-    ctx.fillStyle = "#141B25"; ctx.fillRect(fx - lw / 2, y + R + 3, lw, 17);
-    ctx.fillStyle = "#F1E7D2"; ctx.fillText(lab, fx, y + R + 12);
-    ctx.globalAlpha = 1;
+  function label(x, y, txt) {
+    ctx.font = "700 12px " + font(); const lw = ctx.measureText(txt).width + 12;
+    ctx.fillStyle = "#141B25"; ctx.fillRect(x - lw / 2, y - 9, lw, 17);
+    ctx.fillStyle = "#F1E7D2"; ctx.textAlign = "center"; ctx.textBaseline = "middle"; ctx.fillText(txt, x, y);
   }
-  function drawPops() {
+  // Rückmeldungen: Timing direkt neben der Läuferin, Punkte der Elemente oben
+  function drawPops(fx, fy, s) {
     const now = performance.now();
-    run.pops = run.pops.filter((p) => now - p.t < 1300).slice(-4);
-    ctx.textAlign = "center"; ctx.font = "700 17px " + font();
-    run.pops.forEach((p, i) => {
-      const a = (now - p.t) / 1300, y = 70 + i * 24 - a * 14;
-      ctx.globalAlpha = 1 - a * a; ctx.lineWidth = 4; ctx.strokeStyle = "#141B25"; ctx.strokeText(p.text, W / 2, y); ctx.fillStyle = p.col; ctx.fillText(p.text, W / 2, y);
-    });
+    run.pops = run.pops.filter((p) => now - p.t < 1300);
+    const lastNear = run.pops.filter((p) => p.near).pop();
+    run.pops = run.pops.filter((p) => !p.near || p === lastNear).slice(-4);
+    ctx.textAlign = "left"; ctx.textBaseline = "alphabetic";
+    let top = 0;
+    for (const p of run.pops) {
+      const a = (now - p.t) / 1300;
+      let x, y;
+      // Timing neben der Läuferin, rechts auf Hüfthöhe
+      if (p.near) { ctx.textAlign = "left"; x = Math.min(fx + 26 * s, W - 150); y = fy - 46 * s - a * 12; ctx.font = "700 16px " + font(); }
+      else { ctx.textAlign = "center"; x = W / 2; y = 70 + top * 24 - a * 14; top++; ctx.font = "700 17px " + font(); }
+      ctx.globalAlpha = 1 - a * a; ctx.lineWidth = 4; ctx.strokeStyle = "#141B25"; ctx.strokeText(p.text, x, y); ctx.fillStyle = p.col; ctx.fillText(p.text, x, y);
+    }
     ctx.globalAlpha = 1;
   }
   let lastFrame = performance.now(), idleP = 0;
@@ -1649,7 +1677,7 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
     scene.draw(ctx, run.camX);
     const fx = st.x - run.camX;
     ctx.fillStyle = "rgba(20,27,37,0.18)"; ctx.beginPath(); ctx.ellipse(fx, fy + 3, 18 * s * (1 - st.lift / 120), 4 * s, 0, 0, 7); ctx.fill();
-    drawRing(fx, fy, s, t); if (S.help === "anf" || t < 30) drawStepCue(fx, fy, s, t);
+    drawCue(fx, fy, s, t, st.lift);
     // Kufenspur auf dem Eis, verblasst
     {
       run.trailT += dt;
@@ -1658,7 +1686,7 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
     }
     run.sp = F.ease(run.sp, st.pose, dt, st.lift > 1 || st.tilt < -0.3);
     F.draw(ctx, { x: fx, y: fy, s, dir: 1, pose: run.sp, lift: st.lift, turn: st.turn, tilt: st.tilt, swap: st.swap, look: S.look });
-    drawLane(t); drawPops();
+    drawLane(t); drawPops(fx, fy, s);
     updateChips(t);
   }
   const IDLE = { face: 0, trail: [], tt: 0 };
