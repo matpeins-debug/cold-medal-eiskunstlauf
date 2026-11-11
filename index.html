@@ -58,6 +58,7 @@ h2 { font-family: var(--font-display); font-size: 22px; text-transform: uppercas
 .col { display: flex; flex-direction: column; gap: 8px; margin-top: 2px; }
 .row2 { display: flex; gap: 8px; }
 .row2 > * { flex: 1; }
+.card.menu .row2 .mid { padding: 9px 4px; font-size: 12.5px; letter-spacing: 0.03em; }
 .big, .mid, .pill { font-family: var(--font-display); font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; border: 2px solid var(--ink-deep); background: var(--paper); }
 .big { display: flex; flex-direction: column; align-items: flex-start; padding: 7px 14px; font-size: 18px; box-shadow: 3px 3px 0 var(--ink-deep); text-align: left; }
 .big small { font-family: var(--font-body); font-weight: 400; text-transform: none; letter-spacing: 0; font-size: 12.5px; opacity: 0.85; }
@@ -154,6 +155,18 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
 .el:disabled { opacity: 0.35; cursor: default; }
 .pFoot { display: flex; align-items: center; gap: 8px; }
 .pFoot .note { flex: 1; }
+
+/* Kür-Bild und Album */
+#scrPaint, #scrAlbum { justify-content: center; background: rgba(14,22,38,0.35); }
+.paintC { display: flex; gap: 14px; align-items: center; padding: 10px; }
+#paintImg { height: 100%; max-height: 340px; aspect-ratio: 3 / 2; object-fit: contain; border: 2px solid var(--ink-deep); background: var(--paper); }
+.paintSide { flex: 1; display: flex; flex-direction: column; gap: 10px; }
+.albumC { display: flex; flex-direction: column; gap: 8px; padding: 10px 14px; }
+.agrid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; overflow-y: auto; padding-bottom: 46px; touch-action: pan-y; }
+.agrid button { display: flex; flex-direction: column; gap: 2px; padding: 0; text-align: left; }
+.agrid img { width: 100%; aspect-ratio: 3 / 2; border: 2px solid var(--ink-deep); background: var(--paper); display: block; }
+.agrid small { font-size: 11px; color: var(--muted); font-family: var(--font-display); }
+.agrid .empty { grid-column: 1 / -1; font-size: 13px; color: var(--muted); }
 </style>
 </head>
 <body>
@@ -175,8 +188,9 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
         <button class="big red" id="bComp"><span>Kür · Wettkampf</span><small id="mBest"></small></button>
         <button class="big" id="bTrain"><span>Training</span><small>ohne Wertung gegen andere</small></button>
         <div class="row2">
-          <button class="mid" id="bProg">Meine Kür</button>
+          <button class="mid" id="bProg">Kürplan</button>
           <button class="mid" id="bLook">Figur</button>
+          <button class="mid" id="bAlbum">Album</button>
           <button class="mid" id="bSet">Optionen</button>
         </div>
       </div>
@@ -210,6 +224,29 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
       <div class="pick" id="pick"></div>
       <div class="pFoot"><span class="note" id="pMsg"></span>
         <button class="mid" id="pDef">Vorschlag</button><button class="mid red" id="pDone">Fertig</button></div>
+    </div>
+  </section>
+
+  <section class="scr" id="scrPaint" hidden>
+    <div class="card wide paintC">
+      <img id="paintImg" alt="Bild der Kür von oben">
+      <div class="paintSide">
+        <div class="kicker">DEIN KÜR-BILD</div>
+        <p class="note">Die Spur deiner Kür von oben: Gold war perfekt im Takt, Blau gut, Grau daneben. Sterne sind die Sprünge, die Rosetten deine Pirouetten.</p>
+        <div class="col">
+          <button class="mid red" id="pShare">Teilen</button>
+          <button class="mid" id="pAlbum">Album</button>
+          <button class="mid" id="pBack">Zurück</button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="scr" id="scrAlbum" hidden>
+    <div class="card wide albumC">
+      <div class="pHead"><div class="kicker">ALBUM</div><div class="pSum" id="aSum"></div></div>
+      <div class="agrid" id="aGrid"></div>
+      <button class="mid red done" id="aDone">Zurück</button>
     </div>
   </section>
 
@@ -268,6 +305,7 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
         <div class="rTip" id="rTip"></div>
         <div class="row2">
           <button class="mid red" id="rAgain">Nochmal</button>
+          <button class="mid" id="rPaint">Kür-Bild</button>
           <button class="mid" id="rMenu">Menü</button>
         </div>
       </div>
@@ -1247,10 +1285,88 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
   root.EKScene = { Scene, PLACES, W, H, WW, ICE_TOP, footY, scaleAt };
 })(typeof window !== "undefined" ? window : globalThis);
 
+/* Cold Medal · Eiskunstlauf – Kür-Bild: die Spur der Kür von oben, als Plakat im Stil der 1920er Jahre.
+   Farbe der Spur = Timing in diesem Moment (Gold perfekt, Blau gut, Grau daneben oder ohne Eingabe).
+   Sprünge als Sterne (rot bei Sturz), Pirouetten als Rosetten (entstehen aus der Spur), Pose als Stern am Ende. */
+(function (root) {
+  "use strict";
+  const INK = "#141B25", PAPER = "#F1E7D2";
+  const COL = { 2: "#D9A12E", 1: "#3E6E9E", 0: "#9AA3AD" };
+
+  // data: { pts: [[x 0…1, y 0…1, q]], marks: [{ x, y, kind, ok }], venue, date, name, nat, score, timing, look }
+  function render(cv, data) {
+    const W = cv.width, H = cv.height, g = cv.getContext("2d"), k = W / 900;
+    g.setTransform(1, 0, 0, 1, 0, 0);
+    g.fillStyle = PAPER; g.fillRect(0, 0, W, H);
+    g.scale(k, k);
+    const w = 900, h = H / k;
+    // Rahmen
+    g.strokeStyle = INK; g.lineWidth = 6; g.strokeRect(14, 14, w - 28, h - 28);
+    g.lineWidth = 1.5; g.strokeRect(24, 24, w - 48, h - 48);
+    // Eisfläche von oben: abgerundetes Rechteck mit Bande
+    const rx = 70, ry = 62, rw = w - 140, rh = h - 200, rr = 70;
+    const rink = () => { g.beginPath(); g.moveTo(rx + rr, ry); g.arcTo(rx + rw, ry, rx + rw, ry + rh, rr); g.arcTo(rx + rw, ry + rh, rx, ry + rh, rr); g.arcTo(rx, ry + rh, rx, ry, rr); g.arcTo(rx, ry, rx + rw, ry, rr); g.closePath(); };
+    const ice = g.createLinearGradient(0, ry, 0, ry + rh); ice.addColorStop(0, "#DCE8F0"); ice.addColorStop(1, "#EEF2EE");
+    rink(); g.fillStyle = ice; g.fill();
+    g.lineWidth = 10; g.strokeStyle = INK; g.stroke();
+    g.lineWidth = 6; g.strokeStyle = PAPER; g.stroke();
+    g.setLineDash([22, 22]); g.lineWidth = 2; g.strokeStyle = "#C23B2A"; g.stroke(); g.setLineDash([]);
+    // Mittellinie und Kreis, zart
+    g.strokeStyle = "rgba(35,70,107,0.18)"; g.lineWidth = 2;
+    g.beginPath(); g.moveTo(rx + rw / 2, ry); g.lineTo(rx + rw / 2, ry + rh); g.stroke();
+    g.beginPath(); g.arc(rx + rw / 2, ry + rh / 2, 46, 0, 7); g.stroke();
+    // Spur: kalligrafisch, dicker bei gutem Timing
+    const X = (x) => rx + 40 + x * (rw - 80), Y = (y) => ry + 30 + y * (rh - 60);
+    const P = data.pts || [];
+    g.lineCap = "round"; g.lineJoin = "round";
+    for (let i = 1; i < P.length; i++) {
+      const a = P[i - 1], b = P[i];
+      if (Math.abs(b[0] - a[0]) > 0.08 || Math.abs(b[1] - a[1]) > 0.2) continue;
+      g.strokeStyle = COL[b[2]] || COL[0]; g.lineWidth = b[2] === 2 ? 4.5 : b[2] === 1 ? 3.4 : 2.2;
+      g.beginPath(); g.moveTo(X(a[0]), Y(a[1])); g.lineTo(X(b[0]), Y(b[1])); g.stroke();
+    }
+    // Sprünge und Pose
+    for (const m of data.marks || []) {
+      const x = X(m.x), y = Y(m.y);
+      if (m.kind === "jump" || m.kind === "pose") star(g, x, y, m.kind === "pose" ? 15 : 11, m.ok ? "#F3C969" : "#C23B2A");
+      else if (m.kind === "fall") { g.strokeStyle = "#C23B2A"; g.lineWidth = 4; g.beginPath(); g.moveTo(x - 8, y - 8); g.lineTo(x + 8, y + 8); g.moveTo(x + 8, y - 8); g.lineTo(x - 8, y + 8); g.stroke(); }
+    }
+    // Schriftblock
+    const ty = ry + rh + 22, F = "Futura, 'Avenir Next Condensed', 'Bahnschrift Condensed', 'Arial Narrow', sans-serif";
+    g.fillStyle = "#C23B2A"; g.font = `600 17px ${F}`; g.textBaseline = "top"; g.textAlign = "left";
+    g.fillText(`${(data.venue || "").toUpperCase()} · ${data.date || ""}`, 46, ty);
+    g.fillStyle = INK; g.font = `bold 46px ${F}`;
+    g.fillText((data.name || "Meine Kür").toUpperCase(), 44, ty + 22);
+    g.textAlign = "right"; g.font = `bold 46px ${F}`; g.fillText(data.score || "", w - 46, ty + 22);
+    g.font = `600 17px ${F}`; g.fillStyle = "#6E6656"; g.fillText(data.timing || "", w - 46, ty);
+    g.textAlign = "left"; g.font = `italic 15px Georgia, serif`; g.fillStyle = "#6E6656";
+    g.fillText("Cold Medal · Eiskunstlauf", 46, h - 46);
+    // Legende
+    g.textAlign = "right";
+    let lx = w - 46;
+    for (const [q, t] of [[0, "daneben"], [1, "gut"], [2, "perfekt"]]) {
+      g.fillText(t, lx, h - 46); lx -= g.measureText(t).width + 8;
+      g.strokeStyle = COL[q]; g.lineWidth = 5; g.beginPath(); g.moveTo(lx - 22, h - 37); g.lineTo(lx, h - 37); g.stroke(); lx -= 36;
+    }
+    // Papierkorn
+    const R = rng(7);
+    g.fillStyle = "rgba(60,45,25,0.05)";
+    for (let i = 0; i < 2600; i++) g.fillRect(R() * w, R() * h, 1.2, 1.2);
+  }
+  function star(g, x, y, r, col) {
+    g.beginPath();
+    for (let k = 0; k < 10; k++) { const a = k * Math.PI / 5 - Math.PI / 2, rr = k % 2 ? r * 0.42 : r; g.lineTo(x + Math.cos(a) * rr, y + Math.sin(a) * rr); }
+    g.closePath(); g.fillStyle = col; g.fill(); g.strokeStyle = INK; g.lineWidth = 1.8; g.stroke();
+  }
+  function rng(seed) { let s = seed >>> 0; return () => ((s = (s * 1664525 + 1013904223) >>> 0) / 4294967296); }
+
+  root.EKPaint = { render };
+})(typeof window !== "undefined" ? window : globalThis);
+
 /* COLD MEDAL EISKUNSTLAUF – Ablauf, Bildschirme, Eingabe, Taktband, Ergebnis, Spielstand. */
 (function () {
   "use strict";
-  const VERSION = "0.3";
+  const VERSION = "0.4";
   // Seiten-Einstellungen aus dem Build (eigenes Hosting: Adresse, Hoster, Impressum); im claude.ai-Artefakt leer
   const SITE = Object.assign({ web: false, url: "", impressum: null }, {"web": true, "url": "https://matpeins-debug.github.io/cold-medal-eiskunstlauf/", "hoster": "GitHub Pages (GitHub Inc., USA)", "drittland": "GitHub ist nach dem EU-US Data Privacy Framework zertifiziert; die Übermittlung in die USA stützt sich auf den Angemessenheitsbeschluss der EU-Kommission dazu.", "impressum": {"name": "", "adresse": "", "mail": ""}} || {});
   const M = window.EKMusic, K = window.EKSkate, F = window.EKFigure, SC = window.EKScene;
@@ -1270,9 +1386,9 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
 
   // ------------------------------------------------------------------ Spielstand (nur auf diesem Gerät; Aussehen zieht später in pass/ um)
   const KEY = "coldmedal-eiskunstlauf";
-  const DEF = { v: 1, prog: null, name: "", nat: "AUT", look: F.DEF_LOOK, help: "anf", sound: 1, preset: "salon", lat: 0, best: 0, bestTrain: 0, runs: 0, flowers: 0, toys: 0 };
+  const DEF = { v: 1, prog: null, name: "", nat: "AUT", look: F.DEF_LOOK, help: "anf", sound: 1, preset: "salon", lat: 0, best: 0, bestTrain: 0, runs: 0, flowers: 0, toys: 0, album: [] };
   function sanitize(o) {
-    const S = Object.assign({}, DEF, { look: F.cleanLook(null), prog: K.DEFAULT_SLOTS.slice() });
+    const S = Object.assign({}, DEF, { look: F.cleanLook(null), prog: K.DEFAULT_SLOTS.slice(), album: [] });
     if (o && typeof o === "object") {
       if (typeof o.name === "string") S.name = o.name.replace(/[<>&"]/g, "").trim().slice(0, 14);
       if (NAT[o.nat]) S.nat = o.nat;
@@ -1282,13 +1398,19 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
       if (M.PRESETS[o.preset]) S.preset = o.preset;
       if (Number.isFinite(o.lat)) S.lat = clamp(Math.round(o.lat / 10) * 10, -200, 400);
       S.prog = K.cleanSlots(o.prog);
+      S.album = Array.isArray(o.album) ? o.album.filter((a) => a && typeof a.img === "string" && a.img.startsWith("data:image/jpeg;base64,") && a.img.length < 250000)
+        .slice(0, 8).map((a) => ({ img: a.img, date: String(a.date || "").slice(0, 12), score: String(a.score || "").slice(0, 12), venue: String(a.venue || "").slice(0, 40) })) : [];
       for (const k of ["best", "bestTrain", "runs", "flowers", "toys"]) if (Number.isFinite(o[k]) && o[k] >= 0) S[k] = +o[k];
     }
     return S;
   }
   let S = sanitize(null);
   try { S = sanitize(JSON.parse(localStorage.getItem(KEY) || "null")); } catch (e) { /* ohne Speicher */ }
-  function save() { try { localStorage.setItem(KEY, JSON.stringify(S)); } catch (e) { /* egal */ } }
+  function save() {
+    for (let i = 0; i < 9; i++) {
+      try { localStorage.setItem(KEY, JSON.stringify(S)); return; } catch (e) { if (!S.album.length) return; S.album.pop(); } // Speicher voll: ältestes Bild weg
+    }
+  }
 
   // ------------------------------------------------------------------ Bühne: 844 × 390, skaliert; im Hochformat gedreht
   const stage = $("stage"), cv = $("cv"), ctx = cv.getContext("2d");
@@ -1390,7 +1512,7 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
     PROG = K.buildProgram(S.prog);
     const bt = M.grid(SCORE, SCORE.bpm, true);
     run = { mode, bt, marks: buildMarks(bt), inputs: [], fake, fakeT: -0.6, lastT: 0, done: {}, pops: [], p: 0, camX: WW / 2 - W / 2,
-      dir: 1, face: 0, trail: [], trailT: 0, turn: 0, spinV: 0, jump: null, fallUntil: -1, landUntil: -1, lastSwipe: null, posed: false, finished: false, k: kHelp(), intensity: 0.6, cheer: 0, burst: 0, streak: 0, bestStreak: 0, accI: 0, throws: null, intT: 0, seed: (Date.now() & 0xffff) || 7 };
+      dir: 1, face: 0, trail: [], trailT: 0, turn: 0, spinV: 0, jump: null, fallUntil: -1, landUntil: -1, lastSwipe: null, posed: false, finished: false, k: kHelp(), paint: { pts: [], marks: [], t: 0 }, lastQ: null, pos: null, intensity: 0.6, cheer: 0, burst: 0, streak: 0, bestStreak: 0, accI: 0, throws: null, intT: 0, seed: (Date.now() & 0xffff) || 7 };
     show(null); $("hud").hidden = false; buildChips();
     if (!fake) player.start(SCORE.id, { preset: S.preset, swing: true });
   }
@@ -1420,11 +1542,13 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
       const jm = r.marks.find((m) => m.kind === "hold" && Math.abs(inp.t - m.t) <= K.WIN.jump * k && !(r.jump && r.jump.el === m.el));
       if (jm) r.jump = { el: jm.el, t0: inp.t, t1: null, land: jm.t2 };
       const pm = r.marks.find((m) => m.kind === "pose" && Math.abs(inp.t - m.t) <= K.WIN.pose * k);
+      if (pm && !r.posed && r.pos) r.paint.marks.push({ x: r.pos[0], y: r.pos[1], kind: "pose", ok: true });
       if (pm) r.posed = true;
     }
     if (inp.type === "up" && r.jump && r.jump.t1 === null) {
       r.jump.t1 = inp.t;
       const dl = inp.t - r.jump.land;
+      if (r.pos) r.paint.marks.push({ x: r.pos[0], y: r.pos[1], kind: Math.abs(dl) > K.WIN.fall * k ? "fall" : "jump", ok: Math.abs(dl) <= K.WIN.under * k });
       if (Math.abs(dl) > K.WIN.fall * k) { r.fallUntil = inp.t + 1.3; sfx("fall"); r.streak = 0; r.intensity = clamp(r.intensity - 0.35, 0, 1); r.burst = 0; } else { r.landUntil = inp.t + 0.6; sfx("land"); }
     }
     if (inp.type === "swipe") r.lastSwipe = { dir: inp.dir, t: inp.t };
@@ -1433,6 +1557,7 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
     const word = !best.ok ? "Falsche Richtung" : a <= T.perfect ? "Perfekt" : a <= T.good ? "Gut" : ms < 0 ? "Zu früh" : "Zu spät";
     // Serie, Orchester und Publikum folgen der Leistung
     const q = !best.ok ? 0 : a <= T.perfect ? 1 : a <= T.good ? 0.6 : 0.15;
+    r.lastQ = { q: q >= 1 ? 2 : q >= 0.6 ? 1 : 0, t: inp.t };
     if (best.ok && a <= T.good) { r.streak++; r.bestStreak = Math.max(r.bestStreak, r.streak); } else r.streak = 0;
     r.intensity = clamp(r.intensity + (q >= 1 ? 0.1 : q >= 0.6 ? 0.04 : -0.14), 0, 1);
     // die Eingabe klingt: Glocke beim Absprung, Harfe bei jeder Pirouetten-Runde, Pizzicato bei jedem Schritt, Akkord zur Pose
@@ -1766,6 +1891,16 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
     run.intT += dt; if (player && player.playing && run.intT > 0.2) { run.intT = 0; player.setIntensity(run.intensity); }
     run.intensity += (0.6 - run.intensity) * Math.min(1, dt * 0.05);
     const fx = st.x - run.camX;
+    // Kür-Bild: Position von oben (x über die Bahn, y = Tiefe), Farbe nach dem letzten Timing; Pirouetten zeichnen Rosetten
+    {
+      const pn = [st.x / WW, clamp((st.d - 0.15) / 0.75, 0, 1)], elx = phaseAt(t);
+      if (elx && elx.kind === "spin" && t > run.bt[elx.from] - 0.2) { const a = run.turn * 0.5, rr = 0.03 + 0.018 * Math.sin(run.turn * 0.11); pn[0] += Math.cos(a) * rr; pn[1] += Math.sin(a) * rr * 2.2; }
+      run.pos = pn; run.paint.t += dt;
+      if (t > 0 && st.lift <= 1 && run.paint.t > 0.04 && !run.finished) {
+        run.paint.t = 0; const lq = run.lastQ && t - run.lastQ.t < 1.6 ? run.lastQ.q : 0;
+        run.paint.pts.push([+pn[0].toFixed(4), +pn[1].toFixed(4), lq]);
+      }
+    }
     ctx.fillStyle = "rgba(20,27,37,0.18)"; ctx.beginPath(); ctx.ellipse(fx, fy + 3, 18 * s * (1 - st.lift / 120), 4 * s, 0, 0, 7); ctx.fill();
     drawCue(fx, fy, s, t, st.lift);
     // Kufenspur auf dem Eis, verblasst
@@ -1810,9 +1945,49 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
     save();
 
     $("hud").hidden = true;
+    makePainting(res, board ? rank : 0);
     showResult(res, board, rank);
     window.__ek.last = res;
   }
+  // Kür-Bild malen, ins Album (die letzten 8)
+  let paintCv = null, paintShown = null;
+  function makePainting(res, rank) {
+    try {
+      paintCv = paintCv || document.createElement("canvas"); paintCv.width = 900; paintCv.height = 600;
+      const d = new Date(), date = `${d.getDate()}.${d.getMonth() + 1}.${d.getFullYear()}`, score = dec(res.total);
+      window.EKPaint.render(paintCv, { pts: run.paint.pts, marks: run.paint.marks, venue: SC.PLACES.wien.venue, date, name: S.name || "Meine Kür",
+        score: score + (rank ? ` · ${rank}.` : ""), timing: res.timing ? `Ø ${res.timing.mean} ms vom Takt` : "" });
+      const img = paintCv.toDataURL("image/jpeg", 0.72);
+      paintShown = img;
+      S.album.unshift({ img, date, score, venue: SC.PLACES.wien.venue }); S.album = S.album.slice(0, 8); save();
+    } catch (e) { paintShown = null; }
+  }
+  function openPaint(img, from) {
+    if (!img) return;
+    paintShown = img; $("paintImg").src = img; paintFrom = from;
+    $("pShare").hidden = !SITE.web;
+    show("scrPaint");
+  }
+  let paintFrom = "scrRes";
+  $("rPaint").onclick = () => openPaint(paintShown, "scrRes");
+  $("pBack").onclick = () => show(paintFrom);
+  $("pAlbum").onclick = () => openAlbum();
+  $("pShare").onclick = async () => {
+    try {
+      const blob = await (await fetch(paintShown)).blob(), file = new File([blob], "kuer-bild.jpg", { type: "image/jpeg" });
+      if (navigator.canShare && navigator.canShare({ files: [file] })) { await navigator.share({ files: [file], title: "Meine Kür · Cold Medal Eiskunstlauf" }); return; }
+      const a = document.createElement("a"); a.href = paintShown; a.download = "kuer-bild.jpg"; document.body.appendChild(a); a.click(); a.remove();
+    } catch (e) { /* abgebrochen */ }
+  };
+  function openAlbum() {
+    $("aSum").innerHTML = nb(`${S.runs} ${S.runs === 1 ? "Kür" : "Küren"} · ${S.flowers} ${S.flowers === 1 ? "Blume" : "Blumen"} · ${S.toys} ${S.toys === 1 ? "Stofftier" : "Stofftiere"}`);
+    $("aGrid").innerHTML = S.album.length ? S.album.map((a, i) => `<button data-i="${i}"><img src="${a.img}" alt="Kür-Bild ${esc(a.date)}"><small>${esc(a.date)} · ${esc(a.score)}</small></button>`).join("")
+      : `<div class="empty">Noch leer: Nach jeder Kür kommt hier dein Kür-Bild hinein, die letzten acht bleiben.</div>`;
+    $("aGrid").querySelectorAll("button").forEach((b) => (b.onclick = () => openPaint(S.album[+b.dataset.i].img, "scrAlbum")));
+    show("scrAlbum");
+  }
+  $("bAlbum").onclick = openAlbum;
+  $("aDone").onclick = () => show(run && run.finished ? "scrRes" : "scrMenu");
   function tipFor(res) {
     const tm = res.timing;
     if (!tm) return "Tipp: Drück auf ● und lass auf ○ los, genau wenn die Zeichen die rote Linie erreichen.";
@@ -1846,7 +2021,7 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
   }
 
   // ------------------------------------------------------------------ Bildschirme
-  const SCREENS = ["scrMenu", "scrLook", "scrSet", "scrIntro", "scrRes", "scrInfo", "scrProg"];
+  const SCREENS = ["scrMenu", "scrLook", "scrSet", "scrIntro", "scrRes", "scrInfo", "scrProg", "scrPaint", "scrAlbum"];
   function show(id) { for (const s of SCREENS) $(s).hidden = s !== id; if (id === "scrMenu") fillMenu(); }
   function fillMenu() {
     const P = SC.PLACES.wien;
