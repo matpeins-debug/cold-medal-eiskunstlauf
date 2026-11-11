@@ -793,6 +793,20 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
     final: { lean: -6, crouch: 0, sL: [0, 0], fL: [-22, 0], aF: [160, 8], aB: [-158, 8] },
     fallen: { lean: 10, crouch: 2, sL: [30, 60], fL: [-10, 50], aF: [60, 30], aB: [-30, 40] },
   };
+  // Laufschritt: ein Takt = ein Schritt. Abstoßen (Spielbein drückt nach hinten außen), Gleiten mit gestrecktem Spielbein,
+  // Heranführen; danach wechseln Stand- und Spielbein (swap). Anfang und Ende passen ohne Sprung zusammen.
+  const STROKE = [
+    [0.0, { lean: 13, crouch: 6, sL: [3, 24], fL: [3, 22], aF: [84, 14], aB: [-94, 10] }],
+    [0.32, { lean: 15, crouch: 5, sL: [8, 20], fL: [-64, 4], aF: [94, 6], aB: [-104, 4] }],
+    [0.72, { lean: 9, crouch: 1, sL: [2, 4], fL: [-48, 10], aF: [98, 2], aB: [-108, 2] }],
+    [1.0, { lean: 13, crouch: 6, sL: [3, 22], fL: [3, 24], aF: [84, 14], aB: [-94, 10] }],
+  ];
+  function strokePose(u) {
+    u = ((u % 1) + 1) % 1;
+    let i = 0; while (i < STROKE.length - 2 && u > STROKE[i + 1][0]) i++;
+    const [a, A] = STROKE[i], [b, B] = STROKE[i + 1], t = (u - a) / (b - a);
+    return mix(A, B, t * t * (3 - 2 * t));
+  }
   const KEYS = ["lean", "crouch"], PAIRS = ["sL", "fL", "aF", "aB"];
   function mix(a, b, t) {
     const o = {};
@@ -873,8 +887,10 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
         if (foot !== undefined) bootR(ctx, q[q.length - 1], foot, c);
       } });
     };
-    limb3([hip, fKn, fAn], -Z.hip, -Z.hip, 5, suitD, p.fL[0] - p.fL[1]);
-    limb3([hip, knee, ank], Z.hip, Z.hip * 0.6, 5.2, suit, sKn);
+    // swap: Standbein auf der fernen Seite (Schrittwechsel); die nahe Seite ist heller
+    const zs = o.swap ? -1 : 1;
+    limb3([hip, fKn, fAn], -Z.hip * zs, -Z.hip * zs, 5, zs > 0 ? suitD : suit, p.fL[0] - p.fL[1]);
+    limb3([hip, knee, ank], Z.hip * zs, Z.hip * 0.6 * zs, 5.2, zs > 0 ? suit : suitD, sKn);
     limb3(aB, -Z.sh, -Z.sh - 2, 3.4, suitD, undefined, true);
     limb3(aF, Z.sh, Z.sh + 2, 3.4, suit, undefined, true);
     // Rumpf: Querschnitt als Ellipse (Tiefe im Profil, Breite von vorn); sichtbare halbe Breite je Höhe
@@ -934,7 +950,7 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
     ctx.restore();
   }
 
-  root.EKFigure = { POSES, mix, draw, cleanLook, DEF_LOOK, SKIN, HAIRC, SUIT, HAIRS, shade };
+  root.EKFigure = { POSES, mix, draw, strokePose, cleanLook, DEF_LOOK, SKIN, HAIRC, SUIT, HAIRS, shade };
 })(typeof window !== "undefined" ? window : globalThis);
 
 /* Cold Medal · Eiskunstlauf – Kulisse im Plakatstil: Wiener Eislaufverein am Abend.
@@ -1068,7 +1084,7 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
 /* COLD MEDAL EISKUNSTLAUF – Ablauf, Bildschirme, Eingabe, Taktband, Ergebnis, Spielstand. */
 (function () {
   "use strict";
-  const VERSION = "0.1.2";
+  const VERSION = "0.1.3";
   // Seiten-Einstellungen aus dem Build (eigenes Hosting: Adresse, Hoster, Impressum); im claude.ai-Artefakt leer
   const SITE = Object.assign({ web: false, url: "", impressum: null }, {"web": true, "url": "https://matpeins-debug.github.io/cold-medal-eiskunstlauf/", "hoster": "GitHub Pages (GitHub Inc., USA)", "drittland": "GitHub ist nach dem EU-US Data Privacy Framework zertifiziert; die Übermittlung in die USA stützt sich auf den Angemessenheitsbeschluss der EU-Kommission dazu.", "impressum": {"name": "", "adresse": "", "mail": ""}} || {});
   const M = window.EKMusic, K = window.EKSkate, F = window.EKFigure, SC = window.EKScene;
@@ -1204,7 +1220,7 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
     const fake = !!opt.fake || testMode || !player;
     const bt = M.grid(SCORE, SCORE.bpm, true);
     run = { mode, bt, marks: buildMarks(bt), inputs: [], fake, fakeT: -0.6, lastT: 0, done: {}, pops: [], p: 0, camX: WW / 2 - W / 2,
-      dir: 1, turn: 0, spinV: 0, jump: null, fallUntil: -1, landUntil: -1, lastSwipe: null, posed: false, finished: false, k: kHelp(), seed: (Date.now() & 0xffff) || 7 };
+      dir: 1, face: 0, trail: [], trailT: 0, turn: 0, spinV: 0, jump: null, fallUntil: -1, landUntil: -1, lastSwipe: null, posed: false, finished: false, k: kHelp(), seed: (Date.now() & 0xffff) || 7 };
     show(null); $("hud").hidden = false; buildChips();
     if (!fake) player.start(SCORE.id, { preset: S.preset, swing: true });
   }
@@ -1330,15 +1346,20 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
   function figureState(t, dt) {
     const r = run, bt = r.bt, el = phaseAt(t);
     const speed = el && el.kind === "spin" && t > bt[el.from] - 0.2 ? 0 : el && el.kind === "steps" ? 0.55 : el && el.kind === "pose" && t > bt[el.at] ? 0 : 1;
-    r.p += dt * speed;
+    // Takt: ein Laufschritt je Takt, Abstoß auf der Eins; Stand- und Spielbein wechseln jeden Takt
+    const bi = Math.max(0, bt.findIndex((b) => b > t) - 1), ph = bi >= 0 && bt[bi + 1] ? (t - bt[bi]) / (bt[bi + 1] - bt[bi]) : 0;
+    const bar = t < 0 ? Math.floor(t / (bt[3] - bt[0])) : Math.floor(bi / 3);
+    const inBar = t < 0 ? ((t / (bt[3] - bt[0])) % 1 + 1) % 1 : ((bi % 3) + ph) / 3;
+    const push = inBar < 0.45 ? Math.sin(Math.PI * inBar / 0.45) : 0;
+    r.p += dt * speed * (0.85 + 0.35 * push);
     const P = r.p, x = WW / 2 + 660 * Math.sin(2 * Math.PI * P / 24), d = 0.52 + 0.3 * Math.sin(2 * Math.PI * P / 9.5 + 1);
     const vx = Math.cos(2 * Math.PI * P / 24);
-    if (speed > 0 && Math.abs(vx) > 0.08) r.dir = vx > 0 ? 1 : -1;
-    // Grundpose: Schwung auf der Eins
-    const bi = Math.max(0, bt.findIndex((b) => b > t) - 1), ph = bi >= 0 && bt[bi + 1] ? (t - bt[bi]) / (bt[bi + 1] - bt[bi]) : 0;
-    const inBar = ((bi % 3) + ph) / 3;
-    let pose = F.mix(F.POSES.stroke, F.POSES.glide, smooth(inBar * 2.2)), lift = 0, turn = 0, tilt = 0;
-    if (t < 0) pose = F.POSES.glide;
+    // Blickrichtung dreht weich (über die Vorderseite) statt umzuklappen
+    if (speed > 0 && Math.abs(vx) > 0.05) r.dir = vx > 0 ? 1 : -1;
+    const want = r.dir > 0 ? 0 : Math.PI, df = want - r.face;
+    r.face += Math.sign(df) * Math.min(Math.abs(df), dt * 3.6);
+    let pose = F.strokePose(inBar), lift = 0, turn = 0, tilt = 0;
+    r.swap = bar % 2 !== 0;
     if (el && el.kind === "jump") {
       const j = r.jump && r.jump.el === el ? r.jump : null;
       if (!j || t < j.t0) pose = F.mix(pose, F.POSES.prep, smooth(1 - (bt[el.tk] - t) / 0.9));
@@ -1365,7 +1386,7 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
     }
     r.slide = (r.slide || 0) + (r.slideV || 0) * dt; r.slideV = (r.slideV || 0) * Math.pow(0.04, dt); r.slide *= Math.pow(0.5, dt);
     if (el && el.kind === "pose" && (r.posed || t > bt[el.at] + 0.4)) pose = F.mix(pose, F.POSES.final, smooth((t - bt[el.at] + 0.3) / 0.4));
-    return { x: x + (r.slide || 0), d, pose, lift, turn, tilt, dir: r.dir };
+    return { x: x + (r.slide || 0), d, pose, lift, turn: r.face + turn, tilt, swap: r.swap && !(el && (el.kind === "spin" || el.kind === "jump")) };
   }
 
   // ------------------------------------------------------------------ Zeichnen
@@ -1464,25 +1485,45 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
     render(t, dt);
     if (!run.finished && t > run.bt[run.bt.length - 1] + 2.2) finish();
   }
+  function drawTrail(tr, camX) {
+    const now = performance.now();
+    ctx.lineWidth = 1.6; ctx.lineCap = "round";
+    for (let i = 1; i < tr.length; i++) {
+      const a = tr[i - 1], b = tr[i], age = (now - b[2]) / 2400;
+      if (age > 1 || Math.abs(b[0] - a[0]) > 40) continue;
+      ctx.strokeStyle = `rgba(80,105,135,${0.55 * (1 - age)})`;
+      ctx.beginPath(); ctx.moveTo(a[0] - camX, a[1]); ctx.lineTo(b[0] - camX, b[1]); ctx.stroke();
+    }
+  }
   function render(t, dt) {
     const st = figureState(t, dt);
     const fy = SC.footY(st.d), s = SC.scaleAt(st.d);
-    const target = clamp(st.x - W / 2 + st.dir * 60, 0, WW - W);
+    const target = clamp(st.x - W / 2 + Math.cos(run.face) * 60, 0, WW - W);
     run.camX += (target - run.camX) * Math.min(1, dt * 2.2);
     scene.draw(ctx, run.camX);
     const fx = st.x - run.camX;
     ctx.fillStyle = "rgba(20,27,37,0.18)"; ctx.beginPath(); ctx.ellipse(fx, fy + 3, 18 * s * (1 - st.lift / 120), 4 * s, 0, 0, 7); ctx.fill();
     drawRing(fx, fy, s, t); if (S.help === "anf" || t < 30) drawStepCue(fx, fy, s, t);
-    F.draw(ctx, { x: fx, y: fy, s, dir: st.dir, pose: st.pose, lift: st.lift, turn: st.turn, tilt: st.tilt, look: S.look });
+    // Kufenspur auf dem Eis, verblasst
+    {
+      run.trailT += dt;
+      if (st.lift <= 0 && run.trailT > 0.03) { run.trailT = 0; run.trail.push([st.x, fy + 3.5, performance.now()]); if (run.trail.length > 80) run.trail.shift(); }
+      drawTrail(run.trail, run.camX);
+    }
+    F.draw(ctx, { x: fx, y: fy, s, dir: 1, pose: st.pose, lift: st.lift, turn: st.turn, tilt: st.tilt, swap: st.swap, look: S.look });
     drawLane(t); drawPops();
     updateChips(t);
   }
+  const IDLE = { face: 0, trail: [], tt: 0 };
   function idle(dt) {
     idleP += dt;
     const x = WW / 2 + 420 * Math.sin(idleP / 5), d = 0.55 + 0.25 * Math.sin(idleP / 3), camX = clamp(x - W * 0.62, 0, WW - W);
     scene.draw(ctx, camX);
-    const pose = F.mix(F.POSES.stroke, F.POSES.glide, smooth((Math.sin(idleP * 2.4) + 1) / 2));
-    F.draw(ctx, { x: x - camX, y: SC.footY(d), s: SC.scaleAt(d), dir: Math.cos(idleP / 5) >= 0 ? 1 : -1, pose, look: S.look });
+    const want = Math.cos(idleP / 5) >= 0 ? 0 : Math.PI, df = want - IDLE.face; IDLE.face += Math.sign(df) * Math.min(Math.abs(df), dt * 3.6);
+    const u = idleP / 1.14, fy = SC.footY(d);
+    IDLE.tt += dt; if (IDLE.tt > 0.03) { IDLE.tt = 0; IDLE.trail.push([x, fy + 3.5, performance.now()]); if (IDLE.trail.length > 80) IDLE.trail.shift(); }
+    drawTrail(IDLE.trail, camX);
+    F.draw(ctx, { x: x - camX, y: fy, s: SC.scaleAt(d), dir: 1, turn: IDLE.face, swap: Math.floor(u) % 2 === 1, pose: F.strokePose(u % 1), look: S.look });
   }
 
   // ------------------------------------------------------------------ Ergebnis
