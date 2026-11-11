@@ -144,7 +144,7 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
 .slot i { font-style: normal; font-size: 11px; font-family: var(--font-display); color: var(--muted); }
 .slot.empty { background: rgba(251,246,234,0.55); border-style: dashed; }
 .slot.empty b { color: var(--muted); font-weight: 600; }
-.slot.jump { background: #F6E3B4; } .slot.spin { background: #D9E6F0; } .slot.steps { background: #E4EEDC; grid-column: span 2; }
+.slot.jump { background: #F6E3B4; } .slot.choreo { background: #EADCEB; } .slot.spin { background: #D9E6F0; } .slot.steps { background: #E4EEDC; grid-column: span 2; }
 .slot.sel { outline: 3px solid var(--red); outline-offset: 1px; }
 .pick { flex: 1; display: flex; flex-direction: column; gap: 5px; min-height: 0; }
 .prow { display: flex; align-items: center; gap: 5px; flex-wrap: wrap; }
@@ -719,6 +719,11 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
   CATALOG.SSp = { kind: "spin", name: "Sitzpirouette", short: "Sitz", levels: [1.1, 1.3, 1.6, 2.1], w: 0.9, pose: "sitspin" };
   CATALOG.CSp = { kind: "spin", name: "Waagepirouette", short: "Waage", levels: [1.1, 1.4, 1.8, 2.3], w: 0.85, pose: "camel" };
   CATALOG.StSq = { kind: "steps", name: "Schrittfolge", short: "Schritte", levels: [1.5, 1.8, 2.6, 3.3], w: 1, slots: 2 };
+  // Choreo-Figuren für freie Abschnitte: ohne eigene Punkte, Abwechslung zählt in der Komposition
+  CATALOG.ChSp = { kind: "choreo", name: "Spirale", short: "Spirale", pose: "spiral" };
+  CATALOG.ChIB = { kind: "choreo", name: "Ina Bauer", short: "Ina Bauer", pose: "inaBauer" };
+  CATALOG.ChPB = { kind: "choreo", name: "Port de bras", short: "Arme", pose: "portUp" };
+  CATALOG.ChTw = { kind: "choreo", name: "Twizzles", short: "Twizzle", pose: "twizzle" };
   const RULES = { jumps: 4, famMax: 2, spins: 2, steps: 1 };
 
   // Die Musik in Abschnitte: acht Phrasen zu je vier Takten ab dem Einsatz der Melodie (Takt 4); jedes Element füllt eine Phrase,
@@ -755,21 +760,22 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
   // aus dem Plan die Kür mit Schlägen bauen
   function buildProgram(slots, music) {
     music = music || "donau";
-    const sec = SECTIONS[music], els = [];
+    const sec = SECTIONS[music], els = [], choreo = {};
     slots.forEach((id, i) => {
       if (!id || id === "~") return;
       const c = CATALOG[id], bar = sec.first + sec.len * i;
+      if (c.kind === "choreo") { choreo[i] = id; return; }
       const base = { id, kind: c.kind, name: c.name, short: c.short, w: c.w, slot: i };
       if (c.kind === "jump") els.push(Object.assign(base, { base: c.base, tk: (bar + 2) * 3, land: (bar + 2) * 3 + c.hold, rot: c.rot }));
       else if (c.kind === "spin") els.push(Object.assign(base, { levels: c.levels, pose: c.pose, from: bar * 3, turns: 4 }));
       else if (c.kind === "steps") els.push(Object.assign(base, { levels: c.levels, arrows: STEP_PATTERN.map(([o, d]) => [bar * 3 + o, d]) }));
     });
     els.push({ id: "Pose", kind: "pose", name: "Schlusspose", short: "Pose", at: sec.end });
-    return { id: "eigen", music, name: "Kür zum Donauwalzer", elements: els, slots: slots.slice() };
+    return { id: "eigen", music, name: "Kür zum Donauwalzer", elements: els, slots: slots.slice(), choreo, sec };
   }
   // Summe der höchsten Grundwerte (für den Editor)
   function maxBase(slots) {
-    return r2(slots.reduce((s, id) => { const c = CATALOG[id]; return s + (!c ? 0 : c.kind === "jump" ? c.base : c.levels[c.levels.length - 1]); }, 0));
+    return r2(slots.reduce((s, id) => { const c = CATALOG[id]; return s + (!c || c.kind === "choreo" ? 0 : c.kind === "jump" ? c.base : c.levels[c.levels.length - 1]); }, 0));
   }
   const PROGRAMS = { wien: buildProgram(DEFAULT_SLOTS) };
   PROGRAMS.wien.id = "wien";
@@ -855,8 +861,9 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
     const tim = root.EKMusic ? root.EKMusic.timingStats(all) : null;
     const scored = els.filter((x) => x.kind !== "pose"), done = scored.filter((x) => x.status !== "miss").length / scored.length;
     const meanDev = all.length ? mean(all) : 400, pose = els.find((x) => x.kind === "pose");
+    const variety = Math.min(3, new Set(Object.values(prog.choreo || {})).size) * 0.25; // verschiedene Choreo-Figuren
     const pcs = {
-      comp: q4(clamp(3 + 5 * done + (pose && pose.status === "ok" ? 1.25 : 0) - 0.75 * falls, 1.5, 9.75)),
+      comp: q4(clamp(3 + 5 * done + (pose && pose.status === "ok" ? 1.25 : 0) - 0.75 * falls + variety, 1.5, 9.75)),
       pres: q4(clamp(10 - meanDev / k / 22, 1.5, 9.75)),
       skill: q4(clamp(3 + 6.5 * done - 1.5 * falls + (meanDev < 60 ? 0.5 : 0), 1.5, 9.75)),
     };
@@ -941,6 +948,7 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
     inaBauer: { lean: -22, crouch: 4, sL: [-8, 10], fL: [26, 4], aF: [150, -20], aB: [-120, -20] },
     flick: { lean: 4, crouch: 2, sL: [2, 6], fL: [-50, 4], aF: [128, -24], aB: [-132, -24] },
     twizzle: { lean: 0, crouch: 2, sL: [0, 2], fL: [18, 60], aF: [150, 8], aB: [150, 8] },
+    bow: { lean: 48, crouch: 3, sL: [4, 10], fL: [-24, 6], aF: [40, 10], aB: [-150, -10] },
     fallen: { lean: 10, crouch: 2, sL: [30, 60], fL: [-10, 50], aF: [60, 30], aB: [-30, 40] },
   };
 
@@ -1366,7 +1374,7 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
 /* COLD MEDAL EISKUNSTLAUF – Ablauf, Bildschirme, Eingabe, Taktband, Ergebnis, Spielstand. */
 (function () {
   "use strict";
-  const VERSION = "0.4";
+  const VERSION = "0.4.1";
   // Seiten-Einstellungen aus dem Build (eigenes Hosting: Adresse, Hoster, Impressum); im claude.ai-Artefakt leer
   const SITE = Object.assign({ web: false, url: "", impressum: null }, {"web": true, "url": "https://matpeins-debug.github.io/cold-medal-eiskunstlauf/", "hoster": "GitHub Pages (GitHub Inc., USA)", "drittland": "GitHub ist nach dem EU-US Data Privacy Framework zertifiziert; die Übermittlung in die USA stützt sich auf den Angemessenheitsbeschluss der EU-Kommission dazu.", "impressum": {"name": "", "adresse": "", "mail": ""}} || {});
   const M = window.EKMusic, K = window.EKSkate, F = window.EKFigure, SC = window.EKScene;
@@ -1650,7 +1658,8 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
   }
   function figureState(t, dt) {
     const r = run, bt = r.bt, el = phaseAt(t);
-    const speed = el && el.kind === "spin" && t > bt[el.from] - 0.2 ? 0 : el && el.kind === "steps" ? 0.9 : el && el.kind === "pose" && t > bt[el.at] ? 0 : 1;
+    const ended = t > bt[bt.length - 1];
+    const speed = ended ? 0 : el && el.kind === "spin" && t > bt[el.from] - 0.2 ? 0 : el && el.kind === "steps" ? 0.9 : el && el.kind === "pose" && t > bt[el.at] ? 0 : 1;
     // Takt: ein Laufschritt je Takt, Abstoß auf der Eins; Stand- und Spielbein wechseln jeden Takt
     const bi = Math.max(0, bt.findIndex((b) => b > t) - 1), ph = bi >= 0 && bt[bi + 1] ? (t - bt[bi]) / (bt[bi + 1] - bt[bi]) : 0;
     const bar = t < 0 ? Math.floor(t / (bt[3] - bt[0])) : Math.floor(bi / 3);
@@ -1661,25 +1670,28 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
     const vx = Math.cos(2 * Math.PI * P / 24);
     // Blickrichtung dreht weich (über die Vorderseite) statt umzuklappen
     if (speed > 0 && Math.abs(vx) > 0.05) r.dir = vx > 0 ? 1 : -1;
-    const want = r.dir > 0 ? 0 : Math.PI, df = want - r.face;
+    const want = ended ? Math.PI / 2 - 0.5 : r.dir > 0 ? 0 : Math.PI, df = want - r.face; // am Ende zum Publikum vor dem Bildschirm
     r.face += Math.sign(df) * Math.min(Math.abs(df), dt * 3.6);
     let pose = F.strokePose(inBar), lift = 0, turn = 0, tilt = 0;
     r.swap = bar % 2 !== 0;
     // Choreografie zur Melodie, wenn gerade kein Element läuft. Jede Phrase hat 4 Takte:
     // 1 „da da da“ = Laufschritt, 2 langer Ton = Spirale / Arme heben / Ina Bauer, 3 „pam pam“ = Armakzente, 4 „pam pam“ = Twizzle-Drehung
     const free = !el || (el.kind === "pose" && t < bt[el.at] - 0.8);
-    if (free && t > bt[12] - 0.2) {
+    if (free && t > bt[12] - 0.2 && t < bt[bt.length - 1]) {
       const rel = bar - 4, pos = ((rel % 4) + 4) % 4, phrase = Math.floor(rel / 4), k = bi % 3;
-      if (pos === 1) {
+      const chosen = PROG.choreo && PROG.choreo[phrase] ? K.CATALOG[PROG.choreo[phrase]] : null;
+      const twz = (u0) => { const u = clamp((inBar - u0) / 0.6, 0, 1); if (u > 0 && u < 1) { pose = F.mix(pose, F.POSES.twizzle, Math.sin(Math.PI * u)); turn += smooth(u) * Math.PI * 2; } };
+      if (chosen && chosen.pose === "twizzle") { if (pos === 1 || pos === 3) twz(0.2); }
+      else if (chosen) {
+        // gewählte Figur über zwei Takte halten (Takt 2 und 3 der Phrase), weich hinein und heraus
+        if (pos === 1 || pos === 2) { const u = (pos - 1 + inBar) / 2; pose = F.mix(pose, F.POSES[chosen.pose], smooth(u / 0.15) * smooth((1 - u) / 0.15)); }
+      } else if (pos === 1) {
         const ch = [F.POSES.spiral, F.POSES.portUp, F.POSES.inaBauer][((phrase % 3) + 3) % 3];
         pose = F.mix(pose, ch, smooth(inBar / 0.25) * smooth((1 - inBar) / 0.2));
       } else if (pos === 2 && k > 0) {
         const a = 1 - clamp((t - bt[bi]) / 0.3, 0, 1);
         pose = F.mix(pose, F.POSES.flick, a * a);
-      } else if (pos === 3 && rel >= 0) {
-        const u = clamp((inBar - 0.34) / 0.6, 0, 1);
-        if (u > 0 && u < 1) { pose = F.mix(pose, F.POSES.twizzle, Math.sin(Math.PI * u)); turn += smooth(u) * Math.PI * 2; }
-      }
+      } else if (pos === 3 && rel >= 0) twz(0.34);
     }
     if (el && el.kind === "jump") {
       const j = r.jump && r.jump.el === el ? r.jump : null;
@@ -1715,6 +1727,11 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
     turn += r.stepTurn;
     r.slide = (r.slide || 0) + (r.slideV || 0) * dt; r.slideV = (r.slideV || 0) * Math.pow(0.04, dt); r.slide *= Math.pow(0.5, dt);
     if (el && el.kind === "pose" && (r.posed || t > bt[el.at] + 0.4)) pose = F.mix(pose, F.POSES.final, smooth((t - bt[el.at] + 0.3) / 0.4));
+    // nach dem Schlussakkord: stehen bleiben, Pose halten, dann verbeugen (nach einem Sturz erst aufstehen)
+    if (ended && t >= r.fallUntil) {
+      const te = t - bt[bt.length - 1];
+      pose = te < 1.3 ? F.POSES.final : F.mix(F.POSES.final, F.POSES.bow, smooth((te - 1.3) / 0.5) * smooth((3.3 - te) / 0.5));
+    }
     return { x: x + (r.slide || 0), d, pose, lift, turn: r.face + turn, tilt, swap: r.swap && !(el && (el.kind === "spin" || el.kind === "jump")) };
   }
 
@@ -2099,7 +2116,7 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
     $("tl").innerHTML = sl.map((id, i) => {
       if (id === "~") return "";
       const c = CAT[id], b0 = secBar(i), b1 = b0 + SEC.len * (c && c.slots ? c.slots : 1);
-      const val = !c ? "" : c.kind === "jump" ? dec(c.base) : `bis ${dec(c.levels[c.levels.length - 1])}`;
+      const val = !c ? "" : c.kind === "choreo" ? "Choreo" : c.kind === "jump" ? dec(c.base) : `bis ${dec(c.levels[c.levels.length - 1])}`;
       return `<button class="slot ${c ? c.kind : "empty"}${i === pSel ? " sel" : ""}" data-i="${i}"><small>ab ${mmss(bt[b0 * 3])}</small><b>${c ? esc(c.name) : "Gleiten"}</b><i>${val}</i></button>`;
     }).join("");
     $("tl").querySelectorAll(".slot").forEach((b) => (b.onclick = () => { pSel = +b.dataset.i; fillProg(); }));
@@ -2112,13 +2129,14 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
       `<div class="prow"><b>Sprung</b><span class="opts"><button class="pill${pRot === 1 ? " on" : ""}" data-rot="1">einfach</button><button class="pill${pRot === 2 ? " on" : ""}" data-rot="2">doppelt</button></span>`
       + fam.map((f) => { const id = pRot + f, c = CAT[id]; return btn(id, CAT["1" + f].name, dec(c.base)); }).join("") + `</div>`
       + `<div class="prow"><b>Pirouette</b>${["USp", "SSp", "CSp"].map((id) => btn(id, CAT[id].short, `bis ${dec(CAT[id].levels[3])}`)).join("")}</div>`
-      + `<div class="prow"><b>Schritte</b>${btn("StSq", "Schrittfolge", `2 Abschnitte · bis ${dec(CAT.StSq.levels[3])}`)}${btn(null, "Gleiten", "frei, mit Ausdruck")}</div>`;
+      + `<div class="prow"><b>Schritte</b>${btn("StSq", "Schrittfolge", `2 Abschnitte · bis ${dec(CAT.StSq.levels[3])}`)}</div>`
+      + `<div class="prow"><b>Choreo</b>${btn(null, "Gleiten", "frei")}${["ChSp", "ChIB", "ChPB", "ChTw"].map((id) => btn(id, CAT[id].name, "Ausdruck")).join("")}</div>`;
     $("pick").querySelectorAll("[data-rot]").forEach((b) => (b.onclick = () => { pRot = +b.dataset.rot; fillProg(); }));
     $("pick").querySelectorAll(".el").forEach((b) => (b.onclick = () => {
       const a = assign(S.prog, pSel, b.dataset.id || null); if (!a) return;
       S.prog = a; save(); fillProg();
     }));
-    const ids = sl.filter((x) => x && x !== "~"), nj = ids.filter((x) => CAT[x].kind === "jump").length, ns = ids.filter((x) => CAT[x].kind === "spin").length;
+    const ids = sl.filter((x) => x && x !== "~" && CAT[x].kind !== "choreo"), nj = ids.filter((x) => CAT[x].kind === "jump").length, ns = ids.filter((x) => CAT[x].kind === "spin").length;
     $("pSum").innerHTML = nb(`Grundwert bis ${dec(K.maxBase(sl))} · ${nj} von ${K.RULES.jumps} Sprüngen · ${ns} von ${K.RULES.spins} Pirouetten`);
     $("pMsg").textContent = "Tipp: Schwere Sprünge bringen mehr, haben aber ein engeres Zeitfenster. Grau = nach den Regeln gerade nicht möglich.";
   }
