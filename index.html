@@ -870,28 +870,29 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
   // Posen: Winkel in Grad ab senkrecht nach unten, + = nach vorn (Laufrichtung). sL Standbein, fL Spielbein [Hüfte, Knie],
   // aF/aB Arm vorn/hinten [Schulter, Ellbogen], lean Rumpfneigung, crouch Kniebeuge in Pixeln
   const POSES = {
-    glide: { lean: 10, crouch: 2, sL: [0, 0], fL: [-55, 15], aF: [95, 5], aB: [-105, -5] },
-    stroke: { lean: 14, crouch: 4, sL: [6, 12], fL: [-30, 12], aF: [70, 20], aB: [-80, 10] },
-    prep: { lean: 18, crouch: 7, sL: [10, 26], fL: [-20, 32], aF: [40, 45], aB: [-40, 30] },
-    air: { lean: 0, crouch: 0, sL: [3, 4], fL: [7, 4], aF: [35, 120], aB: [35, 120] },
-    land: { lean: 12, crouch: 6, sL: [6, 16], fL: [-72, 5], aF: [100, 0], aB: [-100, 0] },
-    spin: { lean: -4, crouch: 3, sL: [0, 4], fL: [40, 70], aF: [55, 110], aB: [55, 110] },
-    sitspin: { lean: 28, crouch: 0, sL: [86, 100], fL: [84, 2], aF: [82, 4], aB: [76, 8] },
-    camel: { lean: 84, crouch: 0, sL: [2, 2], fL: [-96, 0], aF: [100, 0], aB: [-112, 0] },
-    stepA: { lean: 6, crouch: 4, sL: [8, 12], fL: [-28, 30], aF: [75, 25], aB: [-70, 20] },
-    stepB: { lean: 6, crouch: 4, sL: [-8, 12], fL: [28, 30], aF: [-70, 20], aB: [75, 25] },
-    stepU: { lean: -2, crouch: 0, sL: [0, 2], fL: [-15, 10], aF: [150, 10], aB: [-150, 10] },
-    stepD: { lean: 22, crouch: 9, sL: [10, 30], fL: [-35, 20], aF: [30, 10], aB: [-30, 10] },
-    final: { lean: -6, crouch: 0, sL: [0, 0], fL: [-22, 0], aF: [160, 8], aB: [-158, 8] },
+    glide: { lean: 6, crouch: 1, sL: [0, 0], fL: [-62, 4], aF: [100, -12], aB: [-108, -10] },
+    stroke: { lean: 10, crouch: 3, sL: [5, 14], fL: [-34, 8], aF: [90, -6], aB: [-98, -6] },
+    prep: { lean: 14, crouch: 6, sL: [8, 24], fL: [-34, 18], aF: [62, 28], aB: [-72, 18] },
+    air: { lean: 0, crouch: 0, sL: [2, 2], fL: [6, 2], aF: [30, 125], aB: [30, 125] },
+    land: { lean: 8, crouch: 5, sL: [6, 16], fL: [-80, 0], aF: [104, -14], aB: [-114, -12] },
+    spin: { lean: -2, crouch: 2, sL: [0, 2], fL: [30, 80], aF: [42, 108], aB: [42, 108] },
+    sitspin: { lean: 26, crouch: 0, sL: [86, 100], fL: [84, 0], aF: [86, -4], aB: [80, -2] },
+    camel: { lean: 84, crouch: 0, sL: [1, 1], fL: [-98, 0], aF: [96, -8], aB: [-118, -8] },
+    stepA: { lean: 5, crouch: 3, sL: [7, 12], fL: [-30, 20], aF: [88, -8], aB: [-84, -8] },
+    stepB: { lean: 5, crouch: 3, sL: [-7, 12], fL: [26, 20], aF: [-76, -6], aB: [92, -8] },
+    stepU: { lean: -4, crouch: 0, sL: [0, 2], fL: [-20, 4], aF: [158, -6], aB: [-156, -6] },
+    stepD: { lean: 18, crouch: 8, sL: [10, 30], fL: [-46, 6], aF: [70, -10], aB: [-74, -10] },
+    final: { lean: -8, crouch: 0, sL: [0, 0], fL: [-26, 0], aF: [168, 6], aB: [-102, -16] },
     fallen: { lean: 10, crouch: 2, sL: [30, 60], fL: [-10, 50], aF: [60, 30], aB: [-30, 40] },
   };
+
   // Laufschritt: ein Takt = ein Schritt. Abstoßen (Spielbein drückt nach hinten außen), Gleiten mit gestrecktem Spielbein,
   // Heranführen; danach wechseln Stand- und Spielbein (swap). Anfang und Ende passen ohne Sprung zusammen.
   const STROKE = [
-    [0.0, { lean: 13, crouch: 6, sL: [3, 24], fL: [3, 22], aF: [84, 14], aB: [-94, 10] }],
-    [0.32, { lean: 15, crouch: 5, sL: [8, 20], fL: [-64, 4], aF: [94, 6], aB: [-104, 4] }],
-    [0.72, { lean: 9, crouch: 1, sL: [2, 4], fL: [-48, 10], aF: [98, 2], aB: [-108, 2] }],
-    [1.0, { lean: 13, crouch: 6, sL: [3, 22], fL: [3, 24], aF: [84, 14], aB: [-94, 10] }],
+    [0.0, { lean: 9, crouch: 5, sL: [3, 20], fL: [3, 18], aF: [92, -6], aB: [-100, -6] }],
+    [0.32, { lean: 11, crouch: 4, sL: [8, 16], fL: [-66, 2], aF: [98, -10], aB: [-106, -10] }],
+    [0.72, { lean: 6, crouch: 1, sL: [1, 2], fL: [-58, 2], aF: [104, -14], aB: [-112, -14] }],
+    [1.0, { lean: 9, crouch: 5, sL: [3, 18], fL: [3, 20], aF: [92, -6], aB: [-100, -6] }],
   ];
   function strokePose(u) {
     u = ((u % 1) + 1) % 1;
@@ -900,6 +901,15 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
     return mix(A, B, t * t * (3 - 2 * t));
   }
   const KEYS = ["lean", "crouch"], PAIRS = ["sL", "fL", "aF", "aB"];
+  // weich nachführen: Rumpf und Beine zügig, Arme etwas später (fließender Armzug); fast = Sprung, Sturz
+  const RATE = { lean: 9, crouch: 9, sL: 13, fL: 11, aF: 6.5, aB: 6 };
+  function ease(cur, tgt, dt, fast) {
+    if (!cur) return tgt;
+    const o = {}, m = fast ? 2.4 : 1, a = (k) => 1 - Math.exp(-RATE[k] * m * dt);
+    for (const k of KEYS) o[k] = cur[k] + (tgt[k] - cur[k]) * a(k);
+    for (const k of PAIRS) { const f = a(k); o[k] = [cur[k][0] + (tgt[k][0] - cur[k][0]) * f, cur[k][1] + (tgt[k][1] - cur[k][1]) * f]; }
+    return o;
+  }
   function mix(a, b, t) {
     const o = {};
     for (const k of KEYS) o[k] = a[k] + (b[k] - a[k]) * t;
@@ -925,11 +935,25 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
     ctx.fillStyle = fill; ctx.fill(); ctx.stroke();
   }
 
+  // Glied als weich gebogene, sich verjüngende Form (Oberschenkel kräftig, Knöchel und Handgelenk schmal)
   function limb(ctx, pts, w, col) {
-    ctx.beginPath(); ctx.moveTo(pts[0][0], pts[0][1]);
-    for (let i = 1; i < pts.length; i++) ctx.lineTo(pts[i][0], pts[i][1]);
-    ctx.strokeStyle = INK; ctx.lineWidth = w + 2.4; ctx.stroke();
-    ctx.strokeStyle = col; ctx.lineWidth = w; ctx.stroke();
+    const [A, B, C] = pts, smp = [];
+    // Catmull-Rom durch Hüfte/Schulter, Knie/Ellbogen, Knöchel/Hand
+    const P0 = [2 * A[0] - B[0], 2 * A[1] - B[1]], P3 = [2 * C[0] - B[0], 2 * C[1] - B[1]];
+    const cr = (p0, p1, p2, p3, t) => [0, 1].map((k) => 0.5 * ((2 * p1[k]) + (-p0[k] + p2[k]) * t + (2 * p0[k] - 5 * p1[k] + 4 * p2[k] - p3[k]) * t * t + (-p0[k] + 3 * p1[k] - 3 * p2[k] + p3[k]) * t * t * t));
+    for (let i = 0; i <= 6; i++) smp.push(cr(P0, A, B, C, i / 6));
+    for (let i = 1; i <= 6; i++) smp.push(cr(A, B, C, P3, i / 6));
+    const n = smp.length, L = [], R = [];
+    for (let i = 0; i < n; i++) {
+      const p = smp[i], q = smp[Math.min(n - 1, i + 1)], o = smp[Math.max(0, i - 1)];
+      let dx = q[0] - o[0], dy = q[1] - o[1]; const d = Math.hypot(dx, dy) || 1; dx /= d; dy /= d;
+      const u = i / (n - 1), hw = (w * (1.08 - 0.42 * u)) / 2;
+      L.push([p[0] - dy * hw, p[1] + dx * hw]); R.push([p[0] + dy * hw, p[1] - dx * hw]);
+    }
+    ctx.beginPath(); ctx.moveTo(L[0][0], L[0][1]);
+    for (const p of L.slice(1)) ctx.lineTo(p[0], p[1]);
+    for (const p of R.reverse()) ctx.lineTo(p[0], p[1]);
+    ctx.closePath(); ctx.fillStyle = col; ctx.fill(); ctx.strokeStyle = INK; ctx.lineWidth = 1.2; ctx.stroke();
   }
   function boot(ctx, ank, shinDeg) {
     // weißer Stiefel und Kufe; der Stiefel folgt dem Unterschenkel
@@ -975,16 +999,19 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
       const q = pts.map((pt, i) => P(pt, z0 + (z1 - z0) * i / (pts.length - 1)));
       parts.push({ d: depth(q), f: () => {
         limb(ctx, q, w, col);
-        if (hand) { const h = q[q.length - 1]; ctx.beginPath(); ctx.arc(h[0], h[1], 2.1, 0, 7); ctx.fillStyle = skin; ctx.strokeStyle = INK; ctx.lineWidth = 1.1; ctx.fill(); ctx.stroke(); }
+        if (hand) { // schmale Hand in Verlängerung des Unterarms
+          const h = q[q.length - 1], e = q[q.length - 2], an = Math.atan2(h[1] - e[1], h[0] - e[0]);
+          ctx.beginPath(); ctx.ellipse(h[0] + Math.cos(an) * 1.6, h[1] + Math.sin(an) * 1.6, 2.6, 1.35, an, 0, 7);
+          ctx.fillStyle = skin; ctx.strokeStyle = INK; ctx.lineWidth = 1; ctx.fill(); ctx.stroke(); }
         if (foot !== undefined) bootR(ctx, q[q.length - 1], foot, c);
       } });
     };
     // swap: Standbein auf der fernen Seite (Schrittwechsel); die nahe Seite ist heller
     const zs = o.swap ? -1 : 1;
-    limb3([hip, fKn, fAn], -Z.hip * zs, -Z.hip * zs, 5, zs > 0 ? suitD : suit, p.fL[0] - p.fL[1]);
-    limb3([hip, knee, ank], Z.hip * zs, Z.hip * 0.6 * zs, 5.2, zs > 0 ? suit : suitD, sKn);
-    limb3(aB, -Z.sh, -Z.sh - 2, 3.4, suitD, undefined, true);
-    limb3(aF, Z.sh, Z.sh + 2, 3.4, suit, undefined, true);
+    limb3([hip, fKn, fAn], -Z.hip * zs, -Z.hip * zs, 6, zs > 0 ? suitD : suit, p.fL[0] - p.fL[1]);
+    limb3([hip, knee, ank], Z.hip * zs, Z.hip * 0.6 * zs, 6.2, zs > 0 ? suit : suitD, sKn);
+    limb3(aB, -Z.sh, -Z.sh - 2, 4, suitD, undefined, true);
+    limb3(aF, Z.sh, Z.sh + 2, 4, suit, undefined, true);
     // Rumpf: Querschnitt als Ellipse (Tiefe im Profil, Breite von vorn); sichtbare halbe Breite je Höhe
     const hw = (dep, wid) => Math.sqrt((dep * c) ** 2 + (wid * sn) ** 2);
     const lvl = [[2.5, 6.2, 6.8], [-6, 4.6, 5.4], [-18, 7.2, 7.4], [-25.5, 7, 8.6]]; // [y im Rumpf, Tiefe, Breite]
@@ -1044,7 +1071,7 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
     ctx.restore();
   }
 
-  root.EKFigure = { POSES, mix, draw, strokePose, cleanLook, DEF_LOOK, SKIN, HAIRC, SUIT, HAIRS, shade };
+  root.EKFigure = { POSES, mix, ease, draw, strokePose, cleanLook, DEF_LOOK, SKIN, HAIRC, SUIT, HAIRS, shade };
 })(typeof window !== "undefined" ? window : globalThis);
 
 /* Cold Medal · Eiskunstlauf – Kulisse im Plakatstil: Wiener Eislaufverein am Abend.
@@ -1178,7 +1205,7 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
 /* COLD MEDAL EISKUNSTLAUF – Ablauf, Bildschirme, Eingabe, Taktband, Ergebnis, Spielstand. */
 (function () {
   "use strict";
-  const VERSION = "0.2";
+  const VERSION = "0.2.1";
   // Seiten-Einstellungen aus dem Build (eigenes Hosting: Adresse, Hoster, Impressum); im claude.ai-Artefakt leer
   const SITE = Object.assign({ web: false, url: "", impressum: null }, {"web": true, "url": "https://matpeins-debug.github.io/cold-medal-eiskunstlauf/", "hoster": "GitHub Pages (GitHub Inc., USA)", "drittland": "GitHub ist nach dem EU-US Data Privacy Framework zertifiziert; die Übermittlung in die USA stützt sich auf den Angemessenheitsbeschluss der EU-Kommission dazu.", "impressum": {"name": "", "adresse": "", "mail": ""}} || {});
   const M = window.EKMusic, K = window.EKSkate, F = window.EKFigure, SC = window.EKScene;
@@ -1607,7 +1634,8 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
       if (st.lift <= 0 && run.trailT > 0.03) { run.trailT = 0; run.trail.push([st.x, fy + 3.5, performance.now()]); if (run.trail.length > 80) run.trail.shift(); }
       drawTrail(run.trail, run.camX);
     }
-    F.draw(ctx, { x: fx, y: fy, s, dir: 1, pose: st.pose, lift: st.lift, turn: st.turn, tilt: st.tilt, swap: st.swap, look: S.look });
+    run.sp = F.ease(run.sp, st.pose, dt, st.lift > 1 || st.tilt < -0.3);
+    F.draw(ctx, { x: fx, y: fy, s, dir: 1, pose: run.sp, lift: st.lift, turn: st.turn, tilt: st.tilt, swap: st.swap, look: S.look });
     drawLane(t); drawPops();
     updateChips(t);
   }
@@ -1620,7 +1648,8 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
     const u = idleP / 1.14, fy = SC.footY(d);
     IDLE.tt += dt; if (IDLE.tt > 0.03) { IDLE.tt = 0; IDLE.trail.push([x, fy + 3.5, performance.now()]); if (IDLE.trail.length > 80) IDLE.trail.shift(); }
     drawTrail(IDLE.trail, camX);
-    F.draw(ctx, { x: x - camX, y: fy, s: SC.scaleAt(d), dir: 1, turn: IDLE.face, swap: Math.floor(u) % 2 === 1, pose: F.strokePose(u % 1), look: S.look });
+    IDLE.sp = F.ease(IDLE.sp, F.strokePose(u % 1), dt);
+    F.draw(ctx, { x: x - camX, y: fy, s: SC.scaleAt(d), dir: 1, turn: IDLE.face, swap: Math.floor(u) % 2 === 1, pose: IDLE.sp, look: S.look });
   }
 
   // ------------------------------------------------------------------ Ergebnis
