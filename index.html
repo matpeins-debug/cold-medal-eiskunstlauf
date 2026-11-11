@@ -555,6 +555,8 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
         this.score = typeof id === "string" ? SCORES[id] : id; this.preset = opt.preset || this.preset; this.swing = opt.swing !== undefined ? opt.swing : this.swing;
         this.bpm = opt.bpm || this.score.bpm; this.all = !!opt.all;
         this.voices = c.createGain(); this.voices.gain.value = PRESETS[this.preset].gain || 1; this.voices.connect(bus);
+        // Ebene, die der Leistung folgt: Streicher (bzw. ein heller Oberton bei Klavier und Spieluhr) schwellen an, wenn man im Takt ist
+        this.rich = c.createGain(); this.rich.gain.value = 0.7; this.rich.connect(this.voices);
         this.ev = events(this.score); this.idx = 0;
         this.t0 = c.currentTime + 0.15;
         const nb = this.score.bars.length * this.score.meter;
@@ -573,7 +575,7 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
           if (t > until) break;
           this.idx++;
           if (t < c.currentTime - 0.02) continue;
-          const dur = (e.fin ? e.dur : (this.beatAt(e.beat + e.dur) - t)), d = this.voices;
+          const dur = (e.fin ? e.dur : (this.beatAt(e.beat + e.dur) - t)), d = this.voices, rd = this.rich || d;
           if (e.raw) {
             const v = 0.45 + 0.55 * (e.vel || 0.8);
             if (e.part === "mel") pr.mel.forEach((ins) => ins === "piano" ? piano(t, e.m, dur, v * (pr.mel.length > 1 ? 0.8 : 1), d)
@@ -587,9 +589,10 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
             const vel = e.fin ? 0.8 : e.acc ? 1 : 0.85, short = e.dur <= 0.5;
             pr.mel.forEach((ins) => {
               if (ins === "piano") piano(t, e.m, dur, vel * (pr.mel.length > 1 ? 0.8 : 1), d);
-              else if (ins === "strings") strings(t, e.m, short ? dur * 0.9 : dur, vel, d, short);
+              else if (ins === "strings") strings(t, e.m, short ? dur * 0.9 : dur, vel, pr.mel.length > 1 ? rd : d, short);
               else box(t, e.m, dur, vel, d);
             });
+            if (!pr.mel.includes("strings")) box(t, e.m + 12, dur, vel * 0.32, rd);
           } else if (e.part === "bass") {
             if (pr.acc === "box") box(t, e.m + 12, dur, 0.55, d);
             else if (pr.acc === "pizz") pizz(t, e.m, dur, 0.9, d);
@@ -598,9 +601,19 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
             if (pr.acc === "box") { if (e.m === Math.max(...CH_LAST(e))) box(t, e.m, dur, 0.3, d); }
             else if (pr.acc === "pizz") pizz(t, e.m, dur, 0.42, d);
             else piano(t, e.m, e.fin ? dur : e.arp ? sp * 1.6 : sp * 0.55, e.fin ? 0.5 : e.arp ? 0.3 : 0.36, d);
-          } else if (e.part === "pad" && pr.pad) pad(t, e.chord, dur, d);
+          } else if (e.part === "pad" && pr.pad) pad(t, e.chord, dur, rd);
         }
         if (c.currentTime > this.endTime) this.stop(true);
+      },
+      // Leistung 0 … 1: wie voll das Orchester klingt
+      setIntensity(x) { if (this.rich) this.rich.gain.setTargetAtTime(0.12 + 1.0 * Math.max(0, Math.min(1, x)), c.currentTime, 0.3); },
+      // hörbare Eingabe, sofort: Glocke (Absprung, Pose), Pizzicato (Schritt), Harfe (Pirouette); i wählt den Ton der Tonleiter, q 0…1 = Güte
+      accent(kind, i, q) {
+        const SC = [74, 76, 78, 81, 83, 86, 88, 90], m = SC[((i % SC.length) + SC.length) % SC.length], t = c.currentTime + 0.005, v = 0.5 + 0.5 * (q || 0);
+        if (kind === "bell") { box(t, m - 12, 1.2, 0.9 * v, bus); box(t, m - 5, 1.2, 0.45 * v, bus); }
+        else if (kind === "pizz") pizz(t, m - 12, 0.4, 0.9 * v, bus);
+        else if (kind === "harp") { piano(t, m - 12, 0.9, 0.55 * v, bus); box(t, m, 0.9, 0.25 * v, bus); }
+        else if (kind === "chord") [62, 66, 69, 74, 78].forEach((n, k) => box(t + k * 0.035, n + 12, 2, 0.5 * v, bus));
       },
       stop(natural) {
         if (this.timer) clearInterval(this.timer);
@@ -1138,7 +1151,7 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
   }
 
   function near(dpr) {
-    const w = WW, [c, g] = mk(w, H, dpr), R = rng(5);
+    const w = WW, [c, g] = mk(w, H, dpr), R = rng(5), people = [], bulbs = [];
     // Laternen und Lichterketten (vor dem Konzerthaus, über dem Publikum)
     const posts = []; for (let x = 120; x < w; x += 330) posts.push(x);
     g.strokeStyle = "#141B25"; g.lineWidth = 3;
@@ -1152,14 +1165,15 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
         const t = k / 20, x = a + (b - a) * t, y = 77 + Math.sin(Math.PI * t) * 34;
         const gl = g.createRadialGradient(x, y, 0, x, y, 9); gl.addColorStop(0, "rgba(255,214,140,0.55)"); gl.addColorStop(1, "rgba(255,214,140,0)");
         g.fillStyle = gl; g.fillRect(x - 9, y - 9, 18, 18);
-        g.fillStyle = k % 3 ? "#FFD98A" : "#FFF1C8"; g.beginPath(); g.arc(x, y, 2.2, 0, 7); g.fill();
+        g.fillStyle = k % 3 ? "#FFD98A" : "#FFF1C8"; g.beginPath(); g.arc(x, y, 2.2, 0, 7); g.fill(); bulbs.push([x, y]);
       }
     }
     // Publikum hinter der Bande: Köpfe und Schultern, gedeckte Farben
     const COATS = ["#5B3A2E", "#2F3E55", "#4C5A3E", "#6E2F2A", "#3C3240", "#7A6A50"], SK = ["#E6C2A0", "#C9966C", "#9C6644", "#F0D5BC"];
     for (let row = 0; row < 3; row++) for (let x = -10; x < w; x += 15 + R() * 8) {
-      const y = 186 + row * 7 + R() * 3, s = 0.85 + row * 0.12;
-      g.fillStyle = COATS[Math.floor(R() * COATS.length)]; g.beginPath(); g.ellipse(x, y + 12 * s, 8 * s, 9 * s, 0, Math.PI, 0); g.fill();
+      const y = 186 + row * 7 + R() * 3, s = 0.85 + row * 0.12, coat = COATS[Math.floor(R() * COATS.length)];
+      people.push([x, y, s, coat, R()]);
+      g.fillStyle = coat; g.beginPath(); g.ellipse(x, y + 12 * s, 8 * s, 9 * s, 0, Math.PI, 0); g.fill();
       g.fillStyle = SK[Math.floor(R() * SK.length)]; g.beginPath(); g.arc(x, y, 4.2 * s, 0, 7); g.fill();
       if (R() < 0.5) { g.fillStyle = COATS[Math.floor(R() * COATS.length)]; g.beginPath(); g.arc(x, y - 2 * s, 4.4 * s, Math.PI, 0); g.fill(); } // Mütze
     }
@@ -1190,7 +1204,7 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
       g.strokeStyle = "#F1E7D2"; g.lineWidth = 6; g.stroke();
       g.strokeStyle = "#C23B2A"; g.lineWidth = 1.5; g.stroke();
     }
-    return c;
+    return { c, people, bulbs };
   }
 
   function Scene(place, dpr) {
@@ -1202,7 +1216,30 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
       draw(ctx, camX) {
         const fx = camX * PAR;
         ctx.drawImage(F, fx * dpr, 0, W * dpr, ICE_TOP * dpr, 0, 0, W, ICE_TOP);
-        ctx.drawImage(N, camX * dpr, 0, W * dpr, H * dpr, 0, 0, W, H);
+        ctx.drawImage(N.c, camX * dpr, 0, W * dpr, H * dpr, 0, 0, W, H);
+      },
+      // Publikum: cheer 0 … 1 = Anteil, der aufsteht, winkt und klatscht; Lichterketten leuchten heller
+      crowd(ctx, camX, time, cheer) {
+        if (cheer < 0.03) return;
+        ctx.lineCap = "round";
+        for (const [x, y, s, coat, r] of N.people) {
+          const sx = x - camX; if (sx < -10 || sx > W + 10 || r > cheer) continue;
+          const wave = Math.sin(time * 9 + r * 40), up = 2.5 + 1.5 * Math.max(0, wave);
+          ctx.strokeStyle = coat; ctx.lineWidth = 2.4 * s;
+          if (r < cheer * 0.45) { // Arme hoch, winken
+            ctx.beginPath(); ctx.moveTo(sx - 4 * s, y + 5 * s); ctx.lineTo(sx - 7 * s + wave * 2, y - 8 * s); ctx.moveTo(sx + 4 * s, y + 5 * s); ctx.lineTo(sx + 7 * s - wave * 2, y - 8 * s); ctx.stroke();
+          } else { // klatschen vor der Brust
+            const cl = 3 + 2.5 * Math.abs(Math.sin(time * 14 + r * 30));
+            ctx.beginPath(); ctx.moveTo(sx - 5 * s, y + 7 * s); ctx.lineTo(sx - cl * 0.4 * s, y + 2 * s - up); ctx.moveTo(sx + 5 * s, y + 7 * s); ctx.lineTo(sx + cl * 0.4 * s, y + 2 * s - up); ctx.stroke();
+          }
+        }
+        ctx.globalAlpha = Math.min(0.9, cheer);
+        for (const [x, y] of N.bulbs) {
+          const sx = x - camX; if (sx < -12 || sx > W + 12) continue;
+          const f = 0.6 + 0.4 * Math.sin(time * 11 + x);
+          ctx.fillStyle = `rgba(255,236,180,${0.5 * f})`; ctx.beginPath(); ctx.arc(sx, y, 6, 0, 7); ctx.fill();
+        }
+        ctx.globalAlpha = 1;
       },
     };
   }
@@ -1213,7 +1250,7 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
 /* COLD MEDAL EISKUNSTLAUF – Ablauf, Bildschirme, Eingabe, Taktband, Ergebnis, Spielstand. */
 (function () {
   "use strict";
-  const VERSION = "0.2.4";
+  const VERSION = "0.3";
   // Seiten-Einstellungen aus dem Build (eigenes Hosting: Adresse, Hoster, Impressum); im claude.ai-Artefakt leer
   const SITE = Object.assign({ web: false, url: "", impressum: null }, {"web": true, "url": "https://matpeins-debug.github.io/cold-medal-eiskunstlauf/", "hoster": "GitHub Pages (GitHub Inc., USA)", "drittland": "GitHub ist nach dem EU-US Data Privacy Framework zertifiziert; die Übermittlung in die USA stützt sich auf den Angemessenheitsbeschluss der EU-Kommission dazu.", "impressum": {"name": "", "adresse": "", "mail": ""}} || {});
   const M = window.EKMusic, K = window.EKSkate, F = window.EKFigure, SC = window.EKScene;
@@ -1233,7 +1270,7 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
 
   // ------------------------------------------------------------------ Spielstand (nur auf diesem Gerät; Aussehen zieht später in pass/ um)
   const KEY = "coldmedal-eiskunstlauf";
-  const DEF = { v: 1, prog: null, name: "", nat: "AUT", look: F.DEF_LOOK, help: "anf", sound: 1, preset: "salon", lat: 0, best: 0, bestTrain: 0, runs: 0 };
+  const DEF = { v: 1, prog: null, name: "", nat: "AUT", look: F.DEF_LOOK, help: "anf", sound: 1, preset: "salon", lat: 0, best: 0, bestTrain: 0, runs: 0, flowers: 0, toys: 0 };
   function sanitize(o) {
     const S = Object.assign({}, DEF, { look: F.cleanLook(null), prog: K.DEFAULT_SLOTS.slice() });
     if (o && typeof o === "object") {
@@ -1245,7 +1282,7 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
       if (M.PRESETS[o.preset]) S.preset = o.preset;
       if (Number.isFinite(o.lat)) S.lat = clamp(Math.round(o.lat / 10) * 10, -200, 400);
       S.prog = K.cleanSlots(o.prog);
-      for (const k of ["best", "bestTrain", "runs"]) if (Number.isFinite(o[k]) && o[k] >= 0) S[k] = +o[k];
+      for (const k of ["best", "bestTrain", "runs", "flowers", "toys"]) if (Number.isFinite(o[k]) && o[k] >= 0) S[k] = +o[k];
     }
     return S;
   }
@@ -1305,7 +1342,7 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
   }
   // kurze Geräusche: Kufe bei der Landung, Sturz, Applaus
   function noiseBuf(sec) { const b = ctxA.createBuffer(1, Math.round(ctxA.sampleRate * sec), ctxA.sampleRate), d = b.getChannelData(0); for (let i = 0; i < d.length; i++) d[i] = Math.random() * 2 - 1; return b; }
-  function sfx(kind) {
+  function sfx(kind, lvl) {
     if (!ctxA || !S.sound) return;
     const c = ctxA, t = c.currentTime, out = c.destination;
     const burst = (at, dur, f, q, vol, type) => {
@@ -1316,7 +1353,8 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
     };
     if (kind === "land") burst(t, 0.35, 3200, 0.8, 0.22);
     else if (kind === "fall") { burst(t, 0.25, 180, 0.7, 0.5, "lowpass"); burst(t + 0.05, 0.5, 2200, 0.6, 0.15); }
-    else if (kind === "applause") for (let i = 0; i < 160; i++) burst(t + Math.random() * 3.2 * Math.sqrt(Math.random()), 0.05, 1500 + Math.random() * 2500, 1.2, 0.05 + Math.random() * 0.05);
+    else if (kind === "applause") { const n = Math.round(60 + 200 * (lvl === undefined ? 1 : lvl)); for (let i = 0; i < n; i++) burst(t + Math.random() * 3.6 * Math.sqrt(Math.random()), 0.05, 1500 + Math.random() * 2500, 1.2, 0.04 + Math.random() * 0.05); }
+    else if (kind === "cheer") { const n = Math.round(25 + 50 * lvl); for (let i = 0; i < n; i++) burst(t + Math.random() * 1.1 * Math.sqrt(Math.random()), 0.05, 1500 + Math.random() * 2500, 1.2, 0.025 + Math.random() * 0.035); }
   }
 
   // ------------------------------------------------------------------ Lauf
@@ -1352,7 +1390,7 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
     PROG = K.buildProgram(S.prog);
     const bt = M.grid(SCORE, SCORE.bpm, true);
     run = { mode, bt, marks: buildMarks(bt), inputs: [], fake, fakeT: -0.6, lastT: 0, done: {}, pops: [], p: 0, camX: WW / 2 - W / 2,
-      dir: 1, face: 0, trail: [], trailT: 0, turn: 0, spinV: 0, jump: null, fallUntil: -1, landUntil: -1, lastSwipe: null, posed: false, finished: false, k: kHelp(), seed: (Date.now() & 0xffff) || 7 };
+      dir: 1, face: 0, trail: [], trailT: 0, turn: 0, spinV: 0, jump: null, fallUntil: -1, landUntil: -1, lastSwipe: null, posed: false, finished: false, k: kHelp(), intensity: 0.6, cheer: 0, burst: 0, streak: 0, bestStreak: 0, accI: 0, throws: null, intT: 0, seed: (Date.now() & 0xffff) || 7 };
     show(null); $("hud").hidden = false; buildChips();
     if (!fake) player.start(SCORE.id, { preset: S.preset, swing: true });
   }
@@ -1387,13 +1425,22 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
     if (inp.type === "up" && r.jump && r.jump.t1 === null) {
       r.jump.t1 = inp.t;
       const dl = inp.t - r.jump.land;
-      if (Math.abs(dl) > K.WIN.fall * k) { r.fallUntil = inp.t + 1.3; sfx("fall"); } else { r.landUntil = inp.t + 0.6; sfx("land"); }
+      if (Math.abs(dl) > K.WIN.fall * k) { r.fallUntil = inp.t + 1.3; sfx("fall"); r.streak = 0; r.intensity = clamp(r.intensity - 0.35, 0, 1); r.burst = 0; } else { r.landUntil = inp.t + 0.6; sfx("land"); }
     }
     if (inp.type === "swipe") r.lastSwipe = { dir: inp.dir, t: inp.t };
     if (!best) return;
     const ms = Math.round(best.d * 1000), T = M.TIMING, a = Math.abs(ms);
     const word = !best.ok ? "Falsche Richtung" : a <= T.perfect ? "Perfekt" : a <= T.good ? "Gut" : ms < 0 ? "Zu früh" : "Zu spät";
-    pop(best.ok ? `${word} ${sg(ms)} ms` : word, !best.ok || a > T.good ? "#E8A07A" : a <= T.perfect ? "#F3C969" : "#F1E7D2", true);
+    // Serie, Orchester und Publikum folgen der Leistung
+    const q = !best.ok ? 0 : a <= T.perfect ? 1 : a <= T.good ? 0.6 : 0.15;
+    if (best.ok && a <= T.good) { r.streak++; r.bestStreak = Math.max(r.bestStreak, r.streak); } else r.streak = 0;
+    r.intensity = clamp(r.intensity + (q >= 1 ? 0.1 : q >= 0.6 ? 0.04 : -0.14), 0, 1);
+    // die Eingabe klingt: Glocke beim Absprung, Harfe bei jeder Pirouetten-Runde, Pizzicato bei jedem Schritt, Akkord zur Pose
+    if (best.ok && player && q > 0.1) {
+      const kind = inp.type === "swipe" ? "pizz" : inp.type === "circle" ? "harp" : inp.type === "down" ? (r.posed ? "chord" : "bell") : null;
+      if (kind) player.accent(kind, r.accI++, q);
+    }
+    pop((best.ok ? `${word} ${sg(ms)} ms` : word) + (r.streak >= 3 ? `  · Serie ${r.streak}` : ""), !best.ok || a > T.good ? "#E8A07A" : a <= T.perfect ? "#F3C969" : "#F1E7D2", true);
   }
   function pop(text, col, near) { if (run) run.pops.push({ text: nb(text), col, t: performance.now(), near: !!near }); }
 
@@ -1464,6 +1511,7 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
           const r = res.els[i]; run.done[i] = r;
           ch.className = "chip " + r.status;
           ch.textContent = e.kind === "pose" ? (r.status === "ok" ? "Pose ✓" : "Pose –") : `${e.short} ${r.status === "miss" ? "–" : dec(r.score)}`;
+          if (r.status === "ok" && e.kind !== "pose") { run.burst = Math.max(run.burst, r.goe >= 2 ? 1 : 0.55); sfx("cheer", r.goe >= 2 ? 1 : 0.5); }
           if (e.kind !== "pose") pop(r.status === "miss" ? `${e.name}: ausgelassen` : r.status === "fall" ? "Sturz −1" : `${e.name} +${dec(r.score)}`, r.status === "ok" ? "#F3C969" : "#E8A07A");
         }
       } else ch.classList.toggle("now", t >= a && t <= b);
@@ -1658,7 +1706,7 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
     if (run.fake && !run.manual) run.fakeT += dt;
     const t = songTime(); run.lastT = t;
     render(t, dt);
-    if (!run.finished && t > run.bt[run.bt.length - 1] + 2.2) finish();
+    if (!run.finished && t > run.bt[run.bt.length - 1] + 3.8) finish();
   }
   function drawTrail(tr, camX) {
     const now = performance.now();
@@ -1670,12 +1718,53 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
       ctx.beginPath(); ctx.moveTo(a[0] - camX, a[1]); ctx.lineTo(b[0] - camX, b[1]); ctx.stroke();
     }
   }
+  // nach dem Schlussakkord: Blumen und Stofftiere fliegen aufs Eis, mehr bei besserer Kür
+  function drawThrows(t, sx, fy) {
+    const end = run.bt[run.bt.length - 1];
+    if (!run.throws && t > end + 0.5) {
+      const res = K.judge(PROG, run.bt, run.inputs, { k: run.k }), R = rngT(run.seed);
+      const n = clamp(Math.round((res.total - 20) / 3), 2, 18), list = [];
+      for (let i = 0; i < n; i++) {
+        const kind = R() < 0.72 ? "rose" : R() < 0.8 ? "teddy" : "star";
+        list.push({ kind, t0: end + 0.5 + R() * 2.2, x0: run.camX + R() * W, y0: 200, x1: sx + (R() - 0.5) * 360, y1: fy - 4 + (R() - 0.5) * 70, dur: 0.9 + R() * 0.5, rot: R() * 6, col: ["#C23B2A", "#E07A8B", "#F3C969", "#F1E7D2"][Math.floor(R() * 4)] });
+      }
+      run.throws = list; run.burst = 1; sfx("applause", clamp((res.total - 20) / 40, 0.2, 1));
+    }
+    if (!run.throws) return;
+    for (const o of run.throws) {
+      if (t < o.t0) continue;
+      const u = clamp((t - o.t0) / o.dur, 0, 1), x = o.x0 + (o.x1 - o.x0) * u - run.camX, y = o.y0 + (o.y1 - o.y0) * u - Math.sin(Math.PI * u) * 90;
+      ctx.save(); ctx.translate(x, y); ctx.rotate(o.rot + u * 6 * (1 - u * 0.7)); ctx.scale(1.6, 1.6);
+      ctx.strokeStyle = "#141B25"; ctx.lineWidth = 1;
+      if (o.kind === "rose") {
+        ctx.strokeStyle = "#3F6B55"; ctx.lineWidth = 1.6; ctx.beginPath(); ctx.moveTo(0, 0); ctx.lineTo(0, 11); ctx.stroke();
+        ctx.fillStyle = o.col; ctx.strokeStyle = "#141B25"; ctx.lineWidth = 1;
+        for (const [dx, dy] of [[0, -2], [-3, 0], [3, 0], [0, 2]]) { ctx.beginPath(); ctx.arc(dx, dy, 2.6, 0, 7); ctx.fill(); ctx.stroke(); }
+      } else if (o.kind === "teddy") {
+        ctx.fillStyle = "#9C6A3E";
+        for (const [dx, dy, r] of [[-3.5, -6, 2], [3.5, -6, 2], [0, -3, 4], [0, 4, 5]]) { ctx.beginPath(); ctx.arc(dx, dy, r, 0, 7); ctx.fill(); ctx.stroke(); }
+      } else {
+        ctx.fillStyle = "#F3C969"; ctx.beginPath();
+        for (let k = 0; k < 10; k++) { const a = k * Math.PI / 5 - Math.PI / 2, r = k % 2 ? 2.6 : 6.5; ctx.lineTo(Math.cos(a) * r, Math.sin(a) * r); }
+        ctx.closePath(); ctx.fill(); ctx.stroke();
+      }
+      ctx.restore();
+    }
+  }
+  function rngT(seed) { let x = seed >>> 0 || 1; return () => ((x = (x * 1664525 + 1013904223) >>> 0) / 4294967296); }
   function render(t, dt) {
     const st = figureState(t, dt);
     const fy = SC.footY(st.d), s = SC.scaleAt(st.d);
     const target = clamp(st.x - W / 2 + Math.cos(run.face) * 60, 0, WW - W);
     run.camX += (target - run.camX) * Math.min(1, dt * 2.2);
     scene.draw(ctx, run.camX);
+    // Publikum: steht bei Serien und gelungenen Elementen auf, klatscht und winkt
+    run.burst = Math.max(0, run.burst - dt * 0.45);
+    const tgt = Math.max(Math.min(0.85, run.streak / 9), run.burst, run.throws ? 0.95 : 0);
+    run.cheer += (tgt - run.cheer) * Math.min(1, dt * 3);
+    scene.crowd(ctx, run.camX, performance.now() / 1000, run.cheer);
+    run.intT += dt; if (player && player.playing && run.intT > 0.2) { run.intT = 0; player.setIntensity(run.intensity); }
+    run.intensity += (0.6 - run.intensity) * Math.min(1, dt * 0.05);
     const fx = st.x - run.camX;
     ctx.fillStyle = "rgba(20,27,37,0.18)"; ctx.beginPath(); ctx.ellipse(fx, fy + 3, 18 * s * (1 - st.lift / 120), 4 * s, 0, 0, 7); ctx.fill();
     drawCue(fx, fy, s, t, st.lift);
@@ -1687,6 +1776,7 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
     }
     run.sp = F.ease(run.sp, st.pose, dt, st.lift > 1 || st.tilt < -0.3);
     F.draw(ctx, { x: fx, y: fy, s, dir: 1, pose: run.sp, lift: st.lift, turn: st.turn, tilt: st.tilt, swap: st.swap, look: S.look });
+    drawThrows(t, st.x, fy);
     drawLane(t); drawPops(fx, fy, s);
     updateChips(t);
   }
@@ -1709,6 +1799,8 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
     if (player && player.playing) player.stop();
     const res = K.judge(PROG, r.bt, r.inputs, { k: r.k });
     S.runs++;
+    const gifts = r.throws || [], fl = gifts.filter((g) => g.kind === "rose").length, toys = gifts.length - fl;
+    S.flowers += fl; S.toys += toys; r.gifts = { fl, toys };
     let board = null, rank = 0;
     if (r.mode === "comp") {
       board = K.field(r.seed, 5).concat([{ name: S.name || "Du", nat: S.nat, tes: res.tes, pcsTotal: res.pcsTotal, ded: res.ded, total: res.total, me: true }]);
@@ -1716,7 +1808,7 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
       if (res.total > S.best) S.best = res.total;
     } else if (res.total > S.bestTrain) S.bestTrain = res.total;
     save();
-    sfx("applause");
+
     $("hud").hidden = true;
     showResult(res, board, rank);
     window.__ek.last = res;
@@ -1736,7 +1828,9 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
     $("rTotal").textContent = dec(res.total);
     $("rRank").textContent = board ? nb(`Platz ${rank} von ${board.length}`) : "Punkte";
     $("rSplit").innerHTML = nb(`Technik ${dec(res.tes)} · Komponenten ${dec(res.pcsTotal)} (Komposition ${dec(res.pcs.comp)}, Präsentation ${dec(res.pcs.pres)}, Können ${dec(res.pcs.skill)})`)
-      + (res.ded ? ` · <b>Abzug −${res.ded}</b>` : "");
+      + (res.ded ? ` · <b>Abzug −${res.ded}</b>` : "")
+      + (run.gifts ? nb(` · aufs Eis: ${run.gifts.fl} Blumen, ${run.gifts.toys} Stofftiere`) : "")
+      + (run.bestStreak >= 3 ? nb(` · längste Serie ${run.bestStreak}`) : "");
     const tm = res.timing;
     $("rTime").innerHTML = tm ? `<b>Ø ${tm.mean}&nbsp;ms</b><span>durchschnittliche Abweichung vom Takt: ${tm.word}<br>Tendenz ${sg(tm.bias)}&nbsp;ms (${tm.tend}) · ${tm.perfect} von ${tm.n} perfekt</span>`
       : `<b>–</b><span>keine Eingabe im Takt</span>`;
@@ -1895,14 +1989,14 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
     test(on) { testMode = !!on; },
     start(mode) { startRun(mode || "comp", { fake: true }); run.manual = true; },
     // Zeit vorspulen in kleinen Schritten (Bild wird mitgerechnet)
-    step(sec) { const n = Math.ceil(sec / 0.02); for (let i = 0; i < n && run && !run.finished; i++) { run.fakeT += sec / n; render(run.fakeT, sec / n); if (run.fakeT > run.bt[run.bt.length - 1] + 2.2) finish(); } },
+    step(sec) { const n = Math.ceil(sec / 0.02); for (let i = 0; i < n && run && !run.finished; i++) { run.fakeT += sec / n; render(run.fakeT, sec / n); if (run.fakeT > run.bt[run.bt.length - 1] + 3.8) finish(); } },
     stepTo(t) { if (run) this.step(Math.max(0, t - run.fakeT)); },
     input: addInput,
     // ganze Kür mit Eingaben um off Sekunden versetzt
     autoplay(off) {
       const ins = K.perfectInputs(PROG, run.bt, off || 0);
       for (const i of ins) { this.stepTo(i.t); addInput(i.type, i.dir); }
-      this.stepTo(run.bt[run.bt.length - 1] + 2.5);
+      this.stepTo(run.bt[run.bt.length - 1] + 4);
     },
     fig(t) { return figureState(t, 0); },
     screen() { return SCREENS.find((s) => !$(s).hidden) || (run ? "run" : ""); },
