@@ -171,6 +171,26 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
 .pick { overflow-y: auto; }
 .prow .hint { font-size: 11px; color: var(--muted); }
 .prow > b.sub { min-width: 0; margin-left: 14px; }
+.pBody { flex: 1; display: flex; gap: 10px; min-height: 0; }
+.pBody .pick { flex: 1; }
+.pPlan { width: 215px; flex: none; display: flex; flex-direction: column; gap: 3px; border-left: 2px solid var(--ink-deep); padding-left: 9px; overflow-y: auto; }
+.plTot { display: flex; align-items: baseline; gap: 6px; }
+.plTot b { font-family: var(--font-display); font-size: 24px; }
+.plTot small { font-family: var(--font-display); font-size: 10px; letter-spacing: 0.08em; color: var(--muted); }
+.plRow { display: grid; grid-template-columns: 1fr 52px 26px; gap: 2px 6px; align-items: center; font-size: 11px; }
+.plRow span { font-family: var(--font-display); font-weight: 600; }
+.plRow i { height: 6px; background: linear-gradient(90deg, var(--ink) var(--v), #E4DACB var(--v)); }
+.plRow b { font-family: var(--font-display); text-align: right; }
+.plRow em { grid-column: 1 / -1; font-style: normal; color: var(--muted); font-size: 9.5px; line-height: 1.15; }
+#pLook { align-self: flex-start; margin-top: 3px; font-size: 11px; padding: 3px 8px; }
+.prog .slot { height: 60px; }
+.pick .pill { font-size: 10.5px; padding: 3px 7px; }
+.pick .el { padding: 3px 6px; font-size: 12px; }
+.pick { gap: 4px; }
+.plTot #pLook { margin: 0 0 0 auto; }
+.plTot { white-space: nowrap; }
+.plTot b { font-size: 21px; }
+.plTot #pLook { font-size: 10px; padding: 2px 6px; min-width: 0; }
 </style>
 </head>
 <body>
@@ -225,7 +245,7 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
     <div class="card wide prog">
       <div class="pHead"><div class="kicker">MEINE KÜR · DONAUWALZER</div><div class="pSum" id="pSum"></div></div>
       <div class="tl" id="tl"></div>
-      <div class="pick" id="pick"></div>
+      <div class="pBody"><div class="pick" id="pick"></div><div class="pPlan" id="pPlan"></div></div>
       <div class="pFoot"><span class="note" id="pMsg"></span>
         <button class="mid" id="pDef">Vorschlag</button><button class="mid red" id="pDone">Fertig</button></div>
     </div>
@@ -757,6 +777,52 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
   // die Schrittfolge zwei. Danach immer die Schlusspose auf dem Schlussakkord.
   // peak: Abschnitte mit dem musikalischen Höhepunkt (höchster Ton D6, volle Kraft) – ein sauberes Element dort bekommt +1 GOE
   const SECTIONS = { donau: { first: 4, len: 4, n: 8, end: 108, peak: [4, 5] } };
+  // Choreografie wie im Tanzsport durchplanen: jeder Abschnitt hat eine Stimmung, zu der manche Elemente besser passen
+  const MOODS = {
+    donau: [
+      ["Thema, erste Welle", ["jump", "choreo"]], ["Thema steigt", ["jump"]], ["Spannung", ["spin", "jump"]], ["Spannung löst sich", ["spin", "choreo"]],
+      ["Höhepunkt", ["steps", "jump"]], ["Höhepunkt", ["steps", "jump"]], ["Wärme, Ausklang", ["spin", "choreo"]], ["Schluss", ["jump", "spin"]],
+    ],
+  };
+  // Kostüm zur Musik (Index wie EKFigure.SUIT: Rot, Blau, Grün, Gold, Violett, Nachtblau): Wert 0 … 10 und ein Wort dazu
+  const COSTUME = {
+    donau: { fit: [5, 10, 4, 8, 7, 6], best: "Blau wie die Donau, Gold oder Violett für den Ballsaal" },
+  };
+  function plan(slots, look, music) {
+    music = music || "donau";
+    const moods = MOODS[music], sec = SECTIONS[music], ids = slots.map((x) => (x === "~" ? "~" : x));
+    const kindAt = (i) => { let id = ids[i]; if (id === "~") id = ids[i - 1]; return id && CATALOG[id] ? CATALOG[id].kind : null; };
+    // 1 Musik: passt das Element zur Stimmung des Abschnitts? Gleiten zählt halb
+    let fit = 0; const misfit = [];
+    for (let i = 0; i < slots.length; i++) { const k = kindAt(i); if (!k) fit += 0.4; else if (moods[i][1].includes(k)) fit += 1; else misfit.push(i); }
+    const music10 = (fit / slots.length) * 10;
+    // 2 Aufbau: stärkstes Element in der zweiten Hälfte oder am Höhepunkt, ruhiger Anfang, kein leerer Schluss
+    const val = (id) => { const c = CATALOG[id]; return !c || c.kind === "choreo" ? 0 : c.kind === "jump" ? c.base : c.levels[c.levels.length - 1]; };
+    let best = -1, bv = 0; ids.forEach((id, i) => { if (id && id !== "~" && val(id) > bv) { bv = val(id); best = i; } });
+    let arc = 4; const arcWhy = [];
+    if (best >= 4 || (sec.peak || []).includes(best)) arc += 3; else if (best >= 0) arcWhy.push("das stärkste Element kommt früh");
+    if (ids[ids.length - 1]) arc += 2; else arcWhy.push("am Schluss nur Gleiten");
+    if (ids[0] && val(ids[0]) > bv * 0.9 && best > 0 && bv > 2) { arc -= 1; arcWhy.push("gleich am Anfang das Schwerste"); } else arc += 1;
+    // 3 Abwechslung: Arten von Elementen, keine gleichen Nachbarn, verschiedene Choreo-Figuren
+    const kinds = new Set(ids.filter((x) => x && x !== "~").map((x) => CATALOG[x].kind));
+    let same = 0; for (let i = 1; i < ids.length; i++) if (ids[i] && ids[i] !== "~" && ids[i] === ids[i - 1]) same++;
+    const chor = new Set(ids.filter((x) => x && CATALOG[x] && CATALOG[x].kind === "choreo"));
+    const empty = ids.filter((x) => !x).length;
+    const vari = clamp(kinds.size * 2 + Math.min(2, chor.size) - same * 2 - Math.max(0, empty - 2) * 1.5, 0, 10);
+    // 4 Kostüm: Farbe zur Musik, Streifen setzt sich ab
+    const C = COSTUME[music], L = look || {}, su = clamp(L.suit | 0, 0, 5), ac = clamp(L.accent | 0, 0, 5);
+    const cost = clamp(C.fit[su] - (su === ac ? 3 : 0), 0, 10);
+    const r1 = (v) => Math.round(v * 2) / 2;
+    const parts = [
+      { id: "musik", name: "Passt zur Musik", v: r1(music10), why: misfit.length ? `Abschnitt ${misfit.map((i) => i + 1).join(", ")}: ${moods[misfit[0]][0]} – dort passt eher ${moods[misfit[0]][1].map((k) => KIND_DE[k]).join(" oder ")}` : "jedes Element passt zur Stimmung" },
+      { id: "aufbau", name: "Spannungsbogen", v: r1(clamp(arc, 0, 10)), why: arcWhy[0] || "steigert sich bis zum Höhepunkt" },
+      { id: "abw", name: "Abwechslung", v: r1(vari), why: same ? "zweimal hintereinander dasselbe" : kinds.size < 3 ? "mehr verschiedene Elemente (Sprung, Pirouette, Schritte, Choreo)" : empty > 2 ? "viel Gleiten" : !chor.size ? "Tipp: eine Choreo-Figur in einen freien Abschnitt" : "abwechslungsreich" },
+      { id: "kostuem", name: "Kostüm", v: r1(cost), why: su === ac ? "Streifen in derselben Farbe wie das Kostüm" : C.fit[su] >= 8 ? "passt zum Donauwalzer" : "Tipp: " + C.best },
+    ];
+    const total = r1(parts.reduce((a, x) => a + x.v, 0) / parts.length);
+    return { total, parts, moods };
+  }
+  const KIND_DE = { jump: "ein Sprung", spin: "eine Pirouette", steps: "die Schrittfolge", choreo: "eine Choreo-Figur" };
   const STEP_PATTERN = [[0, "r"], [3, "l"], [6, "r"], [8, "u"], [9, "l"], [12, "d"], [14, "r"], [15, "l"], [18, "u"], [20, "d"], [21, "r"], [24, "l"]];
   const DEFAULT_SLOTS = ["2T", "2S", "USp", null, "StSq", "~", "2Lo", null];
 
@@ -828,7 +894,7 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
   // Zeitfenster in Sekunden (mal k)
   // Sprung: jump = Fenster für den Absprung, high = Absprung so daneben, dass der Sprung zu niedrig wird,
   // wobble/hand/fall = Stufen der Landung (Betrag), under = zu früh losgelassen
-  const WIN = { jump: 0.22, high: 0.13, wobble: 0.07, hand: 0.13, under: 0.11, fall: 0.2, spin: 0.45, step: 0.3, pose: 0.4 };
+  const WIN = { jump: 0.18, high: 0.08, wobble: 0.05, hand: 0.09, under: 0.08, fall: 0.14, spin: 0.45, step: 0.3, pose: 0.4 }; // Sprünge verlangen sehr genaues Drücken und Loslassen
 
   // Sprung: Absprung auf ●, Landung auf ○. Die Landung ist abgestuft: sauber, wackelig, Hand auf dem Eis, Sturz;
   // zu früh losgelassen = zu kurz gedreht; ein verpasster Absprung macht den Sprung zu niedrig (ebenfalls zu kurz gedreht)
@@ -921,15 +987,16 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
     const tim = root.EKMusic ? root.EKMusic.timingStats(all) : null;
     const scored = els.filter((x) => x.kind !== "pose" && !x.inCombo), done = scored.filter((x) => x.status !== "miss").length / scored.length;
     const meanDev = all.length ? mean(all) : 400, pose = els.find((x) => x.kind === "pose");
-    const variety = Math.min(3, new Set(Object.values(prog.choreo || {})).size) * 0.25 + (els.some((x) => x.peak) ? 0.25 : 0); // verschiedene Choreo-Figuren, Höhepunkt genutzt
+    // Komposition: die geplante Choreografie (Musik, Bogen, Abwechslung, Kostüm) zählt bis 1,5 Punkte, Höhepunkt genutzt 0,25
+    const pl = plan(prog.slots || [], prog.look, prog.music), variety = pl.total * 0.15 + (els.some((x) => x.peak) ? 0.25 : 0);
     const pcs = {
-      comp: q4(clamp(3 + 5 * done + (pose && pose.status === "ok" ? 1.25 : 0) - 0.75 * falls + variety, 1.5, 9.75)),
+      comp: q4(clamp(3 + 4.5 * done + (pose && pose.status === "ok" ? 1.25 : 0) - 0.75 * falls + variety, 1.5, 9.75)),
       pres: q4(clamp(10 - meanDev / k / 22, 1.5, 9.75)),
       skill: q4(clamp(3 + 6.5 * done - 1.5 * falls + (meanDev < 60 ? 0.5 : 0), 1.5, 9.75)),
     };
     const pcsTotal = r2((pcs.comp + pcs.pres + pcs.skill) * PCS_FACTOR);
     const ded = falls;
-    return { els, tes, pcs, pcsTotal, ded, falls, total: r2(tes + pcsTotal - ded), timing: tim, devs: all };
+    return { els, tes, pcs, pcsTotal, ded, falls, total: r2(tes + pcsTotal - ded), timing: tim, devs: all, plan: pl };
   }
 
   // perfekte Eingaben für eine Kür (Tests, Vorführung); off = Abweichung in Sekunden
@@ -958,7 +1025,7 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
     });
   }
 
-  root.EKSkate = { PROGRAMS, CATALOG, RULES, SECTIONS, DEFAULT_SLOTS, check, cleanSlots, buildProgram, maxBase, WIN, judge, goeFrom, perfectInputs, field, PCS_FACTOR };
+  root.EKSkate = { PROGRAMS, CATALOG, RULES, SECTIONS, DEFAULT_SLOTS, check, cleanSlots, buildProgram, plan, MOODS, COSTUME, maxBase, WIN, judge, goeFrom, perfectInputs, field, PCS_FACTOR };
 })(typeof window !== "undefined" ? window : globalThis);
 
 /* Cold Medal · Eiskunstlauf – Figur im Plakatstil (Canvas). Gleicher Körper und gleiche Posen für alle; erkennbar nur an Frisur,
@@ -1524,7 +1591,7 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
 /* COLD MEDAL EISKUNSTLAUF – Ablauf, Bildschirme, Eingabe, Taktband, Ergebnis, Spielstand. */
 (function () {
   "use strict";
-  const VERSION = "0.6";
+  const VERSION = "0.7";
   // Seiten-Einstellungen aus dem Build (eigenes Hosting: Adresse, Hoster, Impressum); im claude.ai-Artefakt leer
   const SITE = Object.assign({ web: false, url: "", impressum: null }, {"web": true, "url": "https://matpeins-debug.github.io/cold-medal-eiskunstlauf/", "hoster": "GitHub Pages (GitHub Inc., USA)", "drittland": "GitHub ist nach dem EU-US Data Privacy Framework zertifiziert; die Übermittlung in die USA stützt sich auf den Angemessenheitsbeschluss der EU-Kommission dazu.", "impressum": {"name": "", "adresse": "", "mail": ""}} || {});
   const M = window.EKMusic, K = window.EKSkate, F = window.EKFigure, SC = window.EKScene;
@@ -1686,7 +1753,7 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
   function startRun(mode, opt) {
     opt = opt || {};
     const fake = !!opt.fake || testMode || !player;
-    PROG = K.buildProgram(S.prog);
+    PROG = K.buildProgram(S.prog); PROG.look = S.look;
     const bt = M.grid(SCORE, SCORE.bpm, true);
     run = { mode, bt, marks: buildMarks(bt), inputs: [], fake, fakeT: -0.6, lastT: 0, done: {}, pops: [], p: 0, camX: WW / 2 - W / 2,
       dir: 1, face: 0, trail: [], trailT: 0, turn: 0, spinV: 0, jump: null, fallUntil: -1, landUntil: -1, lastSwipe: null, posed: false, finished: false, k: kHelp(), paint: { pts: [], marks: [], t: 0 }, sparks: [], burstQ: 0, lastQ: null, pos: null, intensity: 0.6, cheer: 0, burst: 0, streak: 0, bestStreak: 0, accI: 0, throws: null, intT: 0, seed: (Date.now() & 0xffff) || 7 };
@@ -2059,10 +2126,38 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
     if (j && j.t1 === null && t >= j.t0 && t < j.land + 0.4) return { kind: "holding", m: run.marks.find((x) => x.kind === "hold" && x.el === j.el), j };
     return { m: run.marks.find((x) => x.t > t - 0.12 && x.t - t < 1.25 && !(x.kind === "hold" && run.jump && run.jump.el === x.el)) };
   }
+  // Pirouette: ein Punkt läuft im Kreis und ist genau auf jedem Schlag ⟳ oben. Mit dem Finger mitkreisen
+  // (am Rechner: Leertaste, wenn der Punkt oben ist). Der eigene Kreis wächst als heller Bogen mit.
+  function spinCue(fx, y, t) {
+    const el = PROG.elements.find((e) => e.kind === "spin" && t > run.bt[e.from] - 1.0 && t < run.bt[e.from + 3 * e.turns] + 0.25);
+    if (!el) return false;
+    const bt = run.bt, R = 30;
+    let i = 1; while (i < el.turns && t > bt[el.from + 3 * i] + 0.12) i++;
+    const a0 = bt[el.from + 3 * (i - 1)], a1 = bt[el.from + 3 * i], u = clamp((t - a0) / (a1 - a0), -0.5, 1.05);
+    ctx.fillStyle = "rgba(20,27,37,0.72)"; ctx.beginPath(); ctx.arc(fx, y, R + 9, 0, 7); ctx.fill();
+    ctx.strokeStyle = "rgba(241,231,210,0.35)"; ctx.lineWidth = 3; ctx.beginPath(); ctx.arc(fx, y, R, 0, 7); ctx.stroke();
+    // Ziel oben
+    const near = 1 - clamp(Math.abs(t - a1) / 0.25, 0, 1);
+    ctx.fillStyle = `rgba(243,201,105,${0.5 + 0.5 * near})`; ctx.beginPath(); ctx.arc(fx, y - R, 6 + 4 * near, 0, 7); ctx.fill();
+    // eigener Kreis (Finger)
+    const own = track.acc && Math.abs(track.acc) > 0.2 && performance.now() - track.lastMove < 400 ? track.acc : 0;
+    if (own) { ctx.strokeStyle = "rgba(207,227,255,0.9)"; ctx.lineWidth = 5; ctx.beginPath(); ctx.arc(fx, y, R, -Math.PI / 2, -Math.PI / 2 + own, own < 0); ctx.stroke(); }
+    // laufender Punkt
+    {
+      const ang = -Math.PI / 2 + Math.max(0, u) * Math.PI * 2; // vor dem Start wartet der Punkt oben
+      ctx.strokeStyle = "rgba(243,201,105,0.7)"; ctx.lineWidth = 4; ctx.beginPath(); ctx.arc(fx, y, R, Math.max(-Math.PI / 2, ang - 1.2), ang); ctx.stroke();
+      ctx.fillStyle = "#F3C969"; ctx.strokeStyle = "#141B25"; ctx.lineWidth = 2; ctx.beginPath(); ctx.arc(fx + Math.cos(ang) * R, y + Math.sin(ang) * R, 7, 0, 7); ctx.fill(); ctx.stroke();
+    }
+    ctx.textAlign = "center"; ctx.textBaseline = "middle"; ctx.fillStyle = "#F1E7D2"; ctx.font = "bold 15px " + font();
+    ctx.fillText(t < a0 && i === 1 ? "⟳" : `${i}/${el.turns}`, fx, y + 1);
+    label(fx, y + R + 22, t < bt[el.from] ? (canHover() ? "LEERTASTE, WENN DER PUNKT OBEN IST" : "MIT DEM FINGER MITKREISEN") : canHover() ? "PUNKT OBEN = LEERTASTE" : "MITKREISEN, OBEN = SCHLAG");
+    return true;
+  }
   function drawCue(fx, fy, s, t, lift) {
     const c = cueMark(t), m = c.m;
     const y = Math.max(46, fy - (132 + Math.max(0, lift || 0)) * s), R = 20;
-    if (m) {
+    if (spinCue(fx, Math.max(56, y - 6), t)) { /* Pirouette hat eigene Hilfe */ }
+    else if (m) {
       ctx.textAlign = "center"; ctx.textBaseline = "middle";
       if (c.kind === "holding") {
         const u = clamp((t - c.j.t0) / (m.t2 - c.j.t0), 0, 1), lead = m.t2 - t;
@@ -2354,7 +2449,8 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
     $("rSplit").innerHTML = nb(`Technik ${dec(res.tes)} · Komponenten ${dec(res.pcsTotal)} (Komposition ${dec(res.pcs.comp)}, Präsentation ${dec(res.pcs.pres)}, Können ${dec(res.pcs.skill)})`)
       + (res.ded ? ` · <b>Abzug −${res.ded}</b>` : "")
       + (run.gifts ? nb(` · aufs Eis: ${run.gifts.fl} Blumen, ${run.gifts.toys} Stofftiere`) : "")
-      + (run.bestStreak >= 3 ? nb(` · längste Serie ${run.bestStreak}`) : "");
+      + (run.bestStreak >= 3 ? nb(` · längste Serie ${run.bestStreak}`) : "")
+      + (res.plan ? nb(` · Choreo-Note ${dec(res.plan.total)}/10`) : "");
     const tm = res.timing;
     $("rTime").innerHTML = tm ? `<b>Ø ${tm.mean}&nbsp;ms</b><span>durchschnittliche Abweichung vom Takt: ${tm.word}<br>Tendenz ${sg(tm.bias)}&nbsp;ms (${tm.tend}) · ${tm.perfect} von ${tm.n} perfekt</span>`
       : `<b>–</b><span>keine Eingabe im Takt</span>`;
@@ -2460,9 +2556,8 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
     };
     const fam = ["T", "S", "Lo", "F", "Lz", "A"];
     $("pick").innerHTML =
-      `<div class="prow"><b>Sprung</b><span class="opts"><button class="pill${pRot === 1 ? " on" : ""}" data-rot="1">einfach</button><button class="pill${pRot === 2 ? " on" : ""}" data-rot="2">doppelt</button></span>`
-      + fam.map((f) => { const id = pRot + f + (pCombo ? "+" + pRot + pCombo : ""), c = CAT[id]; return btn(id, CAT["1" + f].name, dec(c.base)); }).join("") + `</div>`
-      + `<div class="prow"><b>Kombination</b><span class="opts"><button class="pill${!pCombo ? " on" : ""}" data-combo="">ohne</button><button class="pill${pCombo === "T" ? " on" : ""}" data-combo="T">+ Toeloop</button><button class="pill${pCombo === "Lo" ? " on" : ""}" data-combo="Lo">+ Rittberger</button></span><span class="hint">danach gleich wieder ● drücken</span></div>`
+      `<div class="prow"><b>Sprung</b>` + fam.map((f) => { const id = pRot + f + (pCombo ? "+" + pRot + pCombo : ""), c = CAT[id]; return btn(id, CAT["1" + f].name, dec(c.base)); }).join("") + `</div>`
+      + `<div class="prow"><b></b><span class="opts"><button class="pill${pRot === 1 ? " on" : ""}" data-rot="1">einfach</button><button class="pill${pRot === 2 ? " on" : ""}" data-rot="2">doppelt</button></span><b class="sub">Kombi</b><span class="opts"><button class="pill${!pCombo ? " on" : ""}" data-combo="">ohne</button><button class="pill${pCombo === "T" ? " on" : ""}" data-combo="T">+ Toeloop</button><button class="pill${pCombo === "Lo" ? " on" : ""}" data-combo="Lo">+ Rittberger</button></span></div>`
       + `<div class="prow"><b>Pirouette</b>${["USp", "SSp", "CSp"].map((id) => btn(id, CAT[id].short, `bis ${dec(CAT[id].levels[3])}`)).join("")}<b class="sub">Schritte</b>${btn("StSq", "Schrittfolge", `2 Abschnitte · bis ${dec(CAT.StSq.levels[3])}`)}</div>`
       + `<div class="prow"><b>Choreo</b>${btn(null, "Gleiten", "frei")}${["ChSp", "ChIB", "ChPB", "ChTw"].map((id) => btn(id, CAT[id].name, "Ausdruck")).join("")}</div>`;
     $("pick").querySelectorAll("[data-rot]").forEach((b) => (b.onclick = () => { pRot = +b.dataset.rot; fillProg(); }));
@@ -2475,7 +2570,13 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
     $("pSum").innerHTML = nb(`Grundwert bis ${dec(K.maxBase(sl))} · ${nj} von ${K.RULES.jumps} Sprüngen · ${ns} von ${K.RULES.spins} Pirouetten`);
     const nc = ids.filter((x) => CAT[x].combo).length;
     $("pSum").innerHTML += nb(` · ${nc} von ${K.RULES.combos} Kombinationen`);
-    $("pMsg").textContent = "♪ Höhepunkt der Musik: sauberes Element dort +1 GOE. Grau = nach den Regeln gerade nicht möglich.";
+    const pl = K.plan(sl, S.look);
+    $("pPlan").innerHTML = `<div class="plTot"><small>CHOREO</small><b>${dec(pl.total)}</b><small>/ 10</small><button class="pill" id="pLook">Kostüm</button></div>`
+      + pl.parts.map((x) => `<div class="plRow"><span>${esc(x.name)}</span><i style="--v:${x.v * 10}%"></i><b>${dec(x.v)}</b><em>${esc(x.why)}</em></div>`).join("")
+;
+    $("pLook").onclick = () => openLook(() => { fillProg(); show("scrProg"); });
+    $("tl").querySelectorAll(".slot").forEach((b) => { const m = pl.moods[+b.dataset.i]; if (m) b.title = `${m[0]}: passt ${m[1].map((k) => ({ jump: "Sprung", spin: "Pirouette", steps: "Schritte", choreo: "Choreo" })[k]).join(" oder ")}`; });
+    $("pMsg").textContent = "♪ Höhepunkt: sauberes Element +1 GOE · Kombi: nach der Landung gleich wieder ● · grau = nicht erlaubt";
   }
   $("bProg").onclick = () => { pSel = 0; const c = CAT[S.prog[0]]; if (c && c.kind === "jump") { pRot = c.rot; pCombo = c.combo ? c.combo[1].slice(1) : ""; } fillProg(); show("scrProg"); };
   $("pDef").onclick = () => { S.prog = K.DEFAULT_SLOTS.slice(); save(); fillProg(); };
