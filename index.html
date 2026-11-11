@@ -1171,9 +1171,10 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
     const ice = g.createLinearGradient(0, ICE_TOP, 0, H);
     ice.addColorStop(0, "#C9D9E6"); ice.addColorStop(0.35, "#E4ECF0"); ice.addColorStop(1, "#F4F0E6");
     g.fillStyle = ice; g.fillRect(0, ICE_TOP, w, H - ICE_TOP);
+    // Spiegelung der Laternen: schmaler, zarter Lichtstreif, der nach vorn ausläuft
     for (const x of posts) {
-      const gl = g.createLinearGradient(0, ICE_TOP, 0, ICE_TOP + 110); gl.addColorStop(0, "rgba(255,214,140,0.35)"); gl.addColorStop(1, "rgba(255,214,140,0)");
-      g.fillStyle = gl; g.beginPath(); g.ellipse(x, ICE_TOP + 40, 26, 70, 0, 0, 7); g.fill();
+      const gl = g.createLinearGradient(0, ICE_TOP, 0, ICE_TOP + 90); gl.addColorStop(0, "rgba(255,226,170,0.22)"); gl.addColorStop(1, "rgba(255,226,170,0)");
+      g.fillStyle = gl; g.beginPath(); g.moveTo(x - 3, ICE_TOP); g.lineTo(x + 3, ICE_TOP); g.lineTo(x + 7, ICE_TOP + 90); g.lineTo(x - 7, ICE_TOP + 90); g.closePath(); g.fill();
     }
     g.strokeStyle = "rgba(120,140,160,0.28)"; g.lineWidth = 1;
     for (let i = 0; i < 90; i++) {
@@ -1212,7 +1213,7 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
 /* COLD MEDAL EISKUNSTLAUF – Ablauf, Bildschirme, Eingabe, Taktband, Ergebnis, Spielstand. */
 (function () {
   "use strict";
-  const VERSION = "0.2.3";
+  const VERSION = "0.2.4";
   // Seiten-Einstellungen aus dem Build (eigenes Hosting: Adresse, Hoster, Impressum); im claude.ai-Artefakt leer
   const SITE = Object.assign({ web: false, url: "", impressum: null }, {"web": true, "url": "https://matpeins-debug.github.io/cold-medal-eiskunstlauf/", "hoster": "GitHub Pages (GitHub Inc., USA)", "drittland": "GitHub ist nach dem EU-US Data Privacy Framework zertifiziert; die Übermittlung in die USA stützt sich auf den Angemessenheitsbeschluss der EU-Kommission dazu.", "impressum": {"name": "", "adresse": "", "mail": ""}} || {});
   const M = window.EKMusic, K = window.EKSkate, F = window.EKFigure, SC = window.EKScene;
