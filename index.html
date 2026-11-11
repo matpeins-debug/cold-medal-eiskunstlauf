@@ -1068,7 +1068,7 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
 /* COLD MEDAL EISKUNSTLAUF – Ablauf, Bildschirme, Eingabe, Taktband, Ergebnis, Spielstand. */
 (function () {
   "use strict";
-  const VERSION = "0.1.1";
+  const VERSION = "0.1.2";
   // Seiten-Einstellungen aus dem Build (eigenes Hosting: Adresse, Hoster, Impressum); im claude.ai-Artefakt leer
   const SITE = Object.assign({ web: false, url: "", impressum: null }, {"web": true, "url": "https://matpeins-debug.github.io/cold-medal-eiskunstlauf/", "hoster": "GitHub Pages (GitHub Inc., USA)", "drittland": "GitHub ist nach dem EU-US Data Privacy Framework zertifiziert; die Übermittlung in die USA stützt sich auf den Angemessenheitsbeschluss der EU-Kommission dazu.", "impressum": {"name": "", "adresse": "", "mail": ""}} || {});
   const M = window.EKMusic, K = window.EKSkate, F = window.EKFigure, SC = window.EKScene;
@@ -1081,6 +1081,8 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
   // Zahl und Einheit nie trennen
   const nb = (s) => String(s).replace(/(\d) (?=[A-Za-zäöü%·])/g, "$1 ").replace(/(Platz|Takt) (?=\d)/g, "$1 ");
   const smooth = (t) => { t = clamp(t, 0, 1); return t * t * (3 - 2 * t); };
+  // Schrittfolge: jeder Pfeil ist eine Bewegung, die man an der Läuferin sieht
+  const STEP = { l: ["←", "nach links"], r: ["→", "nach rechts"], u: ["↑", "Hüpfer"], d: ["↓", "tief in die Knie"] };
   const NAT = { AUT: "Österreich", GER: "Deutschland", SUI: "Schweiz", ITA: "Italien", FRA: "Frankreich", NOR: "Norwegen", SWE: "Schweden",
     CZE: "Tschechien", SLO: "Slowenien", POL: "Polen", NED: "Niederlande", USA: "USA", CAN: "Kanada", JPN: "Japan" };
 
@@ -1354,11 +1356,16 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
       pose = F.POSES.spin; r.spinV = Math.max(0.25, r.spinV - dt * 0.6); r.turn += dt * Math.PI * 2 * (0.6 + 2.2 * r.spinV); turn = r.turn;
     }
     if (el && el.kind === "steps") {
-      const s = r.lastSwipe && t - r.lastSwipe.t < 0.35 ? r.lastSwipe.dir : null;
-      pose = s === "u" ? F.POSES.stepU : s === "d" ? F.POSES.stepD : F.mix(F.POSES.stepA, F.POSES.stepB, (Math.sin(Math.PI * (bi + ph)) + 1) / 2);
+      // Antwort auf das Wischen: links/rechts = Gewicht und Gleiten zur Seite, hoch = Hüpfer, runter = tief in die Knie
+      const sw = r.lastSwipe && t - r.lastSwipe.t < 0.45 ? r.lastSwipe : null, k2 = sw ? Math.sin(Math.PI * clamp((t - sw.t) / 0.45, 0, 1)) : 0;
+      pose = F.mix(F.POSES.stepA, F.POSES.stepB, (Math.sin(Math.PI * (bi + ph)) + 1) / 2);
+      if (sw && sw.dir === "u") { pose = F.mix(pose, F.POSES.stepU, k2); lift = 16 * k2; }
+      else if (sw && sw.dir === "d") pose = F.mix(pose, F.POSES.stepD, k2);
+      else if (sw) { tilt = (sw.dir === "r" ? 0.22 : -0.22) * k2; r.slideV = (sw.dir === "r" ? 1 : -1) * 90; }
     }
+    r.slide = (r.slide || 0) + (r.slideV || 0) * dt; r.slideV = (r.slideV || 0) * Math.pow(0.04, dt); r.slide *= Math.pow(0.5, dt);
     if (el && el.kind === "pose" && (r.posed || t > bt[el.at] + 0.4)) pose = F.mix(pose, F.POSES.final, smooth((t - bt[el.at] + 0.3) / 0.4));
-    return { x, d, pose, lift, turn, tilt, dir: r.dir };
+    return { x: x + (r.slide || 0), d, pose, lift, turn, tilt, dir: r.dir };
   }
 
   // ------------------------------------------------------------------ Zeichnen
@@ -1383,8 +1390,8 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
         ctx.fillStyle = "#DDA43B"; ctx.beginPath(); ctx.arc(x, yc, 9, 0, 7); ctx.fill();
         ctx.strokeStyle = "#DDA43B"; ctx.lineWidth = 3; ctx.fillStyle = "#141B25"; ctx.beginPath(); ctx.arc(x2, yc, 8, 0, 7); ctx.fill(); ctx.stroke();
       } else {
-        ctx.fillStyle = m.kind === "step" ? "#8FB4D1" : "#DDA43B"; ctx.beginPath(); ctx.arc(x, yc, 11, 0, 7); ctx.fill();
-        ctx.fillStyle = "#141B25"; ctx.font = "bold 15px " + font();
+        ctx.fillStyle = m.kind === "step" ? "#F1E7D2" : "#DDA43B"; ctx.beginPath(); ctx.arc(x, yc, 13, 0, 7); ctx.fill();
+        ctx.fillStyle = m.kind === "step" ? "#C23B2A" : "#141B25"; ctx.font = "bold 17px " + font();
         ctx.fillText(m.kind === "spin" ? "⟳" : m.kind === "pose" ? "★" : { l: "←", r: "→", u: "↑", d: "↓" }[m.dir], x, yc + 1);
       }
     }
@@ -1394,7 +1401,7 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
     const nx = PROG.elements.find((e) => { const [a, b] = elWindow(e, bt); return b > t && a - 2.6 < t; });
     if (nx && (S.help === "anf" || t < 8)) {
       const hint = { jump: canHover() ? "Leertaste drücken, halten, loslassen" : "drücken, halten, loslassen", spin: canHover() ? "kreisen oder Leertaste auf jedes ⟳" : "mit dem Finger kreisen, jede Runde auf ⟳",
-        steps: canHover() ? "Pfeiltasten oder wischen" : "in Pfeilrichtung wischen", pose: "tippen auf den Schlussakkord" }[nx.kind];
+        steps: canHover() ? "Pfeiltaste wie der Pfeil, wenn er die Linie erreicht" : "wisch in Pfeilrichtung, wenn er die Linie erreicht", pose: "tippen auf den Schlussakkord" }[nx.kind];
       ctx.font = "600 14px " + font();
       const txt = nx.name.toUpperCase() + "  ·  " + hint, tw = ctx.measureText(txt).width + 22;
       ctx.fillStyle = "rgba(241,231,210,0.92)"; ctx.fillRect(W / 2 - tw / 2, y0 - 30, tw, 22);
@@ -1417,6 +1424,24 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
         ctx.strokeStyle = "#F3C969"; ctx.beginPath(); ctx.arc(fx, fy - 70 * s, R * 0.5, -Math.PI / 2, -Math.PI / 2 + u * Math.PI * 2); ctx.stroke();
       }
     }
+  }
+  // nächster Schritt groß über der Läuferin: Pfeil und Bedeutung, wird zum Schlag hin voll
+  function drawStepCue(fx, fy, s, t) {
+    const m = run.marks.find((x) => x.kind === "step" && x.t > t - 0.12 && x.t - t < 1.0);
+    if (!m) return;
+    const lead = m.t - t, y = Math.max(46, fy - 132 * s), R = 20;
+    const hit = run.inputs.some((i) => i.type === "swipe" && Math.abs(i.t - m.t) < 0.3);
+    ctx.globalAlpha = hit ? 0.4 : 1;
+    ctx.fillStyle = "#F1E7D2"; ctx.strokeStyle = "#141B25"; ctx.lineWidth = 2.5;
+    ctx.beginPath(); ctx.arc(fx, y, R, 0, 7); ctx.fill(); ctx.stroke();
+    if (lead > 0) { ctx.strokeStyle = "#F3C969"; ctx.lineWidth = 3.5; ctx.beginPath(); ctx.arc(fx, y, R + 3 + lead * 28, 0, 7); ctx.stroke(); }
+    ctx.fillStyle = "#C23B2A"; ctx.textAlign = "center"; ctx.textBaseline = "middle"; ctx.font = "bold 26px " + font();
+    ctx.fillText(STEP[m.dir][0], fx, y + 1);
+    const lab = STEP[m.dir][1].toUpperCase(); ctx.font = "700 12px " + font();
+    const lw = ctx.measureText(lab).width + 12;
+    ctx.fillStyle = "#141B25"; ctx.fillRect(fx - lw / 2, y + R + 3, lw, 17);
+    ctx.fillStyle = "#F1E7D2"; ctx.fillText(lab, fx, y + R + 12);
+    ctx.globalAlpha = 1;
   }
   function drawPops() {
     const now = performance.now();
@@ -1447,7 +1472,7 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
     scene.draw(ctx, run.camX);
     const fx = st.x - run.camX;
     ctx.fillStyle = "rgba(20,27,37,0.18)"; ctx.beginPath(); ctx.ellipse(fx, fy + 3, 18 * s * (1 - st.lift / 120), 4 * s, 0, 0, 7); ctx.fill();
-    drawRing(fx, fy, s, t);
+    drawRing(fx, fy, s, t); if (S.help === "anf" || t < 30) drawStepCue(fx, fy, s, t);
     F.draw(ctx, { x: fx, y: fy, s, dir: st.dir, pose: st.pose, lift: st.lift, turn: st.turn, tilt: st.tilt, look: S.look });
     drawLane(t); drawPops();
     updateChips(t);
@@ -1524,7 +1549,7 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
     const d = canHover();
     $("hJump").textContent = d ? "Leertaste auf ● drücken, halten, auf ○ loslassen." : "Auf ● drücken, halten, auf ○ loslassen.";
     $("hSpin").textContent = d ? "Mit der Maus kreisen oder Leertaste auf jedes ⟳." : "Mit dem Finger kreisen: jede Runde endet auf einem ⟳.";
-    $("hStep").textContent = d ? "Pfeiltasten oder Maus in Pfeilrichtung schwingen." : "In Pfeilrichtung wischen, genau auf den Schlag.";
+    $("hStep").textContent = (d ? "Pfeiltaste in Pfeilrichtung (oder Maus schwingen)" : "In Pfeilrichtung wischen") + ", wenn der Pfeil die Linie erreicht: ← → zur Seite, ↑ Hüpfer, ↓ tief in die Knie.";
     $("hPose").textContent = "Auf den Schlussakkord tippen.";
     show("scrIntro");
   }
