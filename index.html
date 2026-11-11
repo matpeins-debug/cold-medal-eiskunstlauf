@@ -129,6 +129,31 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
 .ifBody { overflow-y: auto; -webkit-overflow-scrolling: touch; touch-action: pan-y; padding-right: 8px; margin: 6px 0 44px; columns: 2; column-gap: 22px; }
 .ifBody h3 { font-family: var(--font-display); font-size: 12px; letter-spacing: 0.08em; text-transform: uppercase; margin: 6px 0 2px; break-after: avoid; }
 .ifBody p { font-size: 12.5px; line-height: 1.35; margin-bottom: 4px; }
+
+/* Meine Kür */
+#scrProg { justify-content: center; background: rgba(14,22,38,0.35); }
+.card.prog { display: flex; flex-direction: column; gap: 8px; padding: 10px 14px; }
+.pHead { display: flex; justify-content: space-between; align-items: baseline; }
+.pSum { font-family: var(--font-display); font-size: 13px; font-weight: 600; letter-spacing: 0.04em; }
+.tl { display: grid; grid-template-columns: repeat(8, 1fr); gap: 4px; position: relative; }
+.tl::before { content: ""; position: absolute; left: 0; right: 0; top: 50%; height: 2px; background: var(--paper-2); z-index: 0; }
+.slot { position: relative; z-index: 1; height: 74px; border: 2px solid var(--ink-deep); background: #FBF6EA; display: flex; flex-direction: column; justify-content: space-between; padding: 4px 5px; text-align: left; }
+.slot small { font-size: 10px; color: var(--muted); font-family: var(--font-display); letter-spacing: 0.04em; }
+.slot b { font-family: var(--font-display); font-size: 13px; line-height: 1.05; letter-spacing: 0.02em; }
+.slot i { font-style: normal; font-size: 11px; font-family: var(--font-display); color: var(--muted); }
+.slot.empty { background: rgba(251,246,234,0.55); border-style: dashed; }
+.slot.empty b { color: var(--muted); font-weight: 600; }
+.slot.jump { background: #F6E3B4; } .slot.spin { background: #D9E6F0; } .slot.steps { background: #E4EEDC; grid-column: span 2; }
+.slot.sel { outline: 3px solid var(--red); outline-offset: 1px; }
+.pick { flex: 1; display: flex; flex-direction: column; gap: 5px; min-height: 0; }
+.prow { display: flex; align-items: center; gap: 5px; flex-wrap: wrap; }
+.prow > b { font-family: var(--font-display); font-size: 12px; letter-spacing: 0.06em; text-transform: uppercase; min-width: 84px; }
+.el { font-family: var(--font-display); font-weight: 600; font-size: 12.5px; padding: 4px 7px; border: 2px solid var(--ink-deep); background: var(--paper); line-height: 1.1; text-align: center; }
+.el small { display: block; font-weight: 400; font-size: 10.5px; color: var(--muted); }
+.el.on { background: var(--ink); color: var(--paper); } .el.on small { color: var(--paper-2); }
+.el:disabled { opacity: 0.35; cursor: default; }
+.pFoot { display: flex; align-items: center; gap: 8px; }
+.pFoot .note { flex: 1; }
 </style>
 </head>
 <body>
@@ -150,8 +175,9 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
         <button class="big red" id="bComp"><span>Kür · Wettkampf</span><small id="mBest"></small></button>
         <button class="big" id="bTrain"><span>Training</span><small>ohne Wertung gegen andere</small></button>
         <div class="row2">
-          <button class="mid" id="bLook">Gestalten</button>
-          <button class="mid" id="bSet">Einstellungen</button>
+          <button class="mid" id="bProg">Meine Kür</button>
+          <button class="mid" id="bLook">Figur</button>
+          <button class="mid" id="bSet">Optionen</button>
         </div>
       </div>
       <div class="foot"><span id="mFoot"></span> · <button class="lnk" id="bInfo">Info &amp; Datenschutz</button></div>
@@ -160,7 +186,7 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
 
   <section class="scr" id="scrLook" hidden>
     <div class="card wide">
-      <div class="kicker">GESTALTEN</div>
+      <div class="kicker">FIGUR GESTALTEN</div>
       <div class="lookGrid">
         <canvas id="lookCv" width="200" height="260"></canvas>
         <div class="lookOpts">
@@ -174,6 +200,16 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
         </div>
       </div>
       <button class="mid red done" id="lDone">Fertig</button>
+    </div>
+  </section>
+
+  <section class="scr" id="scrProg" hidden>
+    <div class="card wide prog">
+      <div class="pHead"><div class="kicker">MEINE KÜR · DONAUWALZER</div><div class="pSum" id="pSum"></div></div>
+      <div class="tl" id="tl"></div>
+      <div class="pick" id="pick"></div>
+      <div class="pFoot"><span class="note" id="pMsg"></span>
+        <button class="mid" id="pDef">Vorschlag</button><button class="mid red" id="pDone">Fertig</button></div>
     </div>
   </section>
 
@@ -617,26 +653,77 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
   const r2 = (v) => Math.round(v * 100) / 100;
   const q4 = (v) => Math.round(v * 4) / 4; // Noten der Komponenten in Viertelschritten wie bei den Richtern
 
-  // Kür zum Donauwalzer (Schläge siehe EKMusic.SCORES.donau: Takt × 3 + Schlag, Melodie ab Takt 4)
-  const PROGRAMS = {
-    wien: {
-      id: "wien", music: "donau", name: "Kür zum Donauwalzer",
-      elements: [
-        { id: "2T", kind: "jump", name: "Doppel-Toeloop", short: "Toeloop", base: 1.3, tk: 18, land: 20 },
-        { id: "2S", kind: "jump", name: "Doppel-Salchow", short: "Salchow", base: 1.3, tk: 33, land: 35 },
-        { id: "USp", kind: "spin", name: "Standpirouette", short: "Pirouette", from: 42, turns: 4 },
-        { id: "StSq", kind: "steps", name: "Schrittfolge", short: "Schritte",
-          arrows: [[60, "r"], [63, "l"], [66, "r"], [68, "u"], [69, "l"], [72, "d"], [74, "r"], [75, "l"], [78, "u"], [80, "d"], [81, "r"], [84, "l"]] },
-        { id: "2Lo", kind: "jump", name: "Doppel-Rittberger", short: "Rittberger", base: 1.7, tk: 93, land: 95 },
-        { id: "Pose", kind: "pose", name: "Schlusspose", short: "Pose", at: 108 },
-      ],
-    },
-  };
-  // Grundwerte nach Stufe (Pirouette, Schrittfolge); Stufe B = Basis
-  const LEVELS = {
-    spin: [[4, "3", 1.9], [3, "2", 1.5], [2, "1", 1.2], [1, "B", 1.0]],
-    steps: [[11, "3", 3.3], [9, "2", 2.6], [6, "1", 1.8], [3, "B", 1.5]],
-  };
+  // Elemente zum Auswählen (Grundwerte nach ISU-Tabelle; w = Breite des Zeitfensters, schwierigere Elemente sind enger)
+  const JUMPS = [
+    ["T", "Toeloop", 0.4, 1.3], ["S", "Salchow", 0.4, 1.3], ["Lo", "Rittberger", 0.5, 1.7],
+    ["F", "Flip", 0.5, 1.8], ["Lz", "Lutz", 0.6, 2.1], ["A", "Axel", 1.1, 3.3],
+  ];
+  const CATALOG = {};
+  JUMPS.forEach(([c, nm, b1, b2], i) => {
+    CATALOG["1" + c] = { kind: "jump", fam: c, name: nm, short: nm, base: b1, hold: 1, w: r2(1.1 - 0.05 * (i + 1)), rot: 1 };
+    CATALOG["2" + c] = { kind: "jump", fam: c, name: "Doppel-" + nm, short: "2" + nm, base: b2, hold: 2, w: r2((1.1 - 0.05 * (i + 1)) * 0.9), rot: 2 };
+  });
+  // Pirouetten: Stufen B, 1, 2, 3 je nach Umdrehungen im Takt
+  CATALOG.USp = { kind: "spin", name: "Standpirouette", short: "Stand", levels: [1.0, 1.2, 1.5, 1.9], w: 1, pose: "spin" };
+  CATALOG.SSp = { kind: "spin", name: "Sitzpirouette", short: "Sitz", levels: [1.1, 1.3, 1.6, 2.1], w: 0.9, pose: "sitspin" };
+  CATALOG.CSp = { kind: "spin", name: "Waagepirouette", short: "Waage", levels: [1.1, 1.4, 1.8, 2.3], w: 0.85, pose: "camel" };
+  CATALOG.StSq = { kind: "steps", name: "Schrittfolge", short: "Schritte", levels: [1.5, 1.8, 2.6, 3.3], w: 1, slots: 2 };
+  const RULES = { jumps: 4, famMax: 2, spins: 2, steps: 1 };
+
+  // Die Musik in Abschnitte: acht Phrasen zu je vier Takten ab dem Einsatz der Melodie (Takt 4); jedes Element füllt eine Phrase,
+  // die Schrittfolge zwei. Danach immer die Schlusspose auf dem Schlussakkord.
+  const SECTIONS = { donau: { first: 4, len: 4, n: 8, end: 108 } };
+  const STEP_PATTERN = [[0, "r"], [3, "l"], [6, "r"], [8, "u"], [9, "l"], [12, "d"], [14, "r"], [15, "l"], [18, "u"], [20, "d"], [21, "r"], [24, "l"]];
+  const DEFAULT_SLOTS = ["2T", "2S", "USp", null, "StSq", "~", "2Lo", null];
+
+  // Plan prüfen: Liste von Hinweisen, leer = gültig
+  function check(slots) {
+    const msg = [], ids = slots.filter((x) => x && x !== "~");
+    const jumps = ids.filter((x) => CATALOG[x] && CATALOG[x].kind === "jump");
+    if (jumps.length > RULES.jumps) msg.push(`höchstens ${RULES.jumps} Sprünge`);
+    const fam = {}; jumps.forEach((x) => (fam[CATALOG[x].fam] = (fam[CATALOG[x].fam] || 0) + 1));
+    for (const f in fam) if (fam[f] > RULES.famMax) msg.push(`jeden Sprung höchstens ${RULES.famMax}-mal`);
+    const spins = ids.filter((x) => CATALOG[x] && CATALOG[x].kind === "spin");
+    if (spins.length > RULES.spins) msg.push(`höchstens ${RULES.spins} Pirouetten`);
+    if (new Set(spins).size < spins.length) msg.push("jede Pirouette nur einmal");
+    if (ids.filter((x) => x === "StSq").length > RULES.steps) msg.push("nur eine Schrittfolge");
+    slots.forEach((x, i) => { if (x === "StSq" && slots[i + 1] !== "~") msg.push("die Schrittfolge braucht zwei Abschnitte"); });
+    return [...new Set(msg)];
+  }
+  // Aussehen und Grenzen von gespeicherten Plänen säubern
+  function cleanSlots(a, n) {
+    n = n || 8;
+    if (!Array.isArray(a) || a.length !== n) return DEFAULT_SLOTS.slice();
+    const out = a.map((x) => (x === "~" || CATALOG[x] ? x : null));
+    for (let i = 0; i < n; i++) {
+      if (out[i] === "~" && out[i - 1] !== "StSq") out[i] = null;
+      if (out[i] === "StSq" && (i === n - 1 || out[i + 1] !== "~")) out[i] = null;
+    }
+    return check(out).length ? DEFAULT_SLOTS.slice() : out;
+  }
+  // aus dem Plan die Kür mit Schlägen bauen
+  function buildProgram(slots, music) {
+    music = music || "donau";
+    const sec = SECTIONS[music], els = [];
+    slots.forEach((id, i) => {
+      if (!id || id === "~") return;
+      const c = CATALOG[id], bar = sec.first + sec.len * i;
+      const base = { id, kind: c.kind, name: c.name, short: c.short, w: c.w, slot: i };
+      if (c.kind === "jump") els.push(Object.assign(base, { base: c.base, tk: (bar + 2) * 3, land: (bar + 2) * 3 + c.hold, rot: c.rot }));
+      else if (c.kind === "spin") els.push(Object.assign(base, { levels: c.levels, pose: c.pose, from: bar * 3, turns: 4 }));
+      else if (c.kind === "steps") els.push(Object.assign(base, { levels: c.levels, arrows: STEP_PATTERN.map(([o, d]) => [bar * 3 + o, d]) }));
+    });
+    els.push({ id: "Pose", kind: "pose", name: "Schlusspose", short: "Pose", at: sec.end });
+    return { id: "eigen", music, name: "Kür zum Donauwalzer", elements: els, slots: slots.slice() };
+  }
+  // Summe der höchsten Grundwerte (für den Editor)
+  function maxBase(slots) {
+    return r2(slots.reduce((s, id) => { const c = CATALOG[id]; return s + (!c ? 0 : c.kind === "jump" ? c.base : c.levels[c.levels.length - 1]); }, 0));
+  }
+  const PROGRAMS = { wien: buildProgram(DEFAULT_SLOTS) };
+  PROGRAMS.wien.id = "wien";
+  // Stufen nach Anzahl Treffer (Pirouette: Umdrehungen, Schritte: Pfeile) → Index in levels
+  const LEVEL_AT = { spin: [[4, 3, "3"], [3, 2, "2"], [2, 1, "1"], [1, 0, "B"]], steps: [[11, 3, "3"], [9, 2, "2"], [6, 1, "1"], [3, 0, "B"]] };
   const PCS_FACTOR = 1.6;
 
   // Ausführung (GOE −5 … +5) aus der durchschnittlichen Abweichung vom Takt; k > 1 = großzügiger (Anfänger, später Rhythmus)
@@ -651,6 +738,7 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
   const WIN = { jump: 0.35, under: 0.22, fall: 0.3, spin: 0.45, step: 0.3, pose: 0.4 };
 
   function judgeJump(e, bt, inp, k) {
+    k = k * (e.w || 1);
     const tk = bt[e.tk], ld = bt[e.land];
     const di = inp.findIndex((x) => x.type === "down" && Math.abs(x.t - tk) <= WIN.jump * k);
     if (di < 0) return { status: "miss", score: 0, goe: 0, devs: [], note: "ausgelassen" };
@@ -666,6 +754,7 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
   }
 
   function judgeSpin(e, bt, inp, k) {
+    k = k * (e.w || 1);
     const targets = []; for (let i = 1; i <= e.turns; i++) targets.push(bt[e.from + 3 * i]);
     const used = new Set(), devs = [];
     for (const tg of targets) {
@@ -673,14 +762,15 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
       inp.forEach((x, i) => { if (x.type === "circle" && !used.has(i) && Math.abs(x.t - tg) <= WIN.spin * k && (best < 0 || Math.abs(x.t - tg) < Math.abs(inp[best].t - tg))) best = i; });
       if (best >= 0) { used.add(best); devs.push(ms(inp[best].t - tg)); }
     }
-    const lv = LEVELS.spin.find(([n]) => devs.length >= n);
+    const lv = LEVEL_AT.spin.find(([n]) => devs.length >= n);
     if (!lv) return { status: "miss", score: 0, goe: 0, devs, note: "keine Umdrehung im Takt" };
-    const goe = goeFrom(mean(devs), k);
-    return { status: "ok", level: lv[1], base: lv[2], goe, score: r2(lv[2] * (1 + goe / 10)), devs, n: devs.length,
+    const goe = goeFrom(mean(devs), k), bv = (e.levels || CATALOG.USp.levels)[lv[1]];
+    return { status: "ok", level: lv[2], base: bv, goe, score: r2(bv * (1 + goe / 10)), devs, n: devs.length,
       note: `${devs.length} von ${e.turns} Umdrehungen im Takt` };
   }
 
   function judgeSteps(e, bt, inp, k) {
+    k = k * (e.w || 1);
     const used = new Set(), devs = []; let wrong = 0;
     for (const [b, dir] of e.arrows) {
       const tg = bt[b]; let best = -1;
@@ -689,10 +779,10 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
       used.add(best);
       if (inp[best].dir === dir) devs.push(ms(inp[best].t - tg)); else wrong++;
     }
-    const lv = LEVELS.steps.find(([n]) => devs.length >= n);
+    const lv = LEVEL_AT.steps.find(([n]) => devs.length >= n);
     if (!lv) return { status: "miss", score: 0, goe: 0, devs, wrong, note: `nur ${devs.length} von ${e.arrows.length} Schritten` };
-    const goe = clamp(goeFrom(mean(devs), k) - Math.round(wrong / 2), -5, 5);
-    return { status: "ok", level: lv[1], base: lv[2], goe, score: r2(lv[2] * (1 + goe / 10)), devs, wrong,
+    const goe = clamp(goeFrom(mean(devs), k) - Math.round(wrong / 2), -5, 5), bv = (e.levels || CATALOG.StSq.levels)[lv[1]];
+    return { status: "ok", level: lv[2], base: bv, goe, score: r2(bv * (1 + goe / 10)), devs, wrong,
       note: `${devs.length} von ${e.arrows.length} Schritten${wrong ? `, ${wrong} falsche Richtung` : ""}` };
   }
 
@@ -750,7 +840,7 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
     });
   }
 
-  root.EKSkate = { PROGRAMS, LEVELS, WIN, judge, goeFrom, perfectInputs, field, PCS_FACTOR };
+  root.EKSkate = { PROGRAMS, CATALOG, RULES, SECTIONS, DEFAULT_SLOTS, check, cleanSlots, buildProgram, maxBase, WIN, judge, goeFrom, perfectInputs, field, PCS_FACTOR };
 })(typeof window !== "undefined" ? window : globalThis);
 
 /* Cold Medal · Eiskunstlauf – Figur im Plakatstil (Canvas). Gleicher Körper und gleiche Posen für alle; erkennbar nur an Frisur,
@@ -786,6 +876,8 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
     air: { lean: 0, crouch: 0, sL: [3, 4], fL: [7, 4], aF: [35, 120], aB: [35, 120] },
     land: { lean: 12, crouch: 6, sL: [6, 16], fL: [-72, 5], aF: [100, 0], aB: [-100, 0] },
     spin: { lean: -4, crouch: 3, sL: [0, 4], fL: [40, 70], aF: [55, 110], aB: [55, 110] },
+    sitspin: { lean: 28, crouch: 0, sL: [86, 100], fL: [84, 2], aF: [82, 4], aB: [76, 8] },
+    camel: { lean: 84, crouch: 0, sL: [2, 2], fL: [-96, 0], aF: [100, 0], aB: [-112, 0] },
     stepA: { lean: 6, crouch: 4, sL: [8, 12], fL: [-28, 30], aF: [75, 25], aB: [-70, 20] },
     stepB: { lean: 6, crouch: 4, sL: [-8, 12], fL: [28, 30], aF: [-70, 20], aB: [75, 25] },
     stepU: { lean: -2, crouch: 0, sL: [0, 2], fL: [-15, 10], aF: [150, 10], aB: [-150, 10] },
@@ -900,8 +992,10 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
     const front = (sn >= 0 ? 1 : -1);
     parts.push({ d: 0, f: () => {
       ctx.save(); ctx.translate(P(hip, 0)[0], hip[1]);
-      const lean = rad(p.lean) * c; ctx.rotate(lean);
-      const L2 = lvl.map(([y, dp, wd]) => [y, hw(dp, wd)]);
+      // Rumpf im Raum: Neigung nach vorn, dann um die Achse gedreht → Winkel und Verkürzung im Bild (Waage von vorn wird kurz)
+      const ls = Math.sin(rad(p.lean)) * c, lc = Math.cos(rad(p.lean)), f = Math.max(0.12, Math.hypot(ls, lc));
+      ctx.rotate(Math.atan2(ls, lc));
+      const L2 = lvl.map(([y, dp, wd]) => [y * f, hw(dp, wd)]);
       ctx.beginPath(); ctx.moveTo(-L2[0][1], L2[0][0]);
       for (const [y, w] of L2.slice(1)) ctx.lineTo(-w, y);
       for (const [y, w] of L2.slice().reverse()) ctx.lineTo(w, y);
@@ -910,12 +1004,12 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
       const vis = clamp01((Math.abs(c) * 0.9 + sn * 1.2 + 0.2));
       if (vis > 0.05) {
         ctx.globalAlpha = vis; const w1 = hw(5.8, 6.2) * 0.98, w2 = hw(7.1, 7.6) * 0.98, dirS = c >= 0 ? 1 : -1;
-        ctx.beginPath(); ctx.moveTo(-w1 * dirS, -12.5 + 0); ctx.lineTo(w2 * dirS, -20.5); ctx.lineTo(w2 * dirS, -17); ctx.lineTo(-w1 * dirS, -9); ctx.closePath();
+        ctx.beginPath(); ctx.moveTo(-w1 * dirS, -12.5 * f); ctx.lineTo(w2 * dirS, -20.5 * f); ctx.lineTo(w2 * dirS, -17 * f); ctx.lineTo(-w1 * dirS, -9 * f); ctx.closePath();
         ctx.fillStyle = acc; ctx.fill(); ctx.globalAlpha = 1;
       }
-      ctx.fillStyle = skin; ctx.fillRect(-1.8, -30.5, 3.6, 4.5);
+      ctx.fillStyle = skin; ctx.fillRect(-1.8, -26 * f - 4.5, 3.6, 4.5);
       // Kopf: Kreis bleibt rund; Frisur dreht mit (Hinterkopf liegt hinten = −x im Profil)
-      ctx.translate(0, -35.5);
+      ctx.translate(0, -26 * f - 9.5); ctx.rotate(-Math.atan2(ls, lc) * (1 - f) * 0.6);
       const H = HAIRP[L.hair], hc = HAIRC[L.hairC];
       const hair = (list, behind) => {
         for (const h of list) {
@@ -1084,7 +1178,7 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
 /* COLD MEDAL EISKUNSTLAUF – Ablauf, Bildschirme, Eingabe, Taktband, Ergebnis, Spielstand. */
 (function () {
   "use strict";
-  const VERSION = "0.1.3";
+  const VERSION = "0.2";
   // Seiten-Einstellungen aus dem Build (eigenes Hosting: Adresse, Hoster, Impressum); im claude.ai-Artefakt leer
   const SITE = Object.assign({ web: false, url: "", impressum: null }, {"web": true, "url": "https://matpeins-debug.github.io/cold-medal-eiskunstlauf/", "hoster": "GitHub Pages (GitHub Inc., USA)", "drittland": "GitHub ist nach dem EU-US Data Privacy Framework zertifiziert; die Übermittlung in die USA stützt sich auf den Angemessenheitsbeschluss der EU-Kommission dazu.", "impressum": {"name": "", "adresse": "", "mail": ""}} || {});
   const M = window.EKMusic, K = window.EKSkate, F = window.EKFigure, SC = window.EKScene;
@@ -1104,9 +1198,9 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
 
   // ------------------------------------------------------------------ Spielstand (nur auf diesem Gerät; Aussehen zieht später in pass/ um)
   const KEY = "coldmedal-eiskunstlauf";
-  const DEF = { v: 1, name: "", nat: "AUT", look: F.DEF_LOOK, help: "anf", sound: 1, preset: "salon", lat: 0, best: 0, bestTrain: 0, runs: 0 };
+  const DEF = { v: 1, prog: null, name: "", nat: "AUT", look: F.DEF_LOOK, help: "anf", sound: 1, preset: "salon", lat: 0, best: 0, bestTrain: 0, runs: 0 };
   function sanitize(o) {
-    const S = Object.assign({}, DEF, { look: F.cleanLook(null) });
+    const S = Object.assign({}, DEF, { look: F.cleanLook(null), prog: K.DEFAULT_SLOTS.slice() });
     if (o && typeof o === "object") {
       if (typeof o.name === "string") S.name = o.name.replace(/[<>&"]/g, "").trim().slice(0, 14);
       if (NAT[o.nat]) S.nat = o.nat;
@@ -1115,6 +1209,7 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
       S.sound = o.sound === 0 ? 0 : 1;
       if (M.PRESETS[o.preset]) S.preset = o.preset;
       if (Number.isFinite(o.lat)) S.lat = clamp(Math.round(o.lat / 10) * 10, -200, 400);
+      S.prog = K.cleanSlots(o.prog);
       for (const k of ["best", "bestTrain", "runs"]) if (Number.isFinite(o[k]) && o[k] >= 0) S[k] = +o[k];
     }
     return S;
@@ -1190,7 +1285,8 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
   }
 
   // ------------------------------------------------------------------ Lauf
-  const PROG = K.PROGRAMS.wien, SCORE = M.SCORES[PROG.music];
+  const SCORE = M.SCORES.donau;
+  let PROG = K.buildProgram(S.prog);
   let run = null, testMode = false;
   const kHelp = () => (S.help === "anf" ? 1.4 : 1);
   function songTime() {
@@ -1218,6 +1314,7 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
   function startRun(mode, opt) {
     opt = opt || {};
     const fake = !!opt.fake || testMode || !player;
+    PROG = K.buildProgram(S.prog);
     const bt = M.grid(SCORE, SCORE.bpm, true);
     run = { mode, bt, marks: buildMarks(bt), inputs: [], fake, fakeT: -0.6, lastT: 0, done: {}, pops: [], p: 0, camX: WW / 2 - W / 2,
       dir: 1, face: 0, trail: [], trailT: 0, turn: 0, spinV: 0, jump: null, fallUntil: -1, landUntil: -1, lastSwipe: null, posed: false, finished: false, k: kHelp(), seed: (Date.now() & 0xffff) || 7 };
@@ -1269,8 +1366,8 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
   const track = { pts: [], acc: 0, lastV: null, lastMove: 0, swipeAt: 0 };
   function inWindow(kind) {
     if (!run) return false;
-    const t = songTime(), e = PROG.elements.find((x) => x.kind === kind); if (!e) return false;
-    const [a, b] = elWindow(e, run.bt); return t >= a && t <= b;
+    const t = songTime();
+    return PROG.elements.some((e) => { if (e.kind !== kind) return false; const [a, b] = elWindow(e, run.bt); return t >= a && t <= b; });
   }
   function onMove(x, y, now) {
     const T = track;
@@ -1321,21 +1418,21 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
 
   // ------------------------------------------------------------------ Element-Leiste
   function buildChips() {
-    $("chips").innerHTML = PROG.elements.map((e) => `<span class="chip" data-id="${e.id}">${esc(e.short)}</span>`).join("");
+    $("chips").innerHTML = PROG.elements.map((e, i) => `<span class="chip" data-i="${i}">${esc(e.short)}</span>`).join("");
   }
   function updateChips(t) {
     const res = K.judge(PROG, run.bt, run.inputs, { k: run.k });
-    for (const e of PROG.elements) {
-      const ch = $("chips").querySelector(`[data-id="${e.id}"]`), [a, b] = elWindow(e, run.bt);
+    PROG.elements.forEach((e, i) => {
+      const ch = $("chips").querySelector(`[data-i="${i}"]`), [a, b] = elWindow(e, run.bt);
       if (t > b + 0.2) {
-        if (!run.done[e.id]) {
-          const r = res.els.find((x) => x.id === e.id); run.done[e.id] = r;
+        if (!run.done[i]) {
+          const r = res.els[i]; run.done[i] = r;
           ch.className = "chip " + r.status;
           ch.textContent = e.kind === "pose" ? (r.status === "ok" ? "Pose ✓" : "Pose –") : `${e.short} ${r.status === "miss" ? "–" : dec(r.score)}`;
           if (e.kind !== "pose") pop(r.status === "miss" ? `${e.name}: ausgelassen` : r.status === "fall" ? "Sturz −1" : `${e.name} +${dec(r.score)}`, r.status === "ok" ? "#F3C969" : "#E8A07A");
         }
       } else ch.classList.toggle("now", t >= a && t <= b);
-    }
+    });
   }
 
   // ------------------------------------------------------------------ Bewegung der Läuferin
@@ -1367,14 +1464,14 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
         const end = j.t1 !== null ? j.t1 : Math.max(j.land, t);
         if (j.t1 === null || t < j.t1) {
           const u = clamp((t - j.t0) / Math.max(0.3, j.land - j.t0), 0, 1.3);
-          lift = 46 * Math.sin(Math.PI * clamp(u, 0, 1)); turn = u * Math.PI * 4; pose = F.POSES.air;
+          lift = 46 * Math.sin(Math.PI * clamp(u, 0, 1)); turn = u * Math.PI * 2 * (el.rot || 2); pose = F.POSES.air;
         } else if (t < end + 0.01) pose = F.POSES.air;
       }
     }
     if (t < r.fallUntil) { pose = F.POSES.fallen; tilt = -1.25 * smooth((r.fallUntil - t) > 1.0 ? (1.3 - (r.fallUntil - t)) / 0.3 : 1); lift = -4; }
     else if (t < r.landUntil) pose = F.mix(F.POSES.land, pose, smooth(1 - (r.landUntil - t) / 0.6));
     if (el && el.kind === "spin" && t > bt[el.from] - 0.2 && t < bt[el.from + 12] + 0.3) {
-      pose = F.POSES.spin; r.spinV = Math.max(0.25, r.spinV - dt * 0.6); r.turn += dt * Math.PI * 2 * (0.6 + 2.2 * r.spinV); turn = r.turn;
+      pose = F.POSES[el.pose] || F.POSES.spin; r.spinV = Math.max(0.25, r.spinV - dt * 0.6); r.turn += dt * Math.PI * 2 * (0.6 + 2.2 * r.spinV); turn = r.turn;
     }
     if (el && el.kind === "steps") {
       // Antwort auf das Wischen: links/rechts = Gewicht und Gleiten zur Seite, hoch = Hüpfer, runter = tief in die Knie
@@ -1575,7 +1672,7 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
   }
 
   // ------------------------------------------------------------------ Bildschirme
-  const SCREENS = ["scrMenu", "scrLook", "scrSet", "scrIntro", "scrRes", "scrInfo"];
+  const SCREENS = ["scrMenu", "scrLook", "scrSet", "scrIntro", "scrRes", "scrInfo", "scrProg"];
   function show(id) { for (const s of SCREENS) $(s).hidden = s !== id; if (id === "scrMenu") fillMenu(); }
   function fillMenu() {
     const P = SC.PLACES.wien;
@@ -1635,6 +1732,51 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
   $("lDone").onclick = () => { S.name = S.name.trim(); save(); const n = lookNext; lookNext = null; if (n) n(); else show("scrMenu"); };
   $("bLook").onclick = () => openLook();
 
+  // Meine Kür: acht Abschnitte der Musik, je ein Element (Schrittfolge zwei)
+  let pSel = 0, pRot = 2;
+  const CAT = K.CATALOG, SEC = K.SECTIONS.donau;
+  const secBar = (i) => SEC.first + SEC.len * i;
+  const mmss = (sec) => `${Math.floor(sec / 60)}:${String(Math.floor(sec % 60)).padStart(2, "0")}`;
+  function assign(slots, i, id) {
+    const a = slots.slice();
+    if (a[i] === "StSq" && a[i + 1] === "~") a[i + 1] = null;
+    a[i] = id;
+    if (id === "StSq") { if (i + 1 >= a.length) return null; if (a[i + 1] === "StSq" && a[i + 2] === "~") a[i + 2] = null; a[i + 1] = "~"; }
+    return K.check(a).length ? null : a;
+  }
+  function fillProg() {
+    const bt = M.grid(SCORE, SCORE.bpm, true), sl = S.prog;
+    if (sl[pSel] === "~") pSel--;
+    $("tl").innerHTML = sl.map((id, i) => {
+      if (id === "~") return "";
+      const c = CAT[id], b0 = secBar(i), b1 = b0 + SEC.len * (c && c.slots ? c.slots : 1);
+      const val = !c ? "" : c.kind === "jump" ? dec(c.base) : `bis ${dec(c.levels[c.levels.length - 1])}`;
+      return `<button class="slot ${c ? c.kind : "empty"}${i === pSel ? " sel" : ""}" data-i="${i}"><small>ab ${mmss(bt[b0 * 3])}</small><b>${c ? esc(c.name) : "Gleiten"}</b><i>${val}</i></button>`;
+    }).join("");
+    $("tl").querySelectorAll(".slot").forEach((b) => (b.onclick = () => { pSel = +b.dataset.i; fillProg(); }));
+    const cur = sl[pSel], btn = (id, label, small) => {
+      const ok = assign(sl, pSel, id) !== null || cur === id;
+      return `<button class="el${cur === id ? " on" : ""}" data-id="${id === null ? "" : id}"${ok ? "" : " disabled"}>${label}<small>${small}</small></button>`;
+    };
+    const fam = ["T", "S", "Lo", "F", "Lz", "A"];
+    $("pick").innerHTML =
+      `<div class="prow"><b>Sprung</b><span class="opts"><button class="pill${pRot === 1 ? " on" : ""}" data-rot="1">einfach</button><button class="pill${pRot === 2 ? " on" : ""}" data-rot="2">doppelt</button></span>`
+      + fam.map((f) => { const id = pRot + f, c = CAT[id]; return btn(id, CAT["1" + f].name, dec(c.base)); }).join("") + `</div>`
+      + `<div class="prow"><b>Pirouette</b>${["USp", "SSp", "CSp"].map((id) => btn(id, CAT[id].short, `bis ${dec(CAT[id].levels[3])}`)).join("")}</div>`
+      + `<div class="prow"><b>Schritte</b>${btn("StSq", "Schrittfolge", `2 Abschnitte · bis ${dec(CAT.StSq.levels[3])}`)}${btn(null, "Gleiten", "frei, mit Ausdruck")}</div>`;
+    $("pick").querySelectorAll("[data-rot]").forEach((b) => (b.onclick = () => { pRot = +b.dataset.rot; fillProg(); }));
+    $("pick").querySelectorAll(".el").forEach((b) => (b.onclick = () => {
+      const a = assign(S.prog, pSel, b.dataset.id || null); if (!a) return;
+      S.prog = a; save(); fillProg();
+    }));
+    const ids = sl.filter((x) => x && x !== "~"), nj = ids.filter((x) => CAT[x].kind === "jump").length, ns = ids.filter((x) => CAT[x].kind === "spin").length;
+    $("pSum").innerHTML = nb(`Grundwert bis ${dec(K.maxBase(sl))} · ${nj} von ${K.RULES.jumps} Sprüngen · ${ns} von ${K.RULES.spins} Pirouetten`);
+    $("pMsg").textContent = "Tipp: Schwere Sprünge bringen mehr, haben aber ein engeres Zeitfenster. Grau = nach den Regeln gerade nicht möglich.";
+  }
+  $("bProg").onclick = () => { pSel = 0; fillProg(); show("scrProg"); };
+  $("pDef").onclick = () => { S.prog = K.DEFAULT_SLOTS.slice(); save(); fillProg(); };
+  $("pDone").onclick = () => show("scrMenu");
+
   // Einstellungen
   function fillSet() {
     const pills = (id, list, cur, set) => { const el = $(id); el.innerHTML = ""; for (const [v, t] of list) { const b = document.createElement("button"); b.className = "pill" + (v === cur ? " on" : ""); b.textContent = t; b.onclick = () => { set(v); save(); fillSet(); }; el.appendChild(b); } };
@@ -1669,7 +1811,7 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
 
   // ------------------------------------------------------------------ Testzugang
   window.__ek = {
-    VERSION, get S() { return S; }, get run() { return run; }, sanitize, K, M,
+    VERSION, get S() { return S; }, get run() { return run; }, get prog() { return PROG; }, sanitize, K, M,
     test(on) { testMode = !!on; },
     start(mode) { startRun(mode || "comp", { fake: true }); run.manual = true; },
     // Zeit vorspulen in kleinen Schritten (Bild wird mitgerechnet)
