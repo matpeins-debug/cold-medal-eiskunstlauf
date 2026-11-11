@@ -38,7 +38,7 @@ button { border: 0; background: none; cursor: pointer; -webkit-tap-highlight-col
 #wrap { position: fixed; inset: 0; overflow: hidden; }
 #stage { position: absolute; left: 0; top: 0; width: 844px; height: 390px; transform-origin: 0 0; overflow: hidden; background: #162442; }
 #cv { position: absolute; inset: 0; width: 844px; height: 390px; display: block; }
-.grain { position: absolute; inset: 0; pointer-events: none; opacity: 0.16; mix-blend-mode: multiply;
+.grain { position: absolute; inset: 0; pointer-events: none; opacity: 0.09; /* ohne mix-blend-mode: das zwingt Safari bei jedem Bild zum teuren Mischen über der Zeichenfläche */
   background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='180' height='180'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 0.3  0 0 0 0 0.25  0 0 0 0 0.15  0 0 0 0.9 0'/></filter><rect width='180' height='180' filter='url(%23n)'/></svg>"); }
 .num { font-family: var(--font-display); font-variant-numeric: tabular-nums; }
 .kicker { font-family: var(--font-display); font-size: 11px; letter-spacing: 0.2em; font-weight: 600; color: var(--red); }
@@ -792,8 +792,12 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
   const ms = (s) => Math.round(s * 1000);
 
   // Zeitfenster in Sekunden (mal k)
-  const WIN = { jump: 0.35, under: 0.22, fall: 0.3, spin: 0.45, step: 0.3, pose: 0.4 };
+  // Sprung: jump = Fenster für den Absprung, high = Absprung so daneben, dass der Sprung zu niedrig wird,
+  // wobble/hand/fall = Stufen der Landung (Betrag), under = zu früh losgelassen
+  const WIN = { jump: 0.22, high: 0.13, wobble: 0.07, hand: 0.13, under: 0.11, fall: 0.2, spin: 0.45, step: 0.3, pose: 0.4 };
 
+  // Sprung: Absprung auf ●, Landung auf ○. Die Landung ist abgestuft: sauber, wackelig, Hand auf dem Eis, Sturz;
+  // zu früh losgelassen = zu kurz gedreht; ein verpasster Absprung macht den Sprung zu niedrig (ebenfalls zu kurz gedreht)
   function judgeJump(e, bt, inp, k) {
     k = k * (e.w || 1);
     const tk = bt[e.tk], ld = bt[e.land];
@@ -802,12 +806,17 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
     const down = inp[di], upE = inp.slice(di + 1).find((x) => x.type === "up");
     const up = upE ? upE.t : ld + 0.6;
     const dT = down.t - tk, dL = up - ld, devs = [ms(dT), ms(dL)];
-    if (dL < -WIN.fall * k) return { status: "fall", score: r2(e.base * 0.5), goe: -5, devs, note: "zu früh losgelassen: Sturz" };
-    if (dL > WIN.fall * k) return { status: "fall", score: r2(e.base * 0.5), goe: -5, devs, note: "zu spät gelandet: Sturz" };
-    let goe = goeFrom(mean(devs), k), base = e.base, note = "";
-    if (dL < -WIN.under * k) { base = r2(e.base * 0.7); goe = Math.min(goe, -2); note = "zu kurz gedreht"; }
-    else if (Math.max(Math.abs(dT), Math.abs(dL)) > 0.06) note = Math.abs(dT) >= Math.abs(dL) ? (dT < 0 ? "Absprung zu früh" : "Absprung zu spät") : (dL < 0 ? "Landung etwas früh" : "Landung etwas spät");
-    return { status: note === "zu kurz gedreht" ? "under" : "ok", base, goe, score: r2(base * (1 + goe / 10)), devs, note: note || "sauber im Takt" };
+    if (dL < -WIN.fall * k) return { status: "fall", score: r2(e.base * 0.5), goe: -5, devs, land: "fall", note: "viel zu früh losgelassen: Sturz" };
+    if (dL > WIN.fall * k) return { status: "fall", score: r2(e.base * 0.5), goe: -5, devs, land: "fall", note: "zu spät gelandet: Sturz" };
+    let goe = goeFrom(mean(devs), k), base = e.base, note = "", status = "ok", land = "clean";
+    if (dL < -WIN.under * k || Math.abs(dT) > WIN.high * k) {
+      base = r2(e.base * 0.7); goe = Math.min(goe, -2); status = "under";
+      note = dL < -WIN.under * k ? "zu früh losgelassen: zu kurz gedreht" : (dT < 0 ? "Absprung zu früh" : "Absprung zu spät") + ": zu niedrig, zu kurz gedreht";
+    }
+    if (Math.abs(dL) > WIN.hand * k) { goe = Math.min(goe, -3); land = "hand"; note = note || "Hand auf dem Eis"; }
+    else if (Math.abs(dL) > WIN.wobble * k) { goe = Math.min(goe, 0); land = "wobble"; note = note || "wackelige Landung"; }
+    if (!note && Math.max(Math.abs(dT), Math.abs(dL)) > 0.05) note = Math.abs(dT) >= Math.abs(dL) ? (dT < 0 ? "Absprung etwas früh" : "Absprung etwas spät") : (dL < 0 ? "Landung etwas früh" : "Landung etwas spät");
+    return { status, base, goe, land, score: r2(base * (1 + goe / 10)), devs, note: note || "sauber im Takt" };
   }
 
   function judgeSpin(e, bt, inp, k) {
@@ -948,6 +957,7 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
     inaBauer: { lean: -22, crouch: 4, sL: [-8, 10], fL: [26, 4], aF: [150, -20], aB: [-120, -20] },
     flick: { lean: 4, crouch: 2, sL: [2, 6], fL: [-50, 4], aF: [128, -24], aB: [-132, -24] },
     twizzle: { lean: 0, crouch: 2, sL: [0, 2], fL: [18, 60], aF: [150, 8], aB: [150, 8] },
+    handDown: { lean: 30, crouch: 8, sL: [30, 70], fL: [-70, 10], aF: [20, 0], aB: [-120, -10] },
     bow: { lean: 48, crouch: 3, sL: [4, 10], fL: [-24, 6], aF: [40, 10], aB: [-150, -10] },
     fallen: { lean: 10, crouch: 2, sL: [30, 60], fL: [-10, 50], aF: [60, 30], aB: [-30, 40] },
   };
@@ -1267,24 +1277,28 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
       // Publikum: cheer 0 … 1 = Anteil, der aufsteht, winkt und klatscht; Lichterketten leuchten heller
       crowd(ctx, camX, time, cheer) {
         if (cheer < 0.03) return;
+        // Arme nach Mantelfarbe gebündelt zeichnen: wenige Striche je Bild, auch am Handy flüssig
         ctx.lineCap = "round";
-        for (const [x, y, s, coat, r] of N.people) {
-          const sx = x - camX; if (sx < -10 || sx > W + 10 || r > cheer) continue;
-          const wave = Math.sin(time * 9 + r * 40), up = 2.5 + 1.5 * Math.max(0, wave);
-          ctx.strokeStyle = coat; ctx.lineWidth = 2.4 * s;
-          if (r < cheer * 0.45) { // Arme hoch, winken
-            ctx.beginPath(); ctx.moveTo(sx - 4 * s, y + 5 * s); ctx.lineTo(sx - 7 * s + wave * 2, y - 8 * s); ctx.moveTo(sx + 4 * s, y + 5 * s); ctx.lineTo(sx + 7 * s - wave * 2, y - 8 * s); ctx.stroke();
-          } else { // klatschen vor der Brust
-            const cl = 3 + 2.5 * Math.abs(Math.sin(time * 14 + r * 30));
-            ctx.beginPath(); ctx.moveTo(sx - 5 * s, y + 7 * s); ctx.lineTo(sx - cl * 0.4 * s, y + 2 * s - up); ctx.moveTo(sx + 5 * s, y + 7 * s); ctx.lineTo(sx + cl * 0.4 * s, y + 2 * s - up); ctx.stroke();
+        const byCoat = {};
+        for (const pp of N.people) {
+          const sx = pp[0] - camX; if (sx < -10 || sx > W + 10 || pp[4] > cheer) continue;
+          (byCoat[pp[3]] || (byCoat[pp[3]] = [])).push(pp);
+        }
+        for (const coat in byCoat) {
+          ctx.beginPath();
+          for (const [x, y, s, , r] of byCoat[coat]) {
+            const sx = x - camX, wave = Math.sin(time * 9 + r * 40);
+            if (r < cheer * 0.45) { ctx.moveTo(sx - 4 * s, y + 5 * s); ctx.lineTo(sx - 7 * s + wave * 2, y - 8 * s); ctx.moveTo(sx + 4 * s, y + 5 * s); ctx.lineTo(sx + 7 * s - wave * 2, y - 8 * s); }
+            else { const cl = 3 + 2.5 * Math.abs(Math.sin(time * 14 + r * 30)), up = 2.5 + 1.5 * Math.max(0, wave);
+              ctx.moveTo(sx - 5 * s, y + 7 * s); ctx.lineTo(sx - cl * 0.4 * s, y + 2 * s - up); ctx.moveTo(sx + 5 * s, y + 7 * s); ctx.lineTo(sx + cl * 0.4 * s, y + 2 * s - up); }
           }
+          ctx.strokeStyle = coat; ctx.lineWidth = 2.6; ctx.stroke();
         }
-        ctx.globalAlpha = Math.min(0.9, cheer);
-        for (const [x, y] of N.bulbs) {
-          const sx = x - camX; if (sx < -12 || sx > W + 12) continue;
-          const f = 0.6 + 0.4 * Math.sin(time * 11 + x);
-          ctx.fillStyle = `rgba(255,236,180,${0.5 * f})`; ctx.beginPath(); ctx.arc(sx, y, 6, 0, 7); ctx.fill();
-        }
+        // Lichterketten flackern: ein Pfad für alle Lampen
+        ctx.globalAlpha = Math.min(0.9, cheer) * (0.75 + 0.25 * Math.sin(time * 11));
+        ctx.fillStyle = "rgba(255,236,180,0.5)"; ctx.beginPath();
+        for (const [x, y] of N.bulbs) { const sx = x - camX; if (sx < -12 || sx > W + 12) continue; ctx.moveTo(sx + 6, y); ctx.arc(sx, y, 6, 0, 7); }
+        ctx.fill();
         ctx.globalAlpha = 1;
       },
     };
@@ -1374,7 +1388,7 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
 /* COLD MEDAL EISKUNSTLAUF – Ablauf, Bildschirme, Eingabe, Taktband, Ergebnis, Spielstand. */
 (function () {
   "use strict";
-  const VERSION = "0.4.1";
+  const VERSION = "0.4.2";
   // Seiten-Einstellungen aus dem Build (eigenes Hosting: Adresse, Hoster, Impressum); im claude.ai-Artefakt leer
   const SITE = Object.assign({ web: false, url: "", impressum: null }, {"web": true, "url": "https://matpeins-debug.github.io/cold-medal-eiskunstlauf/", "hoster": "GitHub Pages (GitHub Inc., USA)", "drittland": "GitHub ist nach dem EU-US Data Privacy Framework zertifiziert; die Übermittlung in die USA stützt sich auf den Angemessenheitsbeschluss der EU-Kommission dazu.", "impressum": {"name": "", "adresse": "", "mail": ""}} || {});
   const M = window.EKMusic, K = window.EKSkate, F = window.EKFigure, SC = window.EKScene;
@@ -1430,7 +1444,7 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
     uiS = Math.min(aw / W, ah / H);
     const ox = (aw - W * uiS) / 2, oy = (ah - H * uiS) / 2;
     stage.style.transform = rotated ? `translate(${vw - oy}px, ${ox}px) rotate(90deg) scale(${uiS})` : `translate(${ox}px, ${oy}px) scale(${uiS})`;
-    dpr = Math.min(3, (window.devicePixelRatio || 1) * uiS);
+    dpr = Math.min(2, (window.devicePixelRatio || 1) * uiS); // mehr als 2 sieht man kaum, kostet am iPhone aber Bildrate
     cv.width = Math.round(W * dpr); cv.height = Math.round(H * dpr);
   }
   // Bildschirmpunkt → Bühnenpunkt
@@ -1471,15 +1485,17 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
     } catch (e) { ctxA = null; player = null; }
   }
   // kurze Geräusche: Kufe bei der Landung, Sturz, Applaus
-  function noiseBuf(sec) { const b = ctxA.createBuffer(1, Math.round(ctxA.sampleRate * sec), ctxA.sampleRate), d = b.getChannelData(0); for (let i = 0; i < d.length; i++) d[i] = Math.random() * 2 - 1; return b; }
+  // ein gemeinsamer Rausch-Puffer für alle Geräusche (nicht bei jedem Klatschen neu erzeugen: das ruckelt am Handy)
+  let NOISE = null;
+  function noiseBuf() { if (!NOISE) { NOISE = ctxA.createBuffer(1, ctxA.sampleRate, ctxA.sampleRate); const d = NOISE.getChannelData(0); for (let i = 0; i < d.length; i++) d[i] = Math.random() * 2 - 1; } return NOISE; }
   function sfx(kind, lvl) {
     if (!ctxA || !S.sound) return;
     const c = ctxA, t = c.currentTime, out = c.destination;
     const burst = (at, dur, f, q, vol, type) => {
       const s = c.createBufferSource(), fl = c.createBiquadFilter(), g = c.createGain();
-      s.buffer = noiseBuf(dur + 0.05); fl.type = type || "bandpass"; fl.frequency.value = f; fl.Q.value = q;
+      s.buffer = noiseBuf(); fl.type = type || "bandpass"; fl.frequency.value = f; fl.Q.value = q;
       g.gain.setValueAtTime(0, at); g.gain.linearRampToValueAtTime(vol, at + 0.01); g.gain.exponentialRampToValueAtTime(0.0001, at + dur);
-      s.connect(fl); fl.connect(g); g.connect(out); s.start(at); s.stop(at + dur + 0.05);
+      s.connect(fl); fl.connect(g); g.connect(out); s.start(at, Math.random() * 0.8); s.stop(at + dur + 0.05);
     };
     if (kind === "land") burst(t, 0.35, 3200, 0.8, 0.22);
     else if (kind === "fall") { burst(t, 0.25, 180, 0.7, 0.5, "lowpass"); burst(t + 0.05, 0.5, 2200, 0.6, 0.15); }
@@ -1491,7 +1507,7 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
   const SCORE = M.SCORES.donau;
   let PROG = K.buildProgram(S.prog);
   let run = null, testMode = false;
-  const kHelp = () => (S.help === "anf" ? 1.4 : 1);
+  const kHelp = () => (S.help === "anf" ? 1.3 : 1);
   function songTime() {
     if (!run) return 0;
     if (run.fake) return run.fakeT;
@@ -1539,15 +1555,15 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
     let best = null;
     const consider = (t, win, ok) => { const d = inp.t - t; if (Math.abs(d) <= win && (!best || Math.abs(d) < Math.abs(best.d))) best = { d, ok }; };
     for (const m of r.marks) {
-      if (inp.type === "down" && m.kind === "hold") consider(m.t, K.WIN.jump * k, true);
-      if (inp.type === "up" && m.kind === "hold") consider(m.t2, K.WIN.fall * k, true);
+      if (inp.type === "down" && m.kind === "hold") consider(m.t, K.WIN.jump * k * (m.el.w || 1), true);
+      if (inp.type === "up" && m.kind === "hold") consider(m.t2, K.WIN.fall * k * (m.el.w || 1), true);
       if (inp.type === "down" && m.kind === "pose") consider(m.t, K.WIN.pose * k, true);
       if (inp.type === "circle" && m.kind === "spin") consider(m.t, K.WIN.spin * k, true);
       if (inp.type === "swipe" && m.kind === "step") consider(m.t, K.WIN.step * k, m.dir === inp.dir);
     }
     // Sprung: Absprung merken für das Bild
     if (inp.type === "down") {
-      const jm = r.marks.find((m) => m.kind === "hold" && Math.abs(inp.t - m.t) <= K.WIN.jump * k && !(r.jump && r.jump.el === m.el));
+      const jm = r.marks.find((m) => m.kind === "hold" && Math.abs(inp.t - m.t) <= K.WIN.jump * k * (m.el.w || 1) && !(r.jump && r.jump.el === m.el));
       if (jm) r.jump = { el: jm.el, t0: inp.t, t1: null, land: jm.t2 };
       const pm = r.marks.find((m) => m.kind === "pose" && Math.abs(inp.t - m.t) <= K.WIN.pose * k);
       if (pm && !r.posed && r.pos) r.paint.marks.push({ x: r.pos[0], y: r.pos[1], kind: "pose", ok: true });
@@ -1555,9 +1571,10 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
     }
     if (inp.type === "up" && r.jump && r.jump.t1 === null) {
       r.jump.t1 = inp.t;
-      const dl = inp.t - r.jump.land;
-      if (r.pos) r.paint.marks.push({ x: r.pos[0], y: r.pos[1], kind: Math.abs(dl) > K.WIN.fall * k ? "fall" : "jump", ok: Math.abs(dl) <= K.WIN.under * k });
-      if (Math.abs(dl) > K.WIN.fall * k) { r.fallUntil = inp.t + 1.3; sfx("fall"); r.streak = 0; r.intensity = clamp(r.intensity - 0.35, 0, 1); r.burst = 0; } else { r.landUntil = inp.t + 0.6; sfx("land"); }
+      const dl = inp.t - r.jump.land, kw = k * (r.jump.el.w || 1);
+      if (Math.abs(dl) <= K.WIN.fall * kw && Math.abs(dl) > K.WIN.wobble * kw) r.wobble = { t: inp.t, hand: Math.abs(dl) > K.WIN.hand * kw };
+      if (r.pos) r.paint.marks.push({ x: r.pos[0], y: r.pos[1], kind: Math.abs(dl) > K.WIN.fall * kw ? "fall" : "jump", ok: Math.abs(dl) <= K.WIN.wobble * kw });
+      if (Math.abs(dl) > K.WIN.fall * kw) { r.wobble = null; r.fallUntil = inp.t + 1.3; sfx("fall"); r.streak = 0; r.intensity = clamp(r.intensity - 0.35, 0, 1); r.burst = 0; } else { r.landUntil = inp.t + (r.wobble && r.wobble.t === inp.t ? 0.95 : 0.6); sfx("land"); }
     }
     if (inp.type === "swipe") r.lastSwipe = { dir: inp.dir, t: inp.t };
     if (!best) return;
@@ -1636,18 +1653,19 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
     $("chips").innerHTML = PROG.elements.map((e, i) => `<span class="chip" data-i="${i}">${esc(e.short)}</span>`).join("");
   }
   function updateChips(t) {
-    const res = K.judge(PROG, run.bt, run.inputs, { k: run.k });
+    let res = null; // Wertung nur rechnen, wenn gerade ein Element fertig geworden ist
     PROG.elements.forEach((e, i) => {
       const ch = $("chips").querySelector(`[data-i="${i}"]`), [a, b] = elWindow(e, run.bt);
       if (t > b + 0.2) {
         if (!run.done[i]) {
+          res = res || K.judge(PROG, run.bt, run.inputs, { k: run.k });
           const r = res.els[i]; run.done[i] = r;
           ch.className = "chip " + r.status;
           ch.textContent = e.kind === "pose" ? (r.status === "ok" ? "Pose ✓" : "Pose –") : `${e.short} ${r.status === "miss" ? "–" : dec(r.score)}`;
           if (r.status === "ok" && e.kind !== "pose") { run.burst = Math.max(run.burst, r.goe >= 2 ? 1 : 0.55); sfx("cheer", r.goe >= 2 ? 1 : 0.5); }
           if (e.kind !== "pose") pop(r.status === "miss" ? `${e.name}: ausgelassen` : r.status === "fall" ? "Sturz −1" : `${e.name} +${dec(r.score)}`, r.status === "ok" ? "#F3C969" : "#E8A07A");
         }
-      } else ch.classList.toggle("now", t >= a && t <= b);
+      } else { const now = t >= a && t <= b; if (ch._now !== now) { ch._now = now; ch.classList.toggle("now", now); } }
     });
   }
 
@@ -1705,7 +1723,16 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
       }
     }
     if (t < r.fallUntil) { pose = F.POSES.fallen; tilt = -1.25 * smooth((r.fallUntil - t) > 1.0 ? (1.3 - (r.fallUntil - t)) / 0.3 : 1); lift = -4; }
-    else if (t < r.landUntil) pose = F.mix(F.POSES.land, pose, smooth(1 - (r.landUntil - t) / 0.6));
+    else if (t < r.landUntil) {
+      pose = F.mix(F.POSES.land, pose, smooth(1 - (r.landUntil - t) / 0.6));
+      // wackelige Landung: Rudern mit den Armen; Hand auf dem Eis: tief, Hand stützt ab
+      if (r.wobble && t - r.wobble.t < 0.9) {
+        const u = (t - r.wobble.t) / 0.9, amp = (1 - u) * (r.wobble.hand ? 0.22 : 0.14);
+        tilt = Math.sin(u * 22) * amp;
+        if (r.wobble.hand) pose = F.mix(pose, F.POSES.handDown, Math.sin(Math.PI * Math.min(1, u * 1.4)));
+        else pose = F.mix(pose, F.POSES.flick, Math.abs(Math.sin(u * 11)) * (1 - u));
+      }
+    }
     if (el && el.kind === "spin" && t > bt[el.from] - 0.2 && t < bt[el.from + 12] + 0.3) {
       pose = F.POSES[el.pose] || F.POSES.spin; r.spinV = Math.max(0.3, r.spinV - dt * 0.5); r.turn += dt * Math.PI * 2 * (1.4 + 2.8 * r.spinV); turn = r.turn;
     }
@@ -1850,14 +1877,18 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
     render(t, dt);
     if (!run.finished && t > run.bt[run.bt.length - 1] + 3.8) finish();
   }
+  // Kufenspur in vier Helligkeitsstufen gebündelt (wenige Zeichenbefehle je Bild)
   function drawTrail(tr, camX) {
     const now = performance.now();
     ctx.lineWidth = 1.6; ctx.lineCap = "round";
-    for (let i = 1; i < tr.length; i++) {
-      const a = tr[i - 1], b = tr[i], age = (now - b[2]) / 2400;
-      if (age > 1 || Math.abs(b[0] - a[0]) > 40) continue;
-      ctx.strokeStyle = `rgba(80,105,135,${0.55 * (1 - age)})`;
-      ctx.beginPath(); ctx.moveTo(a[0] - camX, a[1]); ctx.lineTo(b[0] - camX, b[1]); ctx.stroke();
+    for (let band = 0; band < 4; band++) {
+      ctx.beginPath(); let any = false;
+      for (let i = 1; i < tr.length; i++) {
+        const a = tr[i - 1], b = tr[i], age = (now - b[2]) / 2400;
+        if (age > 1 || Math.abs(b[0] - a[0]) > 40 || Math.min(3, Math.floor(age * 4)) !== band) continue;
+        ctx.moveTo(a[0] - camX, a[1]); ctx.lineTo(b[0] - camX, b[1]); any = true;
+      }
+      if (any) { ctx.strokeStyle = `rgba(80,105,135,${0.55 * (1 - (band + 0.5) / 4)})`; ctx.stroke(); }
     }
   }
   // nach dem Schlussakkord: Blumen und Stofftiere fliegen aufs Eis, mehr bei besserer Kür
