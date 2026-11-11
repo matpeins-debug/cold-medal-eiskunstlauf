@@ -167,6 +167,10 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
 .agrid img { width: 100%; aspect-ratio: 3 / 2; border: 2px solid var(--ink-deep); background: var(--paper); display: block; }
 .agrid small { font-size: 11px; color: var(--muted); font-family: var(--font-display); }
 .agrid .empty { grid-column: 1 / -1; font-size: 13px; color: var(--muted); }
+.slot .peak { position: absolute; top: -9px; right: 3px; font-style: normal; font-size: 9.5px; font-family: var(--font-display); letter-spacing: 0.04em; background: #F3C969; color: var(--ink-deep); border: 1.5px solid var(--ink-deep); padding: 0 4px; }
+.pick { overflow-y: auto; }
+.prow .hint { font-size: 11px; color: var(--muted); }
+.prow > b.sub { min-width: 0; margin-left: 14px; }
 </style>
 </head>
 <body>
@@ -729,6 +733,14 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
     CATALOG["1" + c] = { kind: "jump", fam: c, name: nm, short: nm, base: b1, hold: 1, w: r2(1.1 - 0.05 * (i + 1)), rot: 1 };
     CATALOG["2" + c] = { kind: "jump", fam: c, name: "Doppel-" + nm, short: "2" + nm, base: b2, hold: 2, w: r2((1.1 - 0.05 * (i + 1)) * 0.9), rot: 2 };
   });
+  // Sprungkombinationen: zweiter Sprung direkt aus der Landung, Toeloop oder Rittberger, höchstens so viele Drehungen wie der erste.
+  // Grundwert = Summe beider Sprünge (wie bei der ISU)
+  const SECOND = ["T", "Lo"];
+  JUMPS.forEach(([c]) => [1, 2].forEach((r1) => SECOND.forEach((c2) => [1, 2].forEach((r2_) => {
+    if (r2_ > r1) return;
+    const a = CATALOG[r1 + c], b = CATALOG[r2_ + c2], id = r1 + c + "+" + r2_ + c2;
+    CATALOG[id] = { kind: "jump", combo: [r1 + c, r2_ + c2], fam: c, fams: [c, c2], name: a.name + " + " + b.name, short: a.short + "+" + b.short, base: r2(a.base + b.base), w: a.w, rot: r1 };
+  }))));
   // Pirouetten: Stufen B, 1, 2, 3 je nach Umdrehungen im Takt
   CATALOG.USp = { kind: "spin", name: "Standpirouette", short: "Stand", levels: [1.0, 1.2, 1.5, 1.9], w: 1, pose: "spin" };
   CATALOG.SSp = { kind: "spin", name: "Sitzpirouette", short: "Sitz", levels: [1.1, 1.3, 1.6, 2.1], w: 0.9, pose: "sitspin" };
@@ -739,11 +751,12 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
   CATALOG.ChIB = { kind: "choreo", name: "Ina Bauer", short: "Ina Bauer", pose: "inaBauer" };
   CATALOG.ChPB = { kind: "choreo", name: "Port de bras", short: "Arme", pose: "portUp" };
   CATALOG.ChTw = { kind: "choreo", name: "Twizzles", short: "Twizzle", pose: "twizzle" };
-  const RULES = { jumps: 4, famMax: 2, spins: 2, steps: 1 };
+  const RULES = { jumps: 4, famMax: 2, spins: 2, steps: 1, combos: 2 };
 
   // Die Musik in Abschnitte: acht Phrasen zu je vier Takten ab dem Einsatz der Melodie (Takt 4); jedes Element füllt eine Phrase,
   // die Schrittfolge zwei. Danach immer die Schlusspose auf dem Schlussakkord.
-  const SECTIONS = { donau: { first: 4, len: 4, n: 8, end: 108 } };
+  // peak: Abschnitte mit dem musikalischen Höhepunkt (höchster Ton D6, volle Kraft) – ein sauberes Element dort bekommt +1 GOE
+  const SECTIONS = { donau: { first: 4, len: 4, n: 8, end: 108, peak: [4, 5] } };
   const STEP_PATTERN = [[0, "r"], [3, "l"], [6, "r"], [8, "u"], [9, "l"], [12, "d"], [14, "r"], [15, "l"], [18, "u"], [20, "d"], [21, "r"], [24, "l"]];
   const DEFAULT_SLOTS = ["2T", "2S", "USp", null, "StSq", "~", "2Lo", null];
 
@@ -752,7 +765,8 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
     const msg = [], ids = slots.filter((x) => x && x !== "~");
     const jumps = ids.filter((x) => CATALOG[x] && CATALOG[x].kind === "jump");
     if (jumps.length > RULES.jumps) msg.push(`höchstens ${RULES.jumps} Sprünge`);
-    const fam = {}; jumps.forEach((x) => (fam[CATALOG[x].fam] = (fam[CATALOG[x].fam] || 0) + 1));
+    const fam = {}; jumps.forEach((x) => (CATALOG[x].fams || [CATALOG[x].fam]).forEach((f) => (fam[f] = (fam[f] || 0) + 1)));
+    if (jumps.filter((x) => CATALOG[x].combo).length > RULES.combos) msg.push(`höchstens ${RULES.combos} Kombinationen`);
     for (const f in fam) if (fam[f] > RULES.famMax) msg.push(`jeden Sprung höchstens ${RULES.famMax}-mal`);
     const spins = ids.filter((x) => CATALOG[x] && CATALOG[x].kind === "spin");
     if (spins.length > RULES.spins) msg.push(`höchstens ${RULES.spins} Pirouetten`);
@@ -781,7 +795,12 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
       const c = CATALOG[id], bar = sec.first + sec.len * i;
       if (c.kind === "choreo") { choreo[i] = id; return; }
       const base = { id, kind: c.kind, name: c.name, short: c.short, w: c.w, slot: i };
-      if (c.kind === "jump") els.push(Object.assign(base, { base: c.base, tk: (bar + 2) * 3, land: (bar + 2) * 3 + c.hold, rot: c.rot }));
+      if (c.kind === "jump" && c.combo) {
+        // zwei Teile: der zweite springt einen Schlag nach der Landung ab
+        const a = CATALOG[c.combo[0]], b = CATALOG[c.combo[1]], tk = (bar + 2) * 3, tk2 = tk + a.hold + 1;
+        els.push(Object.assign({}, base, { short: a.short, base: a.base, w: a.w, tk, land: tk + a.hold, rot: a.rot, part: "a" }));
+        els.push(Object.assign({}, base, { short: "+" + b.short, base: b.base, w: b.w, tk: tk2, land: tk2 + b.hold, rot: b.rot, part: "b" }));
+      } else if (c.kind === "jump") els.push(Object.assign(base, { base: c.base, tk: (bar + 2) * 3, land: (bar + 2) * 3 + c.hold, rot: c.rot }));
       else if (c.kind === "spin") els.push(Object.assign(base, { levels: c.levels, pose: c.pose, from: bar * 3, turns: 4 }));
       else if (c.kind === "steps") els.push(Object.assign(base, { levels: c.levels, arrows: STEP_PATTERN.map(([o, d]) => [bar * 3 + o, d]) }));
     });
@@ -878,14 +897,31 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
   // ganze Kür werten. bt: Schlagzeiten ab Musikbeginn (EKMusic.grid), inputs zeitlich sortiert, opt.k: Großzügigkeit
   function judge(prog, bt, inputs, opt) {
     const k = (opt && opt.k) || 1, inp = inputs.slice().sort((a, b) => a.t - b.t);
-    const els = prog.elements.map((e) => Object.assign({ id: e.id, name: e.name, kind: e.kind, base: e.base || 0 }, JUDGE[e.kind](e, bt, inp, k)));
+    const els = prog.elements.map((e) => Object.assign({ id: e.id, name: e.name, kind: e.kind, base: e.base || 0, part: e.part, slot: e.slot }, JUDGE[e.kind](e, bt, inp, k)));
+    // Höhepunkt der Musik: sauberes Element dort +1 GOE
+    const peak = (prog.sec && prog.sec.peak) || [];
+    els.forEach((x) => {
+      if (x.kind === "pose" || x.status !== "ok" || !peak.includes(x.slot) || x.land === "hand" || x.land === "wobble") return;
+      x.peak = true; x.goe = Math.min(5, x.goe + 1); x.score = r2((x.base || 0) * (1 + x.goe / 10)); x.note = (x.note ? x.note + " · " : "") + "auf dem Höhepunkt";
+    });
+    // Kombinationen: zweiter Teil zählt nur nach einem stehenden ersten; in der Liste als eine Zeile
+    els.forEach((a, i) => {
+      if (a.part !== "a") return;
+      const b = els[i + 1]; if (!b || b.part !== "b") return;
+      if (a.status === "fall" || a.status === "miss") Object.assign(b, { status: "miss", score: 0, goe: 0, devs: [], note: a.status === "fall" ? "nach dem Sturz" : "ohne ersten Sprung" });
+      const bOk = b.status !== "miss";
+      a.row = { name: a.name, base: r2((a.status === "miss" ? 0 : a.base) + (bOk ? b.base : 0)), goe: bOk && a.status !== "miss" ? Math.round((a.goe + b.goe) / 2) : a.goe, score: r2(a.score + b.score),
+        status: a.status === "miss" ? (bOk ? "under" : "miss") : b.status === "fall" ? "fall" : a.status === "ok" && b.status === "ok" ? "ok" : a.status,
+        note: a.status === "miss" ? (bOk ? "nur der zweite Sprung" : "ausgelassen") : !bOk ? (a.status === "fall" ? a.note : "zweiter Sprung fehlt") : a.note === b.note ? a.note : `${a.note} / ${b.note}` };
+      b.inCombo = true;
+    });
     const tes = r2(els.reduce((s, x) => s + x.score, 0));
     const falls = els.filter((x) => x.status === "fall").length;
     const all = [].concat(...els.map((x) => x.devs));
     const tim = root.EKMusic ? root.EKMusic.timingStats(all) : null;
-    const scored = els.filter((x) => x.kind !== "pose"), done = scored.filter((x) => x.status !== "miss").length / scored.length;
+    const scored = els.filter((x) => x.kind !== "pose" && !x.inCombo), done = scored.filter((x) => x.status !== "miss").length / scored.length;
     const meanDev = all.length ? mean(all) : 400, pose = els.find((x) => x.kind === "pose");
-    const variety = Math.min(3, new Set(Object.values(prog.choreo || {})).size) * 0.25; // verschiedene Choreo-Figuren
+    const variety = Math.min(3, new Set(Object.values(prog.choreo || {})).size) * 0.25 + (els.some((x) => x.peak) ? 0.25 : 0); // verschiedene Choreo-Figuren, Höhepunkt genutzt
     const pcs = {
       comp: q4(clamp(3 + 5 * done + (pose && pose.status === "ok" ? 1.25 : 0) - 0.75 * falls + variety, 1.5, 9.75)),
       pres: q4(clamp(10 - meanDev / k / 22, 1.5, 9.75)),
@@ -1488,7 +1524,7 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
 /* COLD MEDAL EISKUNSTLAUF – Ablauf, Bildschirme, Eingabe, Taktband, Ergebnis, Spielstand. */
 (function () {
   "use strict";
-  const VERSION = "0.5";
+  const VERSION = "0.6";
   // Seiten-Einstellungen aus dem Build (eigenes Hosting: Adresse, Hoster, Impressum); im claude.ai-Artefakt leer
   const SITE = Object.assign({ web: false, url: "", impressum: null }, {"web": true, "url": "https://matpeins-debug.github.io/cold-medal-eiskunstlauf/", "hoster": "GitHub Pages (GitHub Inc., USA)", "drittland": "GitHub ist nach dem EU-US Data Privacy Framework zertifiziert; die Übermittlung in die USA stützt sich auf den Angemessenheitsbeschluss der EU-Kommission dazu.", "impressum": {"name": "", "adresse": "", "mail": ""}} || {});
   const M = window.EKMusic, K = window.EKSkate, F = window.EKFigure, SC = window.EKScene;
@@ -1600,6 +1636,22 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
     if (kind === "land") burst(t, 0.35, 3200, 0.8, 0.22);
     else if (kind === "fall") { burst(t, 0.25, 180, 0.7, 0.5, "lowpass"); burst(t + 0.05, 0.5, 2200, 0.6, 0.15); }
     else if (kind === "applause") { const n = Math.round(60 + 200 * (lvl === undefined ? 1 : lvl)); for (let i = 0; i < n; i++) burst(t + Math.random() * 3.6 * Math.sqrt(Math.random()), 0.05, 1500 + Math.random() * 2500, 1.2, 0.04 + Math.random() * 0.05); }
+    else if (kind === "gong") {
+      // Lautsprecher-Gong vor der Ansage: drei weiche Töne, leicht verstimmt wie eine alte Anlage
+      [[659, 0], [523, 0.55], [392, 1.1]].forEach(([f, dt]) => { for (const df of [1, 2.01]) {
+        const o = c.createOscillator(), g = c.createGain(), at = t + dt; o.frequency.value = f * df * (1 + (Math.random() - 0.5) * 0.004);
+        g.gain.setValueAtTime(0, at); g.gain.linearRampToValueAtTime(df === 1 ? 0.16 : 0.03, at + 0.01); g.gain.exponentialRampToValueAtTime(0.0001, at + 1.6);
+        o.connect(g); g.connect(out); o.start(at); o.stop(at + 1.7); } });
+    }
+    else if (kind === "crackle") {
+      // Rauschen und Knistern des alten Mikrofons, solange die Ansage läuft (lvl = Sekunden)
+      const d = lvl || 4, s0 = c.createBufferSource(), bp = c.createBiquadFilter(), g = c.createGain();
+      s0.buffer = noiseBuf(); s0.loop = true; bp.type = "bandpass"; bp.frequency.value = 1800; bp.Q.value = 0.9;
+      g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(0.025, t + 0.15); g.gain.setValueAtTime(0.025, t + d); g.gain.linearRampToValueAtTime(0, t + d + 0.3);
+      s0.connect(bp); bp.connect(g); g.connect(out); s0.start(t); s0.stop(t + d + 0.4);
+      for (let i = 0; i < d * 9; i++) burst(t + Math.random() * d, 0.012, 2500 + Math.random() * 3000, 2, 0.04 + Math.random() * 0.08);
+      burst(t, 0.06, 900, 1, 0.25); // Einschalt-Knacks
+    }
     else if (kind === "cheer") { const n = Math.round(25 + 50 * lvl); for (let i = 0; i < n; i++) burst(t + Math.random() * 1.1 * Math.sqrt(Math.random()), 0.05, 1500 + Math.random() * 2500, 1.2, 0.025 + Math.random() * 0.035); }
   }
 
@@ -1626,7 +1678,7 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
     return out;
   }
   function elWindow(e, bt) {
-    if (e.kind === "jump") return [bt[e.tk] - 1.2, bt[e.land] + 0.7];
+    if (e.kind === "jump") return [bt[e.tk] - 1.2, bt[e.land] + (e.part === "a" ? 0.15 : 0.7)]; // Kombination: zweiter Teil übernimmt kurz nach der Landung
     if (e.kind === "spin") return [bt[e.from] - 0.3, bt[e.from + 3 * e.turns] + 0.6];
     if (e.kind === "steps") return [bt[e.arrows[0][0]] - 0.5, bt[e.arrows[e.arrows.length - 1][0]] + 0.5];
     return [bt[e.at] - 0.8, bt[e.at] + 0.6];
@@ -1639,7 +1691,83 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
     run = { mode, bt, marks: buildMarks(bt), inputs: [], fake, fakeT: -0.6, lastT: 0, done: {}, pops: [], p: 0, camX: WW / 2 - W / 2,
       dir: 1, face: 0, trail: [], trailT: 0, turn: 0, spinV: 0, jump: null, fallUntil: -1, landUntil: -1, lastSwipe: null, posed: false, finished: false, k: kHelp(), paint: { pts: [], marks: [], t: 0 }, sparks: [], burstQ: 0, lastQ: null, pos: null, intensity: 0.6, cheer: 0, burst: 0, streak: 0, bestStreak: 0, accI: 0, throws: null, intT: 0, seed: (Date.now() & 0xffff) || 7 };
     show(null); $("hud").hidden = false; buildChips();
-    if (!fake) { player.start(SCORE.id, { preset: S.preset, swing: true }); ambience(true); }
+    if (!fake) { run.entry = { t: 0, phase: 0, x: WW / 2 - 820, face: 0, sp: null }; ambience(true); }
+    else if (opt.entry) run.entry = { t: 0, phase: 0, x: WW / 2 - 820, face: 0, sp: null, fake: true };
+  }
+  // Auftritt: Läuferin gleitet zum Startpunkt, Publikum jubelt; Gong und Ansage aus dem alten Lautsprecher;
+  // Stille, sie nimmt die Ausgangspose ein; dann setzt die Musik ein. Tippen überspringt.
+  function speak(text, done) {
+    const sy = window.speechSynthesis;
+    if (!sy || !S.sound || run.entry.fake) { setTimeout(done, 3200); return 3.2; }
+    try {
+      sy.cancel();
+      const u = new SpeechSynthesisUtterance(text), vs = sy.getVoices(), v = vs.find((x) => /^de-AT/i.test(x.lang)) || vs.find((x) => /^de/i.test(x.lang));
+      if (v) u.voice = v; u.lang = v ? v.lang : "de-DE"; u.rate = 0.9; u.pitch = 0.85; u.volume = 0.9;
+      let fin = false; const end = () => { if (!fin) { fin = true; done(); } };
+      u.onend = end; u.onerror = end; setTimeout(end, 9000); sy.speak(u);
+    } catch (e) { setTimeout(done, 3200); }
+    return Math.min(8, text.length / 13);
+  }
+  function entryFrame(dt) {
+    const E = run.entry; E.t += dt;
+    const xs = WW / 2 - 820, xe = WW / 2, d = 0.77; // Endpunkt = Startpunkt der Kür (Bahnmitte)
+    let pose, lift = 0;
+    // 1 Hereingleiten (3,4 s): zwei Abstöße, dann lang gleiten
+    if (E.phase === 0) {
+      if (E.t > 0.25 && !E.clap) { E.clap = true; sfx("applause", 0.7); run.burst = 1; }
+      const u = clamp(E.t / 3.4, 0, 1); E.x = xs + (xe - xs) * (1 - Math.pow(1 - u, 2.2));
+      pose = u < 0.45 ? F.strokePose((E.t / 0.75) % 1) : F.POSES.glide;
+      if (u >= 1) { E.phase = 1; E.t = 0; sfx("gong"); }
+    } else if (E.phase === 1) {
+      // 2 Gong, das Publikum wird still, Ansage
+      pose = F.POSES.glide;
+      if (E.t > 1.7 && !E.spoke) {
+        E.spoke = true; run.burst = 0;
+        const nm = (S.name || "").trim(), nat = NAT[S.nat] || "";
+        const text = `Meine Damen und Herren! Auf dem Eis: ${nm || "unsere nächste Läuferin"}${nat ? ", " + nat : ""}. Zur Musik von Johann Strauss: An der schönen blauen Donau.`;
+        E.banner = `${nm || "Auf dem Eis"}${nat ? " · " + nat : ""}`;
+        const dur = speak(text, () => { if (run && run.entry === E) { E.phase = 2; E.t = 0; } });
+        sfx("crackle", dur + 0.5);
+      }
+    } else if (E.phase === 2) {
+      // 3 Stille: zur Kamera drehen und Ausgangspose
+      const u = smooth(clamp(E.t / 1.2, 0, 1));
+      pose = F.mix(F.POSES.glide, F.POSES.portUp, u);
+      if (E.t > 2.0) { E.phase = 3; }
+    }
+    if (E.phase >= 1) E.face += (Math.PI / 2 - 0.5 - E.face) * Math.min(1, dt * 2.5);
+    if (E.phase === 3 || E.skip) return beginMusic();
+    run.cheer += ((E.phase === 0 ? 0.9 : 0) - run.cheer) * Math.min(1, dt * (E.phase === 0 ? 3 : 1.6));
+    if (amb) amb.g.gain.setTargetAtTime(E.phase === 0 ? 0.08 : E.phase === 1 && !E.spoke ? 0.03 : 0.008, ctxA.currentTime, 0.5);
+    const fy = SC.footY(d), sc = SC.scaleAt(d), target = clamp(E.x - W / 2 + 60, 0, WW - W);
+    run.camX += (target - run.camX) * Math.min(1, dt * 2.2);
+    const now = performance.now() / 1000, fx = E.x - run.camX;
+    scene.draw(ctx, run.camX); scene.twinkle(ctx, run.camX, now);
+    scene.crowd(ctx, run.camX, now, run.cheer); scene.snow(ctx, run.camX, now, [0, 1], 0.6);
+    E.dim = (E.dim || 0) + ((E.phase >= 1 ? 0.32 : 0) - (E.dim || 0)) * Math.min(1, dt * 1.2); // Licht geht herunter, nur das Spotlicht bleibt
+    ctx.fillStyle = `rgba(8,12,30,${E.dim})`; ctx.fillRect(0, 0, W, H);
+    scene.spot(ctx, fx, fy, sc, 0.8 + E.dim * 1.2);
+    E.trailT = (E.trailT || 0) + dt;
+    if (E.trailT > 0.03 && E.phase === 0) { E.trailT = 0; run.trail.push([E.x, fy + 3.5, performance.now()]); if (run.trail.length > 80) run.trail.shift(); }
+    drawTrail(run.trail, run.camX);
+    E.sp = F.ease(E.sp, pose, dt);
+    const fo = { x: fx, y: fy, s: sc, dir: 1, pose: E.sp, lift, turn: E.face, swap: false, look: S.look };
+    drawReflection(fo); F.draw(ctx, fo);
+    scene.snow(ctx, run.camX, now, [2], 0.6); scene.vignette(ctx);
+    if (E.banner) {
+      const a = clamp(E.t / 0.4, 0, 1) * (E.phase === 2 ? clamp(1 - (E.t - 1.0) / 0.6, 0, 1) : 1);
+      ctx.globalAlpha = a; ctx.textAlign = "center"; ctx.textBaseline = "alphabetic";
+      ctx.font = "700 13px " + font(); ctx.fillStyle = "#F3C969"; ctx.fillText("AUF DEM EIS", W / 2, 66);
+      ctx.font = "700 26px " + font(); ctx.lineWidth = 5; ctx.strokeStyle = "#141B25"; ctx.strokeText(E.banner, W / 2, 96); ctx.fillStyle = "#F1E7D2"; ctx.fillText(E.banner, W / 2, 96);
+      ctx.globalAlpha = 1;
+    }
+    if (E.phase === 0 && E.t > 1.2) { ctx.globalAlpha = 0.6; ctx.textAlign = "center"; ctx.font = "600 11px " + font(); ctx.fillStyle = "#F1E7D2"; ctx.fillText("tippen zum Überspringen", W / 2, H - 14); ctx.globalAlpha = 1; }
+  }
+  function beginMusic() {
+    const E = run.entry; run.entry = null;
+    try { if (window.speechSynthesis) window.speechSynthesis.cancel(); } catch (e) { /* egal */ }
+    run.face = E.face; run.sp = E.sp; run.trail = []; run.dim = E.dim || 0;
+    if (!run.fake) player.start(SCORE.id, { preset: S.preset, swing: true });
   }
   // Raumklang des Platzes: leises Gemurmel des Publikums, wird bei Jubel lauter
   let amb = null;
@@ -1656,9 +1784,10 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
       setTimeout(() => { try { a.src.stop(); a.lfo.stop(); } catch (e) { /* egal */ } }, 3000);
     }
   }
-  function abortRun() { ambience(false); if (player && player.playing) player.stop(); run = null; $("hud").hidden = true; show("scrMenu"); }
+  function abortRun() { ambience(false); try { if (window.speechSynthesis) window.speechSynthesis.cancel(); } catch (e) { /* egal */ } if (player && player.playing) player.stop(); run = null; $("hud").hidden = true; show("scrMenu"); }
 
   function addInput(type, dir) {
+    if (run && run.entry) { if (run.entry.t > 0.4 || run.entry.phase) run.entry.skip = true; return; }
     if (!run || run.finished) return;
     const t = songTime() - (run.fake ? 0 : S.lat / 1000);
     const inp = { t, type }; if (dir) inp.dir = dir;
@@ -1780,7 +1909,10 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
           ch.className = "chip " + r.status;
           ch.textContent = e.kind === "pose" ? (r.status === "ok" ? "Pose ✓" : "Pose –") : `${e.short} ${r.status === "miss" ? "–" : dec(r.score)}`;
           if (r.status === "ok" && e.kind !== "pose") { run.burst = Math.max(run.burst, r.goe >= 2 ? 1 : 0.55); sfx("cheer", r.goe >= 2 ? 1 : 0.5); }
-          if (e.kind !== "pose") pop(r.status === "miss" ? `${e.name}: ausgelassen` : r.status === "fall" ? "Sturz −1" : `${e.name} +${dec(r.score)}`, r.status === "ok" ? "#F3C969" : "#E8A07A");
+          const nm = e.part ? e.short.replace(/^\+/, "") : e.name;
+          if (e.kind !== "pose" && !(e.part === "b" && r.status === "miss" && run.done[i - 1] && run.done[i - 1].status !== "ok")) pop(r.status === "miss" ? `${nm}: ausgelassen` : r.status === "fall" ? "Sturz −1" : `${nm} +${dec(r.score)}`, r.status === "ok" ? "#F3C969" : "#E8A07A");
+          if (r.peak) { pop("Höhepunkt der Musik · +1 GOE", "#FFE7A0"); run.burst = 1; run.burstQ += 30; }
+          if (e.part === "b" && r.status === "ok" && run.done[i - 1] && run.done[i - 1].status === "ok") pop("Kombination!", "#FFE7A0");
         }
       } else { const now = t >= a && t <= b; if (ch._now !== now) { ch._now = now; ch.classList.toggle("now", now); } }
     });
@@ -1989,6 +2121,7 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
     const dt = Math.min(0.05, (now - lastFrame) / 1000); lastFrame = now;
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
     if (!run) { idle(dt); return; }
+    if (run.entry) { entryFrame(dt); return; }
     if (run.fake && !run.manual) run.fakeT += dt;
     const t = songTime(); run.lastT = t; run.lastNow = now;
     render(t, dt);
@@ -2081,6 +2214,7 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
     scene.twinkle(ctx, run.camX, now);
     scene.crowd(ctx, run.camX, now, run.cheer);
     scene.snow(ctx, run.camX, now, [0, 1], 0.4 + 0.4 * run.cheer);
+    if (run.dim > 0.005) { run.dim *= 1 - Math.min(1, dt * 0.35); ctx.fillStyle = `rgba(8,12,30,${run.dim})`; ctx.fillRect(0, 0, W, H); } // mit der Musik geht das Licht wieder an
     run.intT += dt; if (player && player.playing && run.intT > 0.2) { run.intT = 0; player.setIntensity(run.intensity); if (amb) amb.g.gain.setTargetAtTime(0.03 + 0.05 * run.cheer, ctxA.currentTime, 0.4); }
     run.intensity += (0.6 - run.intensity) * Math.min(1, dt * 0.05);
     const fx = st.x - run.camX;
@@ -2209,7 +2343,7 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
     if (res.falls) return "Tipp: Ein Sturz kommt vom Loslassen weit neben dem ○. Halte, bis das ○ die Linie erreicht.";
     if (tm.bias > 40) return `Du liegst im Schnitt ${tm.bias} ms zu spät. Mit Bluetooth-Kopfhörern hilft „Verzögerung“ in den Einstellungen.`;
     if (tm.bias < -40) return `Du bist im Schnitt ${-tm.bias} ms zu früh: lass den Schlag kommen, dann erst tippen.`;
-    const weak = res.els.filter((e) => e.kind !== "pose" && e.status !== "ok");
+    const weak = res.els.filter((e) => e.kind !== "pose" && !e.inCombo && (e.row || e).status !== "ok");
     if (weak.length) return `Am meisten Punkte liegen noch in: ${weak.map((e) => e.name).join(", ")}.`;
     return tm.mean <= 60 ? "Stark im Takt. Probier „Experte“ in den Einstellungen: ohne Ring und mit engerem Fenster." : "Gut. Je näher an der Linie, desto mehr Ausführungspunkte (GOE).";
   }
@@ -2224,7 +2358,8 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
     const tm = res.timing;
     $("rTime").innerHTML = tm ? `<b>Ø ${tm.mean}&nbsp;ms</b><span>durchschnittliche Abweichung vom Takt: ${tm.word}<br>Tendenz ${sg(tm.bias)}&nbsp;ms (${tm.tend}) · ${tm.perfect} von ${tm.n} perfekt</span>`
       : `<b>–</b><span>keine Eingabe im Takt</span>`;
-    $("rEls").innerHTML = res.els.filter((e) => e.kind !== "pose" || e.status === "ok").map((e) => {
+    $("rEls").innerHTML = res.els.filter((e) => !e.inCombo && (e.kind !== "pose" || e.status === "ok")).map((e0) => {
+      const e = e0.row ? Object.assign({}, e0, e0.row) : e0;
       const lv = e.level ? ` <small>Stufe ${e.level}</small>` : "";
       const goe = e.status === "miss" || e.kind === "pose" ? "" : sg(e.goe);
       return `<tr class="${e.status}"><td class="e">${esc(e.name)}${lv}</td><td class="n">${e.kind === "pose" ? "" : dec(e.status === "miss" ? 0 : (e.base || 0))}</td><td class="n">${goe}</td><td class="n">${e.kind === "pose" ? "✓" : dec(e.score)}</td><td class="why">${esc(nb(e.note || ""))}</td></tr>`;
@@ -2249,7 +2384,7 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
     pendingMode = mode;
     $("iKick").textContent = mode === "comp" ? "KÜR · WETTKAMPF · WIEN" : "TRAINING · WIEN";
     const d = canHover();
-    $("hJump").textContent = d ? "Leertaste auf ● drücken, halten, auf ○ loslassen." : "Auf ● drücken, halten, auf ○ loslassen.";
+    $("hJump").textContent = (d ? "Leertaste auf ● drücken, halten, auf ○ loslassen." : "Auf ● drücken, halten, auf ○ loslassen.") + (PROG.elements.some((e) => e.part) ? " Kombination: gleich danach das nächste ●." : "");
     $("hSpin").textContent = d ? "Mit der Maus kreisen oder Leertaste auf jedes ⟳." : "Mit dem Finger kreisen: jede Runde endet auf einem ⟳.";
     $("hStep").textContent = (d ? "Pfeiltaste in Pfeilrichtung (oder Maus schwingen)" : "In Pfeilrichtung wischen") + ", wenn der Pfeil die Linie erreicht: ← → zur Seite, ↑ Hüpfer, ↓ tief in die Knie.";
     $("hPose").textContent = "Auf den Schlussakkord tippen.";
@@ -2297,7 +2432,7 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
   $("bLook").onclick = () => openLook();
 
   // Meine Kür: acht Abschnitte der Musik, je ein Element (Schrittfolge zwei)
-  let pSel = 0, pRot = 2;
+  let pSel = 0, pRot = 2, pCombo = "";
   const CAT = K.CATALOG, SEC = K.SECTIONS.donau;
   const secBar = (i) => SEC.first + SEC.len * i;
   const mmss = (sec) => `${Math.floor(sec / 60)}:${String(Math.floor(sec % 60)).padStart(2, "0")}`;
@@ -2315,7 +2450,8 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
       if (id === "~") return "";
       const c = CAT[id], b0 = secBar(i), b1 = b0 + SEC.len * (c && c.slots ? c.slots : 1);
       const val = !c ? "" : c.kind === "choreo" ? "Choreo" : c.kind === "jump" ? dec(c.base) : `bis ${dec(c.levels[c.levels.length - 1])}`;
-      return `<button class="slot ${c ? c.kind : "empty"}${i === pSel ? " sel" : ""}" data-i="${i}"><small>ab ${mmss(bt[b0 * 3])}</small><b>${c ? esc(c.name) : "Gleiten"}</b><i>${val}</i></button>`;
+      const pk = (SEC.peak || []).includes(i) ? `<em class="peak">♪ Höhepunkt</em>` : "";
+      return `<button class="slot ${c ? c.kind : "empty"}${i === pSel ? " sel" : ""}" data-i="${i}"><small>ab ${mmss(bt[b0 * 3])}</small>${pk}<b>${c ? esc(c.combo ? c.short : c.name) : "Gleiten"}</b><i>${val}</i></button>`;
     }).join("");
     $("tl").querySelectorAll(".slot").forEach((b) => (b.onclick = () => { pSel = +b.dataset.i; fillProg(); }));
     const cur = sl[pSel], btn = (id, label, small) => {
@@ -2325,20 +2461,23 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
     const fam = ["T", "S", "Lo", "F", "Lz", "A"];
     $("pick").innerHTML =
       `<div class="prow"><b>Sprung</b><span class="opts"><button class="pill${pRot === 1 ? " on" : ""}" data-rot="1">einfach</button><button class="pill${pRot === 2 ? " on" : ""}" data-rot="2">doppelt</button></span>`
-      + fam.map((f) => { const id = pRot + f, c = CAT[id]; return btn(id, CAT["1" + f].name, dec(c.base)); }).join("") + `</div>`
-      + `<div class="prow"><b>Pirouette</b>${["USp", "SSp", "CSp"].map((id) => btn(id, CAT[id].short, `bis ${dec(CAT[id].levels[3])}`)).join("")}</div>`
-      + `<div class="prow"><b>Schritte</b>${btn("StSq", "Schrittfolge", `2 Abschnitte · bis ${dec(CAT.StSq.levels[3])}`)}</div>`
+      + fam.map((f) => { const id = pRot + f + (pCombo ? "+" + pRot + pCombo : ""), c = CAT[id]; return btn(id, CAT["1" + f].name, dec(c.base)); }).join("") + `</div>`
+      + `<div class="prow"><b>Kombination</b><span class="opts"><button class="pill${!pCombo ? " on" : ""}" data-combo="">ohne</button><button class="pill${pCombo === "T" ? " on" : ""}" data-combo="T">+ Toeloop</button><button class="pill${pCombo === "Lo" ? " on" : ""}" data-combo="Lo">+ Rittberger</button></span><span class="hint">danach gleich wieder ● drücken</span></div>`
+      + `<div class="prow"><b>Pirouette</b>${["USp", "SSp", "CSp"].map((id) => btn(id, CAT[id].short, `bis ${dec(CAT[id].levels[3])}`)).join("")}<b class="sub">Schritte</b>${btn("StSq", "Schrittfolge", `2 Abschnitte · bis ${dec(CAT.StSq.levels[3])}`)}</div>`
       + `<div class="prow"><b>Choreo</b>${btn(null, "Gleiten", "frei")}${["ChSp", "ChIB", "ChPB", "ChTw"].map((id) => btn(id, CAT[id].name, "Ausdruck")).join("")}</div>`;
     $("pick").querySelectorAll("[data-rot]").forEach((b) => (b.onclick = () => { pRot = +b.dataset.rot; fillProg(); }));
+    $("pick").querySelectorAll("[data-combo]").forEach((b) => (b.onclick = () => { pCombo = b.dataset.combo; fillProg(); }));
     $("pick").querySelectorAll(".el").forEach((b) => (b.onclick = () => {
       const a = assign(S.prog, pSel, b.dataset.id || null); if (!a) return;
       S.prog = a; save(); fillProg();
     }));
     const ids = sl.filter((x) => x && x !== "~" && CAT[x].kind !== "choreo"), nj = ids.filter((x) => CAT[x].kind === "jump").length, ns = ids.filter((x) => CAT[x].kind === "spin").length;
     $("pSum").innerHTML = nb(`Grundwert bis ${dec(K.maxBase(sl))} · ${nj} von ${K.RULES.jumps} Sprüngen · ${ns} von ${K.RULES.spins} Pirouetten`);
-    $("pMsg").textContent = "Tipp: Schwere Sprünge bringen mehr, haben aber ein engeres Zeitfenster. Grau = nach den Regeln gerade nicht möglich.";
+    const nc = ids.filter((x) => CAT[x].combo).length;
+    $("pSum").innerHTML += nb(` · ${nc} von ${K.RULES.combos} Kombinationen`);
+    $("pMsg").textContent = "♪ Höhepunkt der Musik: sauberes Element dort +1 GOE. Grau = nach den Regeln gerade nicht möglich.";
   }
-  $("bProg").onclick = () => { pSel = 0; fillProg(); show("scrProg"); };
+  $("bProg").onclick = () => { pSel = 0; const c = CAT[S.prog[0]]; if (c && c.kind === "jump") { pRot = c.rot; pCombo = c.combo ? c.combo[1].slice(1) : ""; } fillProg(); show("scrProg"); };
   $("pDef").onclick = () => { S.prog = K.DEFAULT_SLOTS.slice(); save(); fillProg(); };
   $("pDone").onclick = () => show("scrMenu");
 
@@ -2378,7 +2517,8 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
   window.__ek = {
     VERSION, get S() { return S; }, get run() { return run; }, get prog() { return PROG; }, sanitize, K, M,
     test(on) { testMode = !!on; },
-    start(mode) { startRun(mode || "comp", { fake: true }); run.manual = true; },
+    start(mode, entry) { startRun(mode || "comp", { fake: true, entry }); run.manual = true; },
+    entry() { return run && run.entry ? { phase: run.entry.phase, x: run.entry.x, banner: run.entry.banner || "" } : null; },
     // Zeit vorspulen in kleinen Schritten (Bild wird mitgerechnet)
     step(sec) { const n = Math.ceil(sec / 0.02); for (let i = 0; i < n && run && !run.finished; i++) { run.fakeT += sec / n; render(run.fakeT, sec / n); if (run.fakeT > run.bt[run.bt.length - 1] + 3.8) finish(); } },
     stepTo(t) { if (run) this.step(Math.max(0, t - run.fakeT)); },
