@@ -1,0 +1,1573 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
+<meta name="theme-color" content="#162442">
+<title>Cold Medal · Eiskunstlauf</title>
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Eiskunstlauf">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="description" content="Eiskunstlauf im Browser: deine Kür zum Donauwalzer, jede Bewegung im Takt. Inoffizielles Fanspiel.">
+<meta property="og:title" content="Cold Medal · Eiskunstlauf">
+<meta property="og:description" content="Eiskunstlauf im Browser: deine Kür zum Donauwalzer, jede Bewegung im Takt. Inoffizielles Fanspiel.">
+<meta property="og:image" content="https://matpeins-debug.github.io/cold-medal-eiskunstlauf/og.jpg">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="Eiskunstläuferin im Plakatstil vor dem Wiener Konzerthaus am Abend">
+<meta property="og:locale" content="de_AT">
+<meta property="og:url" content="https://matpeins-debug.github.io/cold-medal-eiskunstlauf/">
+<link rel="canonical" href="https://matpeins-debug.github.io/cold-medal-eiskunstlauf/">
+<meta name="twitter:card" content="summary_large_image">
+<style>:root {
+  --paper: #F1E7D2; --paper-2: #E6D6B7; --ink: #1E2734; --ink-deep: #141B25; --red: #C23B2A; --blue: #23466B; --gold: #DDA43B; --green: #3F6B55;
+  --muted: #6E6656; --good: #6E9A4E; --warn: #D9682B;
+  --font-display: "Futura", "Avenir Next Condensed", "Bahnschrift Condensed", "Roboto Condensed", "Arial Narrow", sans-serif;
+  --font-body: "Iowan Old Style", "Charter", "Georgia", serif;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { height: 100%; background: #0E1626; overflow: hidden; }
+body { font-family: var(--font-body); color: var(--ink); -webkit-font-smoothing: antialiased; -webkit-text-size-adjust: 100%;
+  -webkit-user-select: none; user-select: none; -webkit-tap-highlight-color: transparent; touch-action: none; }
+button, input, select { font: inherit; color: inherit; }
+button { border: 0; background: none; cursor: pointer; -webkit-tap-highlight-color: transparent; }
+#wrap { position: fixed; inset: 0; overflow: hidden; }
+#stage { position: absolute; left: 0; top: 0; width: 844px; height: 390px; transform-origin: 0 0; overflow: hidden; background: #162442; }
+#cv { position: absolute; inset: 0; width: 844px; height: 390px; display: block; }
+.grain { position: absolute; inset: 0; pointer-events: none; opacity: 0.16; mix-blend-mode: multiply;
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='180' height='180'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 0.3  0 0 0 0 0.25  0 0 0 0 0.15  0 0 0 0.9 0'/></filter><rect width='180' height='180' filter='url(%23n)'/></svg>"); }
+.num { font-family: var(--font-display); font-variant-numeric: tabular-nums; }
+.kicker { font-family: var(--font-display); font-size: 11px; letter-spacing: 0.2em; font-weight: 600; color: var(--red); }
+
+/* Bildschirme */
+.scr { position: absolute; inset: 0; display: flex; align-items: center; justify-content: flex-start; padding: 14px 18px; }
+.scr[hidden], #hud[hidden] { display: none; }
+.card { position: relative; background: var(--paper); border: 3px solid var(--ink-deep); box-shadow: 5px 5px 0 rgba(0,0,0,0.4); padding: 14px 16px; }
+.card.menu { width: 330px; max-height: 100%; display: flex; flex-direction: column; gap: 8px; }
+.card.wide { width: 100%; height: 100%; }
+#scrLook, #scrSet, #scrIntro, #scrRes { justify-content: center; background: rgba(14,22,38,0.35); }
+#scrSet .card { width: 520px; display: flex; flex-direction: column; gap: 10px; }
+h1 { font-family: var(--font-display); font-size: 34px; line-height: 1; text-transform: uppercase; letter-spacing: 0.02em; }
+h2 { font-family: var(--font-display); font-size: 22px; text-transform: uppercase; margin: 4px 0 8px; }
+.place { font-size: 12.5px; line-height: 1.3; color: var(--muted); }
+.place b { display: block; color: var(--ink); font-family: var(--font-display); letter-spacing: 0.06em; font-size: 13px; text-transform: uppercase; }
+.col { display: flex; flex-direction: column; gap: 8px; margin-top: 2px; }
+.row2 { display: flex; gap: 8px; }
+.row2 > * { flex: 1; }
+.big, .mid, .pill { font-family: var(--font-display); font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; border: 2px solid var(--ink-deep); background: var(--paper); }
+.big { display: flex; flex-direction: column; align-items: flex-start; padding: 9px 14px; font-size: 18px; box-shadow: 3px 3px 0 var(--ink-deep); text-align: left; }
+.big small { font-family: var(--font-body); font-weight: 400; text-transform: none; letter-spacing: 0; font-size: 12.5px; opacity: 0.85; }
+.mid { padding: 9px 12px; font-size: 14px; box-shadow: 2px 2px 0 var(--ink-deep); }
+.red { background: var(--red); color: var(--paper); }
+.big:active, .mid:active { transform: translate(2px, 2px); box-shadow: 1px 1px 0 var(--ink-deep); }
+.pill { font-size: 13px; padding: 5px 9px; min-width: 34px; }
+.pill.on { background: var(--ink); color: var(--paper); }
+.foot { margin-top: auto; font-size: 11px; color: var(--muted); }
+.note { font-size: 12.5px; color: var(--muted); line-height: 1.35; }
+.done { align-self: flex-end; position: absolute; right: 16px; bottom: 14px; }
+.opts { display: inline-flex; flex-wrap: wrap; gap: 5px; align-items: center; }
+.srow { display: flex; align-items: center; justify-content: space-between; gap: 10px; font-family: var(--font-display); font-weight: 600; letter-spacing: 0.04em; }
+#sLat { min-width: 64px; text-align: center; }
+
+/* Gestalten */
+.lookGrid { display: flex; gap: 16px; height: calc(100% - 20px); }
+#lookCv { width: 150px; height: 195px; align-self: center; background: radial-gradient(ellipse at 50% 85%, #DCE7EE, #C9D9E6 60%, #9FB6CA); border: 2px solid var(--ink-deep); }
+.lookOpts { flex: 1; display: flex; flex-direction: column; gap: 7px; padding-top: 6px; }
+.lrow { display: flex; align-items: center; gap: 10px; font-family: var(--font-display); font-weight: 600; font-size: 13px; letter-spacing: 0.04em; }
+.lrow > :first-child { min-width: 0; }
+.lrow input, .lrow select { border: 2px solid var(--ink-deep); background: #FBF6EA; padding: 4px 7px; font-family: var(--font-body); font-size: 15px; -webkit-user-select: text; user-select: text; }
+.sw { width: 26px; height: 26px; border: 2px solid var(--ink-deep); border-radius: 50%; }
+.sw.on { outline: 3px solid var(--gold); outline-offset: 1px; }
+
+/* Anleitung */
+.how { display: grid; grid-template-columns: 1fr 1fr; gap: 8px 16px; }
+.how > div { display: grid; grid-template-columns: 44px 1fr; grid-template-rows: auto auto; column-gap: 8px; align-items: center; }
+.how .mk { grid-row: span 2; width: 40px; height: 40px; border-radius: 50%; background: var(--ink); color: var(--gold); display: flex; align-items: center; justify-content: center; font-style: normal; font-size: 20px; }
+.how .mk em { font-style: normal; font-size: 14px; margin-left: 1px; }
+.how b { font-family: var(--font-display); text-transform: uppercase; letter-spacing: 0.05em; font-size: 14px; }
+.how span { font-size: 13px; line-height: 1.25; }
+.go { position: absolute; right: 16px; bottom: 14px; }
+
+/* Lauf */
+#hud { position: absolute; inset: 0; pointer-events: none; }
+#chips { position: absolute; left: 10px; top: 8px; display: flex; gap: 5px; }
+.chip { font-family: var(--font-display); font-size: 11px; letter-spacing: 0.06em; text-transform: uppercase; font-weight: 600; padding: 3px 7px; background: rgba(241,231,210,0.88); border: 2px solid var(--ink-deep); color: var(--ink); white-space: nowrap; }
+.chip.now { background: var(--gold); }
+.chip.ok { background: var(--green); color: var(--paper); }
+.chip.fall, .chip.miss { background: var(--red); color: var(--paper); }
+.chip.under { background: var(--warn); color: var(--paper); }
+.ibtn { position: absolute; right: 10px; top: 8px; width: 34px; height: 34px; border: 2px solid var(--ink-deep); background: rgba(241,231,210,0.9); font-size: 22px; line-height: 1; pointer-events: auto; font-family: var(--font-display); }
+
+/* Ergebnis */
+.card.res { width: 100%; height: 100%; display: grid; grid-template-columns: 1.25fr 1fr; gap: 14px; padding: 10px 14px; }
+.resL, .resR { display: flex; flex-direction: column; gap: 5px; min-height: 0; }
+.rTot { display: flex; align-items: baseline; gap: 10px; }
+.rTot b { font-size: 40px; line-height: 1; font-weight: 700; }
+.rTot span { font-family: var(--font-display); font-size: 17px; font-weight: 600; letter-spacing: 0.04em; text-transform: uppercase; color: var(--red); }
+.rSplit { font-size: 12.5px; color: var(--muted); }
+.rTime { display: flex; align-items: center; gap: 10px; background: var(--ink); color: var(--paper); padding: 5px 10px; }
+.rTime b { font-family: var(--font-display); font-size: 24px; color: var(--gold); white-space: nowrap; }
+.rTime span { font-size: 12px; line-height: 1.25; }
+table { border-collapse: collapse; width: 100%; font-size: 12.5px; }
+td { padding: 2px 4px; border-bottom: 1px solid rgba(30,39,52,0.15); vertical-align: top; }
+td.n { text-align: right; font-family: var(--font-display); font-variant-numeric: tabular-nums; white-space: nowrap; }
+td.e { font-family: var(--font-display); font-weight: 600; letter-spacing: 0.02em; white-space: nowrap; }
+td.why { color: var(--muted); font-size: 11.5px; }
+tr.fall td.e, tr.miss td.e { color: var(--red); }
+.board tr.me td { background: var(--gold); font-weight: 700; }
+.board td.nm { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 150px; }
+.rTip { font-size: 12.5px; line-height: 1.3; margin-top: auto; }
+.resR .row2 { margin-top: 6px; }
+
+/* Info */
+.lnk { text-decoration: underline; font-size: 11px; color: var(--ink); padding: 0; }
+.card.info { display: flex; flex-direction: column; }
+.ifBody { overflow-y: auto; -webkit-overflow-scrolling: touch; touch-action: pan-y; padding-right: 8px; margin: 6px 0 44px; columns: 2; column-gap: 22px; }
+.ifBody h3 { font-family: var(--font-display); font-size: 12px; letter-spacing: 0.08em; text-transform: uppercase; margin: 6px 0 2px; break-after: avoid; }
+.ifBody p { font-size: 12.5px; line-height: 1.35; margin-bottom: 4px; }
+</style>
+</head>
+<body>
+<div id="wrap"><div id="stage">
+  <canvas id="cv"></canvas>
+  <div class="grain"></div>
+
+  <div id="hud" hidden>
+    <div id="chips"></div>
+    <button class="ibtn" id="abort" aria-label="Kür abbrechen">×</button>
+  </div>
+
+  <section class="scr" id="scrMenu">
+    <div class="card menu">
+      <div class="kicker">COLD MEDAL GAMES</div>
+      <h1>Eiskunstlauf</h1>
+      <div class="place"><b id="mPlace"></b><span id="mFact"></span></div>
+      <div class="col">
+        <button class="big red" id="bComp"><span>Kür · Wettkampf</span><small id="mBest"></small></button>
+        <button class="big" id="bTrain"><span>Training</span><small>ohne Wertung gegen andere</small></button>
+        <div class="row2">
+          <button class="mid" id="bLook">Gestalten</button>
+          <button class="mid" id="bSet">Einstellungen</button>
+        </div>
+      </div>
+      <div class="foot"><span id="mFoot"></span> · <button class="lnk" id="bInfo">Info &amp; Datenschutz</button></div>
+    </div>
+  </section>
+
+  <section class="scr" id="scrLook" hidden>
+    <div class="card wide">
+      <div class="kicker">GESTALTEN</div>
+      <div class="lookGrid">
+        <canvas id="lookCv" width="200" height="260"></canvas>
+        <div class="lookOpts">
+          <label class="lrow">Name <input id="lName" maxlength="14" autocomplete="off" spellcheck="false" placeholder="dein Name"></label>
+          <div class="lrow">Land <select id="lNat"></select></div>
+          <div class="lrow">Frisur <span class="opts" id="oHair"></span></div>
+          <div class="lrow">Haare <span class="opts" id="oHairC"></span></div>
+          <div class="lrow">Haut <span class="opts" id="oSkin"></span></div>
+          <div class="lrow">Kostüm <span class="opts" id="oSuit"></span></div>
+          <div class="lrow">Streifen <span class="opts" id="oAcc"></span></div>
+        </div>
+      </div>
+      <button class="mid red done" id="lDone">Fertig</button>
+    </div>
+  </section>
+
+  <section class="scr" id="scrSet" hidden>
+    <div class="card">
+      <div class="kicker">EINSTELLUNGEN</div>
+      <div class="srow">Hilfe <span class="opts" id="sHelp"></span></div>
+      <div class="srow">Klang <span class="opts" id="sPreset"></span></div>
+      <div class="srow">Ton <span class="opts" id="sSound"></span></div>
+      <div class="srow">Verzögerung <span class="opts"><button class="pill" id="sLm">−</button><b class="num" id="sLat"></b><button class="pill" id="sLp">+</button></span></div>
+      <p class="note">Mit Bluetooth-Kopfhörern kommt der Ton später an. Zeigt das Ergebnis immer „eher zu spät“, hier die Verzögerung erhöhen.</p>
+      <button class="mid red done" id="sDone">Fertig</button>
+    </div>
+  </section>
+
+  <section class="scr" id="scrIntro" hidden>
+    <div class="card wide">
+      <div class="kicker" id="iKick"></div>
+      <h2>So läufst du deine Kür</h2>
+      <div class="how">
+        <div><i class="mk">●<em>○</em></i><b>Sprung</b><span id="hJump"></span></div>
+        <div><i class="mk">⟳</i><b>Pirouette</b><span id="hSpin"></span></div>
+        <div><i class="mk">➜</i><b>Schritte</b><span id="hStep"></span></div>
+        <div><i class="mk">★</i><b>Pose</b><span id="hPose"></span></div>
+      </div>
+      <p class="note">Unten läuft das Taktband: Jedes Zeichen gehört auf den Schlag, wenn es die Linie erreicht.</p>
+      <button class="big red go" id="iGo"><span>Los</span></button>
+    </div>
+  </section>
+
+  <section class="scr" id="scrInfo" hidden>
+    <div class="card wide info">
+      <div class="kicker" id="ifKick"></div>
+      <div class="ifBody">
+        <h3>Fanspiel</h3><p>Inoffizielles Fanspiel ohne Verbindung zur Internationalen Eislaufunion (ISU), zu Verbänden oder Veranstaltern. Alle Läuferinnen und Läufer sind erfunden; Elemente und Wertung folgen dem echten Sport, in eigenen Worten.</p>
+        <h3>Musik</h3><p>Johann Strauss (Sohn), „An der schönen blauen Donau“ (1867). Gemeinfrei; eigener, vereinfachter Satz, im Browser erzeugt, keine Aufnahme.</p>
+        <h3>Ort</h3><p id="ifPlace"></p>
+        <h3>Datenschutz</h3><p>Kein Konto, keine Werbung, keine Cookies, keine Analyse. Name, Aussehen, Bestwerte und Einstellungen speichert das Spiel nur im Browser auf diesem Gerät; es sendet nichts an einen Server.</p><p id="ifPriv"></p>
+        <h3>Impressum</h3><p id="ifImp"></p>
+      </div>
+      <button class="mid red done" id="ifDone">Zurück</button>
+    </div>
+  </section>
+
+  <section class="scr" id="scrRes" hidden>
+    <div class="card res">
+      <div class="resL">
+        <div class="kicker" id="rKick"></div>
+        <div class="rTot"><b class="num" id="rTotal"></b><span id="rRank"></span></div>
+        <div class="rSplit" id="rSplit"></div>
+        <div class="rTime" id="rTime"></div>
+        <table class="els" id="rEls"></table>
+      </div>
+      <div class="resR">
+        <table class="board" id="rBoard"></table>
+        <div class="rTip" id="rTip"></div>
+        <div class="row2">
+          <button class="mid red" id="rAgain">Nochmal</button>
+          <button class="mid" id="rMenu">Menü</button>
+        </div>
+      </div>
+    </div>
+  </section>
+</div></div>
+<script>/* Cold Medal · Eiskunstlauf – Musik per WebAudio. Alles synthetisch, keine Dateien, nur gemeinfreie Stücke in eigenem Satz.
+   EKMusic.SCORES: Stücke als Takte; EKMusic.Player(ctx, out): spielt ein Stück auf der Audiouhr und meldet die Schläge.
+   Die Musik ist die Uhr des Spiels: jeder Schlag hat eine feste Zeit im AudioContext (player.beatTimes). */
+(function (root) {
+  "use strict";
+  const NAMES = { C: 0, D: 2, E: 4, F: 5, G: 7, A: 9, B: 11 };
+  // "F#4" → MIDI 66; 60 = c'
+  function midi(n) {
+    const m = /^([A-G])(#|b)?(-?\d)$/.exec(n);
+    if (!m) throw new Error("Note? " + n);
+    return 12 * (+m[3] + 1) + NAMES[m[1]] + (m[2] === "#" ? 1 : m[2] === "b" ? -1 : 0);
+  }
+  const mf = (m) => 440 * Math.pow(2, (m - 69) / 12);
+
+  // Akkorde: Grundton (Bass) und Akkordtöne für die Begleitung (Mittellage)
+  const CH = {
+    D: { b: ["D2", "A2"], c: ["F#3", "A3", "D4"] },
+    A7: { b: ["A1", "E2"], c: ["G3", "A3", "C#4"] },
+    G: { b: ["G2", "D2"], c: ["G3", "B3", "D4"] },
+    E7: { b: ["E2", "B1"], c: ["G#3", "B3", "D4"] },
+    Bm: { b: ["B1", "F#2"], c: ["F#3", "B3", "D4"] },
+  };
+
+  // Johann Strauss (Sohn), „An der schönen blauen Donau“ op. 314 (1867, gemeinfrei), erster Walzer, eigener vereinfachter Satz in D-Dur.
+  // Melodie je Takt: "Schlag:Note[:Dauer]", Schläge 1–3, Dauer in Schlägen (Standard 1). "." = Takt ohne Melodie.
+  const DONAU = {
+    id: "donau", title: "An der schönen blauen Donau", composer: "Johann Strauss (Sohn), 1867",
+    bpm: 158, meter: 3, pulse: 1, acc: "waltz", swing: true, finNote: "D5",
+    // [Harmonie, Melodie]
+    bars: [
+      ["D", "."], ["D", "."], ["D", "."], ["D", "."],
+      ["D", "1:D4 2:D4 3:F#4"], ["D", "1:A4:3"], ["D", "2:A5:0.5 3:A5:0.5"], ["D", "2:F#5:0.5 3:F#5:0.5"],
+      ["D", "1:D4 2:D4 3:F#4"], ["D", "1:A4:3"], ["D", "2:A5:0.5 3:A5:0.5"], ["A7", "2:G5:0.5 3:G5:0.5"],
+      ["A7", "1:C#4 2:C#4 3:E4"], ["A7", "1:B4:3"], ["A7", "2:B5:0.5 3:B5:0.5"], ["A7", "2:G5:0.5 3:G5:0.5"],
+      ["A7", "1:C#4 2:C#4 3:E4"], ["A7", "1:B4:3"], ["A7", "2:B5:0.5 3:B5:0.5"], ["D", "2:F#5:0.5 3:F#5:0.5"],
+      ["D", "1:D4 2:D4 3:F#4"], ["D", "1:A4 2:D5:2"], ["D", "2:D6:0.5 3:D6:0.5"], ["D", "2:A5:0.5 3:A5:0.5"],
+      ["D", "1:D4 2:D4 3:F#4"], ["D", "1:A4 2:D5:2"], ["D", "2:D6:0.5 3:D6:0.5"], ["G", "2:B5:0.5 3:B5:0.5"],
+      ["G", "1:E4 2:E4 3:G4"], ["G", "1:B4:3"], ["E7", "2:B5:0.5 3:B5:0.5"], ["A7", "2:G#5:0.5 3:A5"],
+      ["D", "1:F#5:2 3:D5"], ["A7", "1:A4:2 3:C#5"], ["A7", "1:E5:2 3:C#5"], ["D", "1:D5:3"],
+    ],
+    end: "D",
+  };
+  // Jacques Offenbach, Barcarole „Belle nuit, ô nuit d'amour“ aus „Hoffmanns Erzählungen“ (1881, gemeinfrei), eigener Satz in D-Dur, 6/8.
+  // Hier zählt jede Achtel als Schlag (meter 6), gefühlt sind es zwei Schläge je Takt (pulse 3). Wiegende Begleitung wie eine Gondel.
+  const BARCA = {
+    id: "barca", title: "Barcarole", composer: "Jacques Offenbach, „Hoffmanns Erzählungen“, 1881",
+    bpm: 156, meter: 6, pulse: 3, acc: "barca", swing: false, finNote: "D5",
+    bars: [
+      ["D", "."], ["D", "."],
+      ["D", "1:A4:2 3:B4:1 4:A4:3"], ["A7", "1:G4:2 3:A4:1 4:G4:3"], ["D", "1:F#4:2 3:G4:1 4:F#4:3"], ["A7", "1:E4:2 3:F#4:1 4:E4:3"],
+      ["D", "1:D4:3 4:F#4:2 6:A4:1"], ["G", "1:D5:3 4:C#5:2 6:B4:1"], ["A7", "1:A4:3 4:E4:2 6:F#4:1"], ["D", "1:D4:6"],
+      ["D", "1:A4:2 3:B4:1 4:A4:3"], ["A7", "1:G4:2 3:A4:1 4:G4:3"], ["D", "1:F#4:2 3:G4:1 4:F#4:3"], ["Bm", "1:F#4:2 3:G4:1 4:A4:2 6:B4:1"],
+      ["G", "1:B4:2 3:A4:1 4:B4:2 6:D5:1"], ["A7", "1:C#5:2 3:D5:1 4:E5:3"], ["D", "1:F#5:3 4:E5:2 6:C#5:1"], ["D", "1:D5:6"],
+    ],
+    end: "D",
+  };
+  const SCORES = { donau: DONAU, barca: BARCA };
+
+  // Stück → Ereignisliste in Schlägen: { beat, m, dur, part: "mel"|"bass"|"chord", acc }
+  function events(score) {
+    if (score.ev) return score.ev;
+    const ev = [], M = score.meter;
+    score.bars.forEach(([h, mel], bi) => {
+      const ch = CH[h], t0 = bi * M;
+      if (score.acc === "barca") {
+        // Gondel: Bass auf 1 und 4, dazwischen gebrochene Akkordtöne
+        ev.push({ beat: t0, m: midi(ch.b[0]), dur: 3, part: "bass" });
+        ev.push({ beat: t0 + 3, m: midi(ch.b[1]), dur: 3, part: "bass" });
+        [1, 2, 4, 5].forEach((k, i) => ev.push({ beat: t0 + k, m: midi(ch.c[[0, 1, 2, 1][i]]), dur: 1, part: "chord", arp: true }));
+      } else {
+        ev.push({ beat: t0, m: midi(ch.b[bi % 2]), dur: 1, part: "bass" });
+        for (let k = 1; k < M; k++) ch.c.forEach((n) => ev.push({ beat: t0 + k, m: midi(n), dur: 0.6, part: "chord" }));
+      }
+      ev.push({ beat: t0, m: 0, dur: M, part: "pad", chord: ch.c.map(midi) });
+      const P = score.pulse || 1;
+      if (mel !== ".") mel.split(/\s+/).forEach((tok) => {
+        const [b, n, d] = tok.split(":");
+        ev.push({ beat: t0 + (+b - 1), m: midi(n), dur: d ? +d : 1, part: "mel", acc: (+b - 1) % P === 0 });
+      });
+    });
+    const tEnd = score.bars.length * M, ch = CH[score.end], fd = M === 3 ? 4 : 6;
+    ev.push({ beat: tEnd, m: midi(ch.b[0]) - 12, dur: fd, part: "bass" });
+    ev.push({ beat: tEnd, m: 0, dur: fd, part: "pad", chord: ch.c.map(midi) });
+    ch.c.forEach((n) => ev.push({ beat: tEnd, m: midi(n), dur: fd, part: "chord", fin: true }));
+    ev.push({ beat: tEnd, m: midi(score.finNote || "D5"), dur: fd, part: "mel", fin: true });
+    return ev.sort((a, b) => a.beat - b.beat);
+  }
+
+  // Zeit eines Schlags ab Stückbeginn in Sekunden (auch Bruchteile). Wiener Walzer: die Zwei kommt etwas früher, die Drei leicht später.
+  function beatRel(score, bpm, swing, beat) {
+    const M = score.meter, bar = Math.floor(beat / M), k = beat - bar * M, sp = 60 / bpm;
+    let pos = k;
+    if (swing && score.swing && M === 3) pos = k < 1 ? k * 0.86 : k < 2 ? 0.86 + (k - 1) * 1.2 : 2.06 + (k - 2) * 0.94;
+    return (bar * M + pos) * sp;
+  }
+  // alle Schläge eines Stücks (Index = Schlag, letzter = Schlussakkord), relativ zum Beginn; gleich im Spiel und in den Tests
+  function grid(score, bpm, swing) {
+    const nb = score.bars.length * score.meter, g = [];
+    for (let b = 0; b <= nb; b++) g.push(beatRel(score, bpm || score.bpm, swing !== false, b));
+    return g;
+  }
+
+  // Standard-MIDI-Datei (gemeinfreie Noten) → Stück. Tempo und Takt aus der Datei; hohe Töne = Melodie, tiefe = Bass, Mitte = Begleitung.
+  function fromMidi(buf, title) {
+    const d = new DataView(buf), u8 = new Uint8Array(buf);
+    const str = (o, n) => String.fromCharCode(...u8.subarray(o, o + n));
+    if (str(0, 4) !== "MThd") throw new Error("Keine MIDI-Datei");
+    const ntr = d.getUint16(10), div = d.getUint16(12);
+    if (div & 0x8000) throw new Error("SMPTE-Zeit wird nicht unterstützt");
+    let pos = 8 + d.getUint32(4), tempo = 0, num = 4, den = 4;
+    const notes = [];
+    for (let t = 0; t < ntr && pos < u8.length; t++) {
+      if (str(pos, 4) !== "MTrk") break;
+      const len = d.getUint32(pos + 4), end = pos + 8 + len; let p = pos + 8, tick = 0, run = 0; const on = {};
+      const vlq = () => { let v = 0, b; do { b = u8[p++]; v = (v << 7) | (b & 0x7f); } while (b & 0x80); return v; };
+      while (p < end) {
+        tick += vlq();
+        let st = u8[p];
+        if (st & 0x80) p++; else st = run;
+        const ty = st & 0xf0, chn = st & 15;
+        if (st === 0xff) { const mt = u8[p++], ml = vlq();
+          if (mt === 0x51 && !tempo) tempo = (u8[p] << 16) | (u8[p + 1] << 8) | u8[p + 2];
+          if (mt === 0x58 && t <= 1 && ml >= 2) { num = u8[p]; den = 1 << u8[p + 1]; }
+          p += ml; continue; }
+        if (st === 0xf0 || st === 0xf7) { p += vlq(); continue; }
+        run = st;
+        if (ty === 0x90 || ty === 0x80) {
+          const n = u8[p++], v = u8[p++], k = chn * 128 + n;
+          if (ty === 0x90 && v > 0) { (on[k] = on[k] || []).push([tick, v]); }
+          else if (on[k] && on[k].length) { const [t0, v0] = on[k].shift(); if (chn !== 9) notes.push({ t0, t1: tick, n, v: v0 }); }
+        } else if (ty === 0xc0 || ty === 0xd0) p += 1; else p += 2;
+      }
+      pos = end;
+    }
+    if (!notes.length) throw new Error("Keine Noten gefunden");
+    // Schlag = Viertel bei x/4, Achtel bei x/8
+    const tpb = den === 8 ? div / 2 : div, bpm = Math.round(60e6 / (tempo || 500000) * (den === 8 ? 2 : 1));
+    const first = Math.min(...notes.map((x) => x.t0));
+    const ev = notes.map((x) => {
+      const beat = (x.t0 - first) / tpb, dur = Math.max(0.2, (x.t1 - x.t0) / tpb);
+      return { beat, m: x.n, dur, raw: true, vel: x.v / 127, part: x.n >= 64 ? "mel" : x.n < 50 ? "bass" : "chord" };
+    }).sort((a, b) => a.beat - b.beat);
+    const last = Math.max(...ev.map((e) => e.beat + e.dur)), meter = num;
+    const nb = Math.ceil(last / meter);
+    return { id: "midi", title: title || "Eigene MIDI-Datei", composer: `${notes.length} Noten · ${num}/${den} · ${bpm} Schläge pro Minute`,
+      bpm, meter, pulse: den === 8 && num % 3 === 0 ? 3 : 1, swing: false, bars: new Array(nb).fill(["D", "."]), ev };
+  }
+
+  // Klangfarben je Stimme: welche Instrumente spielen Melodie, Begleitung, Liegeakkord
+  const PRESETS = {
+    salon: { gain: 0.75, name: "Klavier + Streicher", mel: ["piano", "strings"], acc: "piano", pad: true },
+    piano: { gain: 0.75, name: "Klavier", mel: ["piano"], acc: "piano", pad: false },
+    strings: { gain: 1.3, name: "Streicher", mel: ["strings"], acc: "pizz", pad: true },
+    box: { gain: 1.3, name: "Spieluhr", mel: ["box"], acc: "box", pad: false },
+  };
+
+  function Player(ctx, out) {
+    const c = ctx;
+    // Hall wie in einer Eishalle: lang, aber dunkel
+    const dry = c.createGain(), wet = c.createGain(), comp = c.createDynamicsCompressor();
+    comp.threshold.value = -14; comp.knee.value = 10; comp.ratio.value = 3; comp.attack.value = 0.005; comp.release.value = 0.2;
+    dry.gain.value = 1; wet.gain.value = 0.28;
+    const bus = c.createGain(); bus.gain.value = 0.9;
+    bus.connect(dry); dry.connect(comp);
+    try {
+      const len = Math.round(c.sampleRate * 2.4), ir = c.createBuffer(2, len, c.sampleRate);
+      for (let ch = 0; ch < 2; ch++) {
+        const d = ir.getChannelData(ch); let lp = 0;
+        for (let i = 0; i < len; i++) { lp += 0.35 * ((Math.random() * 2 - 1) - lp); d[i] = lp * Math.pow(1 - i / len, 2.6); }
+      }
+      const rv = c.createConvolver(); rv.buffer = ir; bus.connect(rv); rv.connect(wet); wet.connect(comp);
+    } catch (e) { /* ohne Hall */ }
+    comp.connect(out);
+
+    // Klavier: Obertöne mit leichter Spreizung (wie gespannte Saiten), Klang wird beim Ausklingen dunkler
+    const pianoWave = (() => {
+      const n = 16, re = new Float32Array(n), im = new Float32Array(n);
+      for (let k = 1; k < n; k++) im[k] = Math.pow(k, -1.35) * (k % 7 === 0 ? 0.3 : 1);
+      return c.createPeriodicWave(re, im);
+    })();
+    const boxWave = (() => {
+      const re = new Float32Array(8), im = new Float32Array(8); im[1] = 1; im[2] = 0.08; im[3] = 0.04; im[5] = 0.12;
+      return c.createPeriodicWave(re, im);
+    })();
+
+    function piano(t, m, dur, vel, dest) {
+      const f = mf(m), hi = Math.max(0, (m - 60) / 30);
+      const g = c.createGain(), lp = c.createBiquadFilter();
+      lp.type = "lowpass"; lp.Q.value = 0.4;
+      const bright = Math.min(9000, f * (6 + 10 * vel));
+      lp.frequency.setValueAtTime(bright, t);
+      lp.frequency.exponentialRampToValueAtTime(Math.max(f * 1.6, 300), t + 0.9);
+      const decay = 1.6 - 0.9 * hi, rel = Math.min(dur, 3.5);
+      g.gain.setValueAtTime(0, t);
+      g.gain.linearRampToValueAtTime(0.32 * vel, t + 0.004);
+      g.gain.setTargetAtTime(0.12 * vel, t + 0.004, 0.08);
+      g.gain.setTargetAtTime(0.0001, t + 0.05, decay * 0.45);
+      g.gain.setTargetAtTime(0, t + rel, 0.09);
+      [-3, 3].forEach((cents) => {
+        const o = c.createOscillator(); o.setPeriodicWave(pianoWave); o.frequency.value = f; o.detune.value = cents;
+        o.connect(lp); o.start(t); o.stop(t + rel + 0.6);
+      });
+      // Hammeranschlag: ein kurzes Klopfen
+      const nb = c.createBufferSource(); nb.buffer = noise; const ng = c.createGain(), nf = c.createBiquadFilter();
+      nf.type = "bandpass"; nf.frequency.value = Math.min(5000, f * 4); nf.Q.value = 1.2;
+      ng.gain.setValueAtTime(0.05 * vel, t); ng.gain.exponentialRampToValueAtTime(0.0001, t + 0.03);
+      nb.connect(nf); nf.connect(ng); ng.connect(dest); nb.start(t); nb.stop(t + 0.04);
+      lp.connect(g); g.connect(dest);
+    }
+
+    // Streicher: drei leicht verstimmte Sägezähne, weicher Bogenstrich, Vibrato setzt verzögert ein
+    function strings(t, m, dur, vel, dest, short) {
+      const f = mf(m), g = c.createGain(), lp = c.createBiquadFilter(), lp2 = c.createBiquadFilter();
+      lp.type = "lowpass"; lp.frequency.value = Math.min(4200, f * 5); lp.Q.value = 0.6;
+      lp2.type = "peaking"; lp2.frequency.value = 2600; lp2.gain.value = -5; lp2.Q.value = 1;
+      const att = short ? 0.025 : 0.09, len = Math.max(0.12, dur);
+      const lev = 0.075 * vel;
+      g.gain.setValueAtTime(0, t);
+      g.gain.linearRampToValueAtTime(lev, t + att);
+      if (short) g.gain.setTargetAtTime(lev * 0.35, t + att, 0.06);
+      g.gain.setTargetAtTime(0, t + len, short ? 0.05 : 0.14);
+      const vib = c.createOscillator(), vg = c.createGain();
+      vib.frequency.value = 5.4; vg.gain.setValueAtTime(0, t); vg.gain.linearRampToValueAtTime(short ? 0 : 7, t + Math.min(0.5, len));
+      vib.connect(vg); vib.start(t); vib.stop(t + len + 0.8);
+      [-7, 0, 6].forEach((cents) => {
+        const o = c.createOscillator(); o.type = "sawtooth"; o.frequency.value = f; o.detune.value = cents;
+        vg.connect(o.detune); o.connect(lp); o.start(t); o.stop(t + len + 0.8);
+      });
+      lp.connect(lp2); lp2.connect(g); g.connect(dest);
+    }
+
+    // Pizzicato der Begleitung (Streicher-Klangfarbe)
+    function pizz(t, m, dur, vel, dest) {
+      const f = mf(m), o = c.createOscillator(), g = c.createGain(), lp = c.createBiquadFilter();
+      o.type = "triangle"; o.frequency.value = f; lp.type = "lowpass"; lp.frequency.value = f * 4;
+      g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(0.22 * vel, t + 0.005); g.gain.setTargetAtTime(0, t + 0.01, 0.12);
+      o.connect(lp); lp.connect(g); g.connect(dest); o.start(t); o.stop(t + 0.8);
+    }
+
+    // Spieluhr: hohe Zungen, glockig, kurz
+    function box(t, m, dur, vel, dest) {
+      const f = mf(m + 12), o = c.createOscillator(), g = c.createGain();
+      o.setPeriodicWave(boxWave); o.frequency.value = f;
+      g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(0.2 * vel, t + 0.002); g.gain.setTargetAtTime(0, t + 0.003, 0.35 - Math.min(0.2, (m - 60) / 120));
+      o.connect(g); g.connect(dest); o.start(t); o.stop(t + 2);
+      const o2 = c.createOscillator(), g2 = c.createGain(); o2.type = "sine"; o2.frequency.value = f * 5.4;
+      g2.gain.setValueAtTime(0.03 * vel, t); g2.gain.exponentialRampToValueAtTime(0.0001, t + 0.12);
+      o2.connect(g2); g2.connect(dest); o2.start(t); o2.stop(t + 0.15);
+    }
+
+    // Liegeakkord der Streicher, sehr leise, füllt den Raum
+    function pad(t, chord, dur, dest) {
+      const g = c.createGain(), lp = c.createBiquadFilter();
+      lp.type = "lowpass"; lp.frequency.value = 1400;
+      g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(0.022, t + 0.25); g.gain.setTargetAtTime(0, t + dur - 0.1, 0.15);
+      chord.forEach((m, i) => {
+        [-6, 5].forEach((cents) => {
+          const o = c.createOscillator(); o.type = "sawtooth"; o.frequency.value = mf(m); o.detune.value = cents + i;
+          o.connect(lp); o.start(t); o.stop(t + dur + 0.8);
+        });
+      });
+      lp.connect(g); g.connect(dest);
+    }
+
+    const noise = (() => {
+      const b = c.createBuffer(1, Math.round(c.sampleRate * 0.1), c.sampleRate), d = b.getChannelData(0);
+      for (let i = 0; i < d.length; i++) d[i] = Math.random() * 2 - 1;
+      return b;
+    })();
+
+    const P = {
+      ctx: c, playing: false, score: null, preset: "salon", swing: true, bpm: 0,
+      t0: 0, beatTimes: [], endTime: 0, timer: 0, idx: 0, ev: [], voices: c.createGain(),
+      // Wiener Walzer: der zweite Schlag kommt etwas früher, der dritte leicht später
+      beatAt(beat) { return this.t0 + beatRel(this.score, this.bpm, this.swing, beat); },
+      start(id, opt) {
+        this.stop();
+        opt = opt || {};
+        this.score = typeof id === "string" ? SCORES[id] : id; this.preset = opt.preset || this.preset; this.swing = opt.swing !== undefined ? opt.swing : this.swing;
+        this.bpm = opt.bpm || this.score.bpm; this.all = !!opt.all;
+        this.voices = c.createGain(); this.voices.gain.value = PRESETS[this.preset].gain || 1; this.voices.connect(bus);
+        this.ev = events(this.score); this.idx = 0;
+        this.t0 = c.currentTime + 0.15;
+        const nb = this.score.bars.length * this.score.meter;
+        this.beatTimes = []; for (let b = 0; b <= nb; b++) this.beatTimes.push(this.beatAt(b));
+        this.endTime = this.beatAt(nb) + (this.score.ev ? 1 : 6) * 60 / this.bpm;
+        this.playing = true;
+        this.pump();
+        this.timer = setInterval(() => this.pump(), 50);
+      },
+      // plant Noten 0,4 s im Voraus auf der Audiouhr
+      pump() {
+        if (!this.playing) return;
+        const until = this.all ? Infinity : c.currentTime + 0.4, pr = PRESETS[this.preset], sp = 60 / this.bpm;
+        while (this.idx < this.ev.length) {
+          const e = this.ev[this.idx], t = this.beatAt(e.beat);
+          if (t > until) break;
+          this.idx++;
+          if (t < c.currentTime - 0.02) continue;
+          const dur = (e.fin ? e.dur : (this.beatAt(e.beat + e.dur) - t)), d = this.voices;
+          if (e.raw) {
+            const v = 0.45 + 0.55 * (e.vel || 0.8);
+            if (e.part === "mel") pr.mel.forEach((ins) => ins === "piano" ? piano(t, e.m, dur, v * (pr.mel.length > 1 ? 0.8 : 1), d)
+              : ins === "strings" ? strings(t, e.m, dur, v, d, e.dur <= 0.5) : box(t, e.m, dur, v, d));
+            else if (pr.acc === "box") box(t, e.m + 12, dur, v * 0.45, d);
+            else if (pr.acc === "pizz") pizz(t, e.m, dur, v * (e.part === "bass" ? 0.9 : 0.45), d);
+            else piano(t, e.m, dur, v * (e.part === "bass" ? 0.75 : 0.45), d);
+            continue;
+          }
+          if (e.part === "mel") {
+            const vel = e.fin ? 0.8 : e.acc ? 1 : 0.85, short = e.dur <= 0.5;
+            pr.mel.forEach((ins) => {
+              if (ins === "piano") piano(t, e.m, dur, vel * (pr.mel.length > 1 ? 0.8 : 1), d);
+              else if (ins === "strings") strings(t, e.m, short ? dur * 0.9 : dur, vel, d, short);
+              else box(t, e.m, dur, vel, d);
+            });
+          } else if (e.part === "bass") {
+            if (pr.acc === "box") box(t, e.m + 12, dur, 0.55, d);
+            else if (pr.acc === "pizz") pizz(t, e.m, dur, 0.9, d);
+            else piano(t, e.m, Math.max(dur, sp * 0.9), 0.75, d);
+          } else if (e.part === "chord") {
+            if (pr.acc === "box") { if (e.m === Math.max(...CH_LAST(e))) box(t, e.m, dur, 0.3, d); }
+            else if (pr.acc === "pizz") pizz(t, e.m, dur, 0.42, d);
+            else piano(t, e.m, e.fin ? dur : e.arp ? sp * 1.6 : sp * 0.55, e.fin ? 0.5 : e.arp ? 0.3 : 0.36, d);
+          } else if (e.part === "pad" && pr.pad) pad(t, e.chord, dur, d);
+        }
+        if (c.currentTime > this.endTime) this.stop(true);
+      },
+      stop(natural) {
+        if (this.timer) clearInterval(this.timer);
+        this.timer = 0;
+        if (this.playing && !natural) {
+          const g = this.voices.gain; g.cancelScheduledValues(c.currentTime); g.setTargetAtTime(0, c.currentTime, 0.08);
+          const v = this.voices; setTimeout(() => { try { v.disconnect(); } catch (e) { /* egal */ } }, 1500);
+        }
+        this.playing = false;
+        if (this.onEnd) this.onEnd(!!natural);
+      },
+      // Zeit im AudioContext, die gerade aus dem Lautsprecher kommt (für Bild und Tippen)
+      heardNow() {
+        if (c.getOutputTimestamp) {
+          const ts = c.getOutputTimestamp();
+          if (ts && ts.contextTime > 0) return ts.contextTime + (performance.now() - ts.performanceTime) / 1000;
+        }
+        return c.currentTime - (c.outputLatency || 0) - (c.baseLatency || 0);
+      },
+    };
+    // Spieluhr spielt vom Akkord nur den obersten Ton
+    function CH_LAST(e) { return P.ev.filter((x) => x.part === "chord" && x.beat === e.beat).map((x) => x.m); }
+    return P;
+  }
+
+  // Auswertung des Timings (Abweichungen in ms, + = zu spät): für jedes Ergebnis im Spiel
+  // mean = durchschnittliche Abweichung (Betrag), bias = Tendenz (mit Vorzeichen), hits = Anteil im Fenster
+  const TIMING = { perfect: 60, good: 120 };
+  function timingStats(ms) {
+    const n = ms.length;
+    if (!n) return null;
+    const sum = (f) => ms.reduce((a, x) => a + f(x), 0);
+    const mean = Math.round(sum(Math.abs) / n), bias = Math.round(sum((x) => x) / n);
+    const perfect = ms.filter((x) => Math.abs(x) <= TIMING.perfect).length, good = ms.filter((x) => Math.abs(x) <= TIMING.good).length;
+    const word = mean <= TIMING.perfect ? "perfekt im Takt" : mean <= TIMING.good ? "gut im Takt" : "noch nicht im Takt";
+    const tend = Math.abs(bias) < 25 ? "kein Hang zu früh oder spät" : bias < 0 ? "eher zu früh" : "eher zu spät";
+    return { n, mean, bias, perfect, good, word, tend };
+  }
+
+  root.EKMusic = { SCORES, PRESETS, Player, events, midi, fromMidi, timingStats, TIMING, beatRel, grid };
+})(typeof window !== "undefined" ? window : globalThis);
+
+/* Cold Medal · Eiskunstlauf – Kür, Elemente und Wertung (ohne DOM, in Node testbar).
+   Eine Kür ist eine Folge von Elementen an festen Schlägen der Musik. Die Wertung rechnet nur aus den Eingaben
+   (Zeit ab Musikbeginn in Sekunden) und den Schlagzeiten: gleiche Eingaben ergeben immer dieselbe Wertung.
+   Eingaben: { t, type: "down" | "up" | "circle" | "swipe", dir: "l"|"r"|"u"|"d" } */
+(function (root) {
+  "use strict";
+  const clamp = (v, a, b) => (v < a ? a : v > b ? b : v);
+  const r2 = (v) => Math.round(v * 100) / 100;
+  const q4 = (v) => Math.round(v * 4) / 4; // Noten der Komponenten in Viertelschritten wie bei den Richtern
+
+  // Kür zum Donauwalzer (Schläge siehe EKMusic.SCORES.donau: Takt × 3 + Schlag, Melodie ab Takt 4)
+  const PROGRAMS = {
+    wien: {
+      id: "wien", music: "donau", name: "Kür zum Donauwalzer",
+      elements: [
+        { id: "2T", kind: "jump", name: "Doppel-Toeloop", short: "Toeloop", base: 1.3, tk: 18, land: 20 },
+        { id: "2S", kind: "jump", name: "Doppel-Salchow", short: "Salchow", base: 1.3, tk: 33, land: 35 },
+        { id: "USp", kind: "spin", name: "Standpirouette", short: "Pirouette", from: 42, turns: 4 },
+        { id: "StSq", kind: "steps", name: "Schrittfolge", short: "Schritte",
+          arrows: [[60, "r"], [63, "l"], [66, "r"], [68, "u"], [69, "l"], [72, "d"], [74, "r"], [75, "l"], [78, "u"], [80, "d"], [81, "r"], [84, "l"]] },
+        { id: "2Lo", kind: "jump", name: "Doppel-Rittberger", short: "Rittberger", base: 1.7, tk: 93, land: 95 },
+        { id: "Pose", kind: "pose", name: "Schlusspose", short: "Pose", at: 108 },
+      ],
+    },
+  };
+  // Grundwerte nach Stufe (Pirouette, Schrittfolge); Stufe B = Basis
+  const LEVELS = {
+    spin: [[4, "3", 1.9], [3, "2", 1.5], [2, "1", 1.2], [1, "B", 1.0]],
+    steps: [[11, "3", 3.3], [9, "2", 2.6], [6, "1", 1.8], [3, "B", 1.5]],
+  };
+  const PCS_FACTOR = 1.6;
+
+  // Ausführung (GOE −5 … +5) aus der durchschnittlichen Abweichung vom Takt; k > 1 = großzügiger (Anfänger, später Rhythmus)
+  function goeFrom(meanMs, k) {
+    const m = meanMs / (k || 1);
+    return m <= 30 ? 4 : m <= 50 ? 3 : m <= 75 ? 2 : m <= 100 ? 1 : m <= 130 ? 0 : m <= 170 ? -1 : m <= 210 ? -2 : -3;
+  }
+  const mean = (a) => (a.length ? a.reduce((s, x) => s + Math.abs(x), 0) / a.length : 0);
+  const ms = (s) => Math.round(s * 1000);
+
+  // Zeitfenster in Sekunden (mal k)
+  const WIN = { jump: 0.35, under: 0.22, fall: 0.3, spin: 0.45, step: 0.3, pose: 0.4 };
+
+  function judgeJump(e, bt, inp, k) {
+    const tk = bt[e.tk], ld = bt[e.land];
+    const di = inp.findIndex((x) => x.type === "down" && Math.abs(x.t - tk) <= WIN.jump * k);
+    if (di < 0) return { status: "miss", score: 0, goe: 0, devs: [], note: "ausgelassen" };
+    const down = inp[di], upE = inp.slice(di + 1).find((x) => x.type === "up");
+    const up = upE ? upE.t : ld + 0.6;
+    const dT = down.t - tk, dL = up - ld, devs = [ms(dT), ms(dL)];
+    if (dL < -WIN.fall * k) return { status: "fall", score: r2(e.base * 0.5), goe: -5, devs, note: "zu früh losgelassen: Sturz" };
+    if (dL > WIN.fall * k) return { status: "fall", score: r2(e.base * 0.5), goe: -5, devs, note: "zu spät gelandet: Sturz" };
+    let goe = goeFrom(mean(devs), k), base = e.base, note = "";
+    if (dL < -WIN.under * k) { base = r2(e.base * 0.7); goe = Math.min(goe, -2); note = "zu kurz gedreht"; }
+    else if (Math.max(Math.abs(dT), Math.abs(dL)) > 0.06) note = Math.abs(dT) >= Math.abs(dL) ? (dT < 0 ? "Absprung zu früh" : "Absprung zu spät") : (dL < 0 ? "Landung etwas früh" : "Landung etwas spät");
+    return { status: note === "zu kurz gedreht" ? "under" : "ok", base, goe, score: r2(base * (1 + goe / 10)), devs, note: note || "sauber im Takt" };
+  }
+
+  function judgeSpin(e, bt, inp, k) {
+    const targets = []; for (let i = 1; i <= e.turns; i++) targets.push(bt[e.from + 3 * i]);
+    const used = new Set(), devs = [];
+    for (const tg of targets) {
+      let best = -1;
+      inp.forEach((x, i) => { if (x.type === "circle" && !used.has(i) && Math.abs(x.t - tg) <= WIN.spin * k && (best < 0 || Math.abs(x.t - tg) < Math.abs(inp[best].t - tg))) best = i; });
+      if (best >= 0) { used.add(best); devs.push(ms(inp[best].t - tg)); }
+    }
+    const lv = LEVELS.spin.find(([n]) => devs.length >= n);
+    if (!lv) return { status: "miss", score: 0, goe: 0, devs, note: "keine Umdrehung im Takt" };
+    const goe = goeFrom(mean(devs), k);
+    return { status: "ok", level: lv[1], base: lv[2], goe, score: r2(lv[2] * (1 + goe / 10)), devs, n: devs.length,
+      note: `${devs.length} von ${e.turns} Umdrehungen im Takt` };
+  }
+
+  function judgeSteps(e, bt, inp, k) {
+    const used = new Set(), devs = []; let wrong = 0;
+    for (const [b, dir] of e.arrows) {
+      const tg = bt[b]; let best = -1;
+      inp.forEach((x, i) => { if (x.type === "swipe" && !used.has(i) && Math.abs(x.t - tg) <= WIN.step * k && (best < 0 || Math.abs(x.t - tg) < Math.abs(inp[best].t - tg))) best = i; });
+      if (best < 0) continue;
+      used.add(best);
+      if (inp[best].dir === dir) devs.push(ms(inp[best].t - tg)); else wrong++;
+    }
+    const lv = LEVELS.steps.find(([n]) => devs.length >= n);
+    if (!lv) return { status: "miss", score: 0, goe: 0, devs, wrong, note: `nur ${devs.length} von ${e.arrows.length} Schritten` };
+    const goe = clamp(goeFrom(mean(devs), k) - Math.round(wrong / 2), -5, 5);
+    return { status: "ok", level: lv[1], base: lv[2], goe, score: r2(lv[2] * (1 + goe / 10)), devs, wrong,
+      note: `${devs.length} von ${e.arrows.length} Schritten${wrong ? `, ${wrong} falsche Richtung` : ""}` };
+  }
+
+  function judgePose(e, bt, inp, k) {
+    const tg = bt[e.at], d = inp.find((x) => x.type === "down" && Math.abs(x.t - tg) <= WIN.pose * k);
+    if (!d) return { status: "miss", score: 0, goe: 0, devs: [], note: "Pose verpasst" };
+    return { status: "ok", score: 0, goe: 0, devs: [ms(d.t - tg)], note: "auf den Schlussakkord" };
+  }
+
+  const JUDGE = { jump: judgeJump, spin: judgeSpin, steps: judgeSteps, pose: judgePose };
+
+  // ganze Kür werten. bt: Schlagzeiten ab Musikbeginn (EKMusic.grid), inputs zeitlich sortiert, opt.k: Großzügigkeit
+  function judge(prog, bt, inputs, opt) {
+    const k = (opt && opt.k) || 1, inp = inputs.slice().sort((a, b) => a.t - b.t);
+    const els = prog.elements.map((e) => Object.assign({ id: e.id, name: e.name, kind: e.kind, base: e.base || 0 }, JUDGE[e.kind](e, bt, inp, k)));
+    const tes = r2(els.reduce((s, x) => s + x.score, 0));
+    const falls = els.filter((x) => x.status === "fall").length;
+    const all = [].concat(...els.map((x) => x.devs));
+    const tim = root.EKMusic ? root.EKMusic.timingStats(all) : null;
+    const scored = els.filter((x) => x.kind !== "pose"), done = scored.filter((x) => x.status !== "miss").length / scored.length;
+    const meanDev = all.length ? mean(all) : 400, pose = els.find((x) => x.kind === "pose");
+    const pcs = {
+      comp: q4(clamp(3 + 5 * done + (pose && pose.status === "ok" ? 1.25 : 0) - 0.75 * falls, 1.5, 9.75)),
+      pres: q4(clamp(10 - meanDev / k / 22, 1.5, 9.75)),
+      skill: q4(clamp(3 + 6.5 * done - 1.5 * falls + (meanDev < 60 ? 0.5 : 0), 1.5, 9.75)),
+    };
+    const pcsTotal = r2((pcs.comp + pcs.pres + pcs.skill) * PCS_FACTOR);
+    const ded = falls;
+    return { els, tes, pcs, pcsTotal, ded, falls, total: r2(tes + pcsTotal - ded), timing: tim, devs: all };
+  }
+
+  // perfekte Eingaben für eine Kür (Tests, Vorführung); off = Abweichung in Sekunden
+  function perfectInputs(prog, bt, off) {
+    off = off || 0; const out = [];
+    for (const e of prog.elements) {
+      if (e.kind === "jump") out.push({ t: bt[e.tk] + off, type: "down" }, { t: bt[e.land] + off, type: "up" });
+      else if (e.kind === "spin") for (let i = 1; i <= e.turns; i++) out.push({ t: bt[e.from + 3 * i] + off, type: "circle" });
+      else if (e.kind === "steps") for (const [b, dir] of e.arrows) out.push({ t: bt[b] + off, type: "swipe", dir });
+      else if (e.kind === "pose") out.push({ t: bt[e.at] + off, type: "down" }, { t: bt[e.at] + off + 0.2, type: "up" });
+    }
+    return out.sort((a, b) => a.t - b.t);
+  }
+
+  // Gegnerinnen und Gegner: erfundene Namen, Ergebnis aus Stärke und Tagesform (Seed)
+  const FIELD = [
+    ["Lotte Brandner", "AUT", 54], ["Mila Haugen", "NOR", 50], ["Jonas Feldmann", "GER", 46],
+    ["Clara Weissmüller", "SUI", 42], ["Aiko Tanabe", "JPN", 38], ["Pietro Valli", "ITA", 34],
+  ];
+  function rng(seed) { let s = seed >>> 0 || 1; return () => ((s = (s * 1664525 + 1013904223) >>> 0) / 4294967296); }
+  function field(seed, n) {
+    const R = rng(seed);
+    return FIELD.slice(0, n || 5).map(([name, nat, str]) => {
+      const total = r2(str + (R() - 0.5) * 6), tes = r2(total * (0.17 + R() * 0.06)), fall = R() < 0.12 ? 1 : 0;
+      return { name, nat, tes, pcsTotal: r2(total - tes + fall), ded: fall, total: r2(total), ai: true };
+    });
+  }
+
+  root.EKSkate = { PROGRAMS, LEVELS, WIN, judge, goeFrom, perfectInputs, field, PCS_FACTOR };
+})(typeof window !== "undefined" ? window : globalThis);
+
+/* Cold Medal · Eiskunstlauf – Figur im Plakatstil (Canvas). Gleicher Körper und gleiche Posen für alle; erkennbar nur an Frisur,
+   Hautton und Farben, die man selbst wählt (Gesamtkonzept: kein Rock als Zeichen für „Frau“). Aussehen später aus pass/ (look). */
+(function (root) {
+  "use strict";
+  const INK = "#141B25";
+  const SKIN = ["#F2D3B8", "#E2B48F", "#C98E66", "#9C6644", "#6B4430"];
+  const HAIRC = ["#3A2A1E", "#7A4A22", "#C9A060", "#1A1A1A", "#B0A79A"];
+  const SUIT = ["#C23B2A", "#23466B", "#3F6B55", "#DDA43B", "#6B3F7A", "#1E2734"];
+  const HAIRS = ["Dutt", "Kurz", "Zopf", "Locken"];
+  const DEF_LOOK = { hair: 0, hairC: 0, skin: 1, suit: 0, accent: 3 };
+
+  function shade(hex, f) {
+    const n = parseInt(hex.slice(1), 16), c = [(n >> 16) & 255, (n >> 8) & 255, n & 255].map((v) => Math.round(Math.max(0, Math.min(255, v * f))));
+    return "#" + c.map((v) => v.toString(16).padStart(2, "0")).join("");
+  }
+  function cleanLook(o) {
+    const L = Object.assign({}, DEF_LOOK);
+    if (o && typeof o === "object") {
+      const pick = (k, n) => { if (Number.isInteger(o[k]) && o[k] >= 0 && o[k] < n) L[k] = o[k]; };
+      pick("hair", HAIRS.length); pick("hairC", HAIRC.length); pick("skin", SKIN.length); pick("suit", SUIT.length); pick("accent", SUIT.length);
+    }
+    return L;
+  }
+
+  // Posen: Winkel in Grad ab senkrecht nach unten, + = nach vorn (Laufrichtung). sL Standbein, fL Spielbein [Hüfte, Knie],
+  // aF/aB Arm vorn/hinten [Schulter, Ellbogen], lean Rumpfneigung, crouch Kniebeuge in Pixeln
+  const POSES = {
+    glide: { lean: 10, crouch: 2, sL: [0, 0], fL: [-55, 15], aF: [95, 5], aB: [-105, -5] },
+    stroke: { lean: 14, crouch: 4, sL: [6, 12], fL: [-30, 12], aF: [70, 20], aB: [-80, 10] },
+    prep: { lean: 18, crouch: 7, sL: [10, 26], fL: [-20, 32], aF: [40, 45], aB: [-40, 30] },
+    air: { lean: 0, crouch: 0, sL: [3, 4], fL: [7, 4], aF: [35, 120], aB: [35, 120] },
+    land: { lean: 12, crouch: 6, sL: [6, 16], fL: [-72, 5], aF: [100, 0], aB: [-100, 0] },
+    spin: { lean: -4, crouch: 3, sL: [0, 4], fL: [40, 70], aF: [55, 110], aB: [55, 110] },
+    stepA: { lean: 6, crouch: 4, sL: [8, 12], fL: [-28, 30], aF: [75, 25], aB: [-70, 20] },
+    stepB: { lean: 6, crouch: 4, sL: [-8, 12], fL: [28, 30], aF: [-70, 20], aB: [75, 25] },
+    stepU: { lean: -2, crouch: 0, sL: [0, 2], fL: [-15, 10], aF: [150, 10], aB: [-150, 10] },
+    stepD: { lean: 22, crouch: 9, sL: [10, 30], fL: [-35, 20], aF: [30, 10], aB: [-30, 10] },
+    final: { lean: -6, crouch: 0, sL: [0, 0], fL: [-22, 0], aF: [160, 8], aB: [-158, 8] },
+    fallen: { lean: 10, crouch: 2, sL: [30, 60], fL: [-10, 50], aF: [60, 30], aB: [-30, 40] },
+  };
+  const KEYS = ["lean", "crouch"], PAIRS = ["sL", "fL", "aF", "aB"];
+  function mix(a, b, t) {
+    const o = {};
+    for (const k of KEYS) o[k] = a[k] + (b[k] - a[k]) * t;
+    for (const k of PAIRS) o[k] = [a[k][0] + (b[k][0] - a[k][0]) * t, a[k][1] + (b[k][1] - a[k][1]) * t];
+    return o;
+  }
+  const rad = (d) => d * Math.PI / 180;
+  const vec = (deg, L) => [Math.sin(rad(deg)) * L, Math.cos(rad(deg)) * L];
+  const LEN = { thigh: 19, shin: 18, torso: 26, ua: 11, fa: 11 };
+
+  // Frisuren als SVG-Pfade, Ursprung = Kopfmitte (gleich wie im Hörtest)
+  const HAIRP = [
+    { back: ["C 5.5 -4.5 3.4"], top: ["M-6.1 -0.5 C-6 -7 6 -8 6.3 0 C3 -3 -2 -3.5 -6.1 -0.5 Z"] },
+    { back: [], top: ["M-6.3 0.5 C-7 -7.5 6.5 -8.5 6.6 1 L5.2 2.5 C4 -1.5 -2 -3 -6.3 0.5 Z"] },
+    { back: ["M4.5 -3 C10 -3 13 1 15 6 C12 3.5 9 2 5 1.5 Z"], top: ["M-6.1 -0.5 C-6 -7 6 -8 6.3 0 C3 -3 -2 -3.5 -6.1 -0.5 Z"] },
+    { back: ["C 6.4 0.5 2.9", "C 5 -4.8 3.1"], top: ["M-6.3 0.5 C-7 -7.5 6.5 -8.5 6.6 1 L5.2 2.5 C4 -1.5 -2 -3 -6.3 0.5 Z", "C -4.6 -4.6 2.4", "C 0.5 -7.2 2.5"] },
+  ];
+  const pathCache = {};
+  function shape(ctx, s, fill) {
+    ctx.beginPath();
+    if (s[0] === "C") { const [, x, y, r] = s.split(" "); ctx.arc(+x, +y, +r, 0, Math.PI * 2); }
+    else { const p = pathCache[s] || (pathCache[s] = new Path2D(s)); ctx.fillStyle = fill; ctx.fill(p); ctx.stroke(p); return; }
+    ctx.fillStyle = fill; ctx.fill(); ctx.stroke();
+  }
+
+  function limb(ctx, pts, w, col) {
+    ctx.beginPath(); ctx.moveTo(pts[0][0], pts[0][1]);
+    for (let i = 1; i < pts.length; i++) ctx.lineTo(pts[i][0], pts[i][1]);
+    ctx.strokeStyle = INK; ctx.lineWidth = w + 2.4; ctx.stroke();
+    ctx.strokeStyle = col; ctx.lineWidth = w; ctx.stroke();
+  }
+  function boot(ctx, ank, shinDeg) {
+    // weißer Stiefel und Kufe; der Stiefel folgt dem Unterschenkel
+    ctx.save(); ctx.translate(ank[0], ank[1]); ctx.rotate(-rad(shinDeg));
+    ctx.beginPath(); ctx.moveTo(-2.5, -3.5); ctx.lineTo(2.5, -3.5); ctx.lineTo(6, 1); ctx.lineTo(-2.5, 1.6); ctx.closePath();
+    ctx.fillStyle = "#F1E7D2"; ctx.strokeStyle = INK; ctx.lineWidth = 1.3; ctx.fill(); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(-5, 4.2); ctx.lineTo(7.5, 4.2); ctx.lineWidth = 1.6; ctx.stroke();
+    ctx.restore();
+  }
+
+  // Figur zeichnen: x, y = Kufe auf dem Eis; s Maßstab; dir 1 = nach rechts; turn = Drehwinkel (Sprung, Pirouette); lift = Höhe
+  function draw(ctx, o) {
+    const L = o.look || DEF_LOOK, p = o.pose, s = o.s || 1;
+    const skin = SKIN[L.skin], suit = SUIT[L.suit], suitD = shade(suit, 0.78), acc = SUIT[L.accent === L.suit ? (L.suit + 3) % SUIT.length : L.accent];
+    ctx.save();
+    ctx.translate(o.x, o.y - (o.lift || 0) * s);
+    if (o.tilt) ctx.rotate(o.tilt);
+    const cw = Math.cos(o.turn || 0), sx = Math.sign(cw || 1) * Math.max(0.28, Math.abs(cw));
+    ctx.scale(s * (o.dir || 1) * sx, s);
+    ctx.lineCap = "round"; ctx.lineJoin = "round";
+    // Standbein bestimmt die Hüfte
+    const sHip = p.sL[0], sKn = p.sL[0] - p.sL[1];
+    const t1 = vec(sHip, LEN.thigh), t2 = vec(sKn, LEN.shin);
+    const hip = [-(t1[0] + t2[0]), -(t1[1] + t2[1]) + 0];
+    const knee = [hip[0] + t1[0], hip[1] + t1[1]], ank = [0, 0];
+    const fK = vec(p.fL[0], LEN.thigh), fKn = [hip[0] + fK[0], hip[1] + fK[1]], fS = vec(p.fL[0] - p.fL[1], LEN.shin), fAn = [fKn[0] + fS[0], fKn[1] + fS[1]];
+    const nk = [hip[0] + Math.sin(rad(p.lean)) * LEN.torso, hip[1] - Math.cos(rad(p.lean)) * LEN.torso];
+    const sh = [nk[0], nk[1] + 2.5];
+    const arm = (a) => { const u = vec(a[0], LEN.ua), e = [sh[0] + u[0], sh[1] + u[1]], f = vec(a[0] + a[1], LEN.fa); return [sh, e, [e[0] + f[0], e[1] + f[1]]]; };
+    const aB = arm(p.aB), aF = arm(p.aF);
+    // hinten: Spielbein, hinterer Arm
+    limb(ctx, [hip, fKn, fAn], 5, suitD); boot(ctx, fAn, p.fL[0] - p.fL[1]);
+    limb(ctx, aB, 3.4, suitD);
+    ctx.beginPath(); ctx.arc(aB[2][0], aB[2][1], 2.1, 0, 7); ctx.fillStyle = skin; ctx.strokeStyle = INK; ctx.lineWidth = 1.1; ctx.fill(); ctx.stroke();
+    limb(ctx, [hip, knee, ank], 5.2, suit); boot(ctx, ank, sKn);
+    // Rumpf: Einteiler mit Schrägstreifen
+    ctx.save(); ctx.translate(hip[0], hip[1]); ctx.rotate(rad(p.lean));
+    ctx.beginPath(); ctx.moveTo(-6.2, 2.5); ctx.lineTo(-4.6, -6); ctx.bezierCurveTo(-5, -10, -8, -18, -7, -28 + 2.5);
+    ctx.lineTo(7, -28 + 2.5); ctx.bezierCurveTo(8, -18, 5, -10, 4.6, -6); ctx.lineTo(6.2, 2.5); ctx.closePath();
+    ctx.fillStyle = suit; ctx.strokeStyle = INK; ctx.lineWidth = 1.5; ctx.fill(); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(-6.2, -12.5); ctx.lineTo(6.6, -20.5); ctx.lineTo(6.9, -17); ctx.lineTo(-5.6, -9); ctx.closePath(); ctx.fillStyle = acc; ctx.fill();
+    // Hals und Kopf
+    ctx.fillStyle = skin; ctx.fillRect(-1.8, -30.5, 3.6, 4.5);
+    ctx.translate(0, -35.5);
+    ctx.strokeStyle = INK; ctx.lineWidth = 1.3;
+    const H = HAIRP[L.hair], hc = HAIRC[L.hairC];
+    for (const b of H.back) shape(ctx, b, hc);
+    ctx.beginPath(); ctx.arc(0, 0, 6.2, 0, 7); ctx.fillStyle = skin; ctx.lineWidth = 1.5; ctx.fill(); ctx.stroke();
+    ctx.lineWidth = 1.3; for (const t of H.top) shape(ctx, t, hc);
+    ctx.restore();
+    limb(ctx, aF, 3.4, suit);
+    ctx.beginPath(); ctx.arc(aF[2][0], aF[2][1], 2.1, 0, 7); ctx.fillStyle = skin; ctx.strokeStyle = INK; ctx.lineWidth = 1.1; ctx.fill(); ctx.stroke();
+    ctx.restore();
+  }
+
+  root.EKFigure = { POSES, mix, draw, cleanLook, DEF_LOOK, SKIN, HAIRC, SUIT, HAIRS, shade };
+})(typeof window !== "undefined" ? window : globalThis);
+
+/* Cold Medal · Eiskunstlauf – Kulisse im Plakatstil: Wiener Eislaufverein am Abend.
+   Freiluft-Eisfläche zwischen Konzerthaus und Stadtpark, Lichterketten, Publikum hinter der Bande. Zwei vorgerenderte Ebenen
+   (fern mit Parallaxe, nah mit der Kamera), damit am iPhone 60 Bilder je Sekunde bleiben. Ortsangaben siehe PLACES.src. */
+(function (root) {
+  "use strict";
+  const W = 844, H = 390, WW = 2000, PAR = 0.35;
+  const ICE_TOP = 216;
+  const PLACES = {
+    wien: {
+      id: "wien", name: "Wien", venue: "Wiener Eislaufverein", nat: "AUT",
+      fact: "Verein seit 1867, seit 1901 am Heumarkt zwischen Konzerthaus und Stadtpark; über 6000 m² Freiluft-Eis. Hier war 1907 die Weltmeisterschaft im Eiskunstlauf.",
+      src: "ORF Wien (wien.orf.at/stories/3195247, …/2872066), derStandard",
+    },
+  };
+  // Lage auf dem Eis: d 0 = hinten an der Bande, 1 = vorn
+  const footY = (d) => ICE_TOP + 18 + d * 118;
+  const scaleAt = (d) => 0.86 + 0.42 * d;
+
+  function rng(seed) { let s = seed >>> 0; return () => ((s = (s * 1664525 + 1013904223) >>> 0) / 4294967296); }
+  function mk(w, h, dpr) { const c = document.createElement("canvas"); c.width = Math.round(w * dpr); c.height = Math.round(h * dpr); const x = c.getContext("2d"); x.scale(dpr, dpr); return [c, x]; }
+
+  function far(dpr) {
+    const w = Math.ceil(W + (WW - W) * PAR) + 4, [c, g] = mk(w, ICE_TOP, dpr), R = rng(11);
+    const sky = g.createLinearGradient(0, 0, 0, ICE_TOP);
+    sky.addColorStop(0, "#162442"); sky.addColorStop(0.55, "#2E4470"); sky.addColorStop(0.85, "#B97A5A"); sky.addColorStop(1, "#E9A866");
+    g.fillStyle = sky; g.fillRect(0, 0, w, ICE_TOP);
+    // Sterne
+    g.fillStyle = "rgba(241,231,210,0.8)";
+    for (let i = 0; i < 70; i++) { const x = R() * w, y = R() * 90; g.fillRect(x, y, R() < 0.2 ? 2 : 1.2, R() < 0.2 ? 2 : 1.2); }
+    // Dächer der Stadt in der Ferne
+    g.fillStyle = "#3B3F5C";
+    for (let x = 0; x < w; x += 28 + R() * 30) { const hh = 22 + R() * 30; g.fillRect(x, ICE_TOP - 46 - hh, 26 + R() * 30, hh + 50); }
+    // Konzerthaus: langer Bau, Mittelteil höher, beleuchtete Fenster
+    const kx = w * 0.42, kw = 420, ky = 70;
+    g.fillStyle = "#D9C49A"; g.fillRect(kx, ky + 30, kw, ICE_TOP - ky - 30);
+    g.fillStyle = "#E8D6AE"; g.fillRect(kx + kw * 0.36, ky, kw * 0.28, ICE_TOP - ky);
+    g.fillStyle = "#B59F76"; g.fillRect(kx + kw * 0.64, ky + 30, kw * 0.36, ICE_TOP - ky - 30); // Schattenseite
+    g.strokeStyle = "#141B25"; g.lineWidth = 2; g.strokeRect(kx, ky + 30, kw, ICE_TOP - ky - 30); g.strokeRect(kx + kw * 0.36, ky, kw * 0.28, ICE_TOP - ky);
+    g.fillStyle = "#7E6A4C"; g.fillRect(kx - 6, ky + 26, kw + 12, 6); g.fillRect(kx + kw * 0.36 - 5, ky - 4, kw * 0.28 + 10, 6);
+    for (let row = 0; row < 3; row++) for (let i = 0; i < 14; i++) {
+      const x = kx + 14 + i * (kw - 28) / 14, y = ky + 48 + row * 32;
+      g.fillStyle = R() < 0.75 ? "#F3C969" : "#5E5440";
+      g.beginPath(); g.moveTo(x, y + 18); g.lineTo(x, y + 6); g.arc(x + 6, y + 6, 6, Math.PI, 0); g.lineTo(x + 12, y + 18); g.closePath(); g.fill();
+    }
+    // Bäume des Stadtparks, winterlich kahl
+    g.strokeStyle = "#1B2423"; g.lineCap = "round";
+    const tree = (x, s) => {
+      g.lineWidth = 5 * s; g.beginPath(); g.moveTo(x, ICE_TOP); g.lineTo(x, ICE_TOP - 70 * s); g.stroke();
+      const br = (x0, y0, a, l, d) => { if (d > 4) return; const x1 = x0 + Math.sin(a) * l, y1 = y0 - Math.cos(a) * l; g.lineWidth = Math.max(0.6, (4 - d) * s); g.beginPath(); g.moveTo(x0, y0); g.lineTo(x1, y1); g.stroke(); br(x1, y1, a - 0.45 - R() * 0.2, l * 0.72, d + 1); br(x1, y1, a + 0.45 + R() * 0.2, l * 0.72, d + 1); };
+      br(x, ICE_TOP - 60 * s, -0.3, 32 * s, 0); br(x, ICE_TOP - 60 * s, 0.35, 30 * s, 0);
+    };
+    for (let x = 20; x < kx - 30; x += 60 + R() * 50) tree(x, 0.8 + R() * 0.5);
+    for (let x = kx + kw + 40; x < w; x += 60 + R() * 50) tree(x, 0.8 + R() * 0.5);
+    return c;
+  }
+
+  function near(dpr) {
+    const w = WW, [c, g] = mk(w, H, dpr), R = rng(5);
+    // Laternen und Lichterketten (vor dem Konzerthaus, über dem Publikum)
+    const posts = []; for (let x = 120; x < w; x += 330) posts.push(x);
+    g.strokeStyle = "#141B25"; g.lineWidth = 3;
+    for (const x of posts) { g.beginPath(); g.moveTo(x, 205); g.lineTo(x, 70); g.stroke(); g.fillStyle = "#141B25"; g.fillRect(x - 5, 64, 10, 8); }
+    for (let i = 0; i < posts.length - 1; i++) {
+      const a = posts[i], b = posts[i + 1];
+      g.strokeStyle = "rgba(20,27,37,0.8)"; g.lineWidth = 1; g.beginPath();
+      for (let k = 0; k <= 20; k++) { const t = k / 20, x = a + (b - a) * t, y = 74 + Math.sin(Math.PI * t) * 34; k ? g.lineTo(x, y) : g.moveTo(x, y); }
+      g.stroke();
+      for (let k = 1; k < 20; k++) {
+        const t = k / 20, x = a + (b - a) * t, y = 77 + Math.sin(Math.PI * t) * 34;
+        const gl = g.createRadialGradient(x, y, 0, x, y, 9); gl.addColorStop(0, "rgba(255,214,140,0.55)"); gl.addColorStop(1, "rgba(255,214,140,0)");
+        g.fillStyle = gl; g.fillRect(x - 9, y - 9, 18, 18);
+        g.fillStyle = k % 3 ? "#FFD98A" : "#FFF1C8"; g.beginPath(); g.arc(x, y, 2.2, 0, 7); g.fill();
+      }
+    }
+    // Publikum hinter der Bande: Köpfe und Schultern, gedeckte Farben
+    const COATS = ["#5B3A2E", "#2F3E55", "#4C5A3E", "#6E2F2A", "#3C3240", "#7A6A50"], SK = ["#E6C2A0", "#C9966C", "#9C6644", "#F0D5BC"];
+    for (let row = 0; row < 3; row++) for (let x = -10; x < w; x += 15 + R() * 8) {
+      const y = 186 + row * 7 + R() * 3, s = 0.85 + row * 0.12;
+      g.fillStyle = COATS[Math.floor(R() * COATS.length)]; g.beginPath(); g.ellipse(x, y + 12 * s, 8 * s, 9 * s, 0, Math.PI, 0); g.fill();
+      g.fillStyle = SK[Math.floor(R() * SK.length)]; g.beginPath(); g.arc(x, y, 4.2 * s, 0, 7); g.fill();
+      if (R() < 0.5) { g.fillStyle = COATS[Math.floor(R() * COATS.length)]; g.beginPath(); g.arc(x, y - 2 * s, 4.4 * s, Math.PI, 0); g.fill(); } // Mütze
+    }
+    // Bande: Papierweiß mit farbigen Feldern, keine Schrift
+    g.fillStyle = "#F1E7D2"; g.fillRect(0, 204, w, ICE_TOP - 204);
+    for (let x = 0; x < w; x += 140) { g.fillStyle = (x / 140) % 2 ? "#C23B2A" : "#23466B"; g.fillRect(x + 8, 207, 124, 3); }
+    g.strokeStyle = "#141B25"; g.lineWidth = 2; g.beginPath(); g.moveTo(0, 204); g.lineTo(w, 204); g.moveTo(0, ICE_TOP); g.lineTo(w, ICE_TOP); g.stroke();
+    // Eis: hell, Kufenspuren, Spiegelung der Lichter
+    const ice = g.createLinearGradient(0, ICE_TOP, 0, H);
+    ice.addColorStop(0, "#C9D9E6"); ice.addColorStop(0.35, "#E4ECF0"); ice.addColorStop(1, "#F4F0E6");
+    g.fillStyle = ice; g.fillRect(0, ICE_TOP, w, H - ICE_TOP);
+    for (const x of posts) {
+      const gl = g.createLinearGradient(0, ICE_TOP, 0, ICE_TOP + 110); gl.addColorStop(0, "rgba(255,214,140,0.35)"); gl.addColorStop(1, "rgba(255,214,140,0)");
+      g.fillStyle = gl; g.beginPath(); g.ellipse(x, ICE_TOP + 40, 26, 70, 0, 0, 7); g.fill();
+    }
+    g.strokeStyle = "rgba(120,140,160,0.28)"; g.lineWidth = 1;
+    for (let i = 0; i < 90; i++) {
+      const x = R() * w, y = ICE_TOP + 10 + R() * (H - ICE_TOP - 10), r = 40 + R() * 160, a = R() * Math.PI;
+      g.beginPath(); g.ellipse(x, y, r, r * 0.22, 0, a, a + 0.6 + R()); g.stroke();
+    }
+    // Enden der Eisfläche: Bande biegt nach vorn, dahinter der dunkle Gehweg mit Schnee
+    for (const [x0, sg] of [[0, 1], [w, -1]]) {
+      const cx = x0 + sg * 34;
+      g.fillStyle = "#2B3550"; g.beginPath(); g.moveTo(x0, 204); g.lineTo(cx, 204); g.quadraticCurveTo(cx + sg * 30, 300, cx - sg * 6, H); g.lineTo(x0, H); g.closePath(); g.fill();
+      g.fillStyle = "rgba(241,231,210,0.5)"; for (let i = 0; i < 40; i++) { g.beginPath(); g.arc(x0 + sg * R() * 30, 210 + R() * 180, 1 + R() * 2, 0, 7); g.fill(); }
+      g.strokeStyle = "#141B25"; g.lineWidth = 9; g.beginPath(); g.moveTo(cx, 204); g.quadraticCurveTo(cx + sg * 30, 300, cx - sg * 6, H); g.stroke();
+      g.strokeStyle = "#F1E7D2"; g.lineWidth = 6; g.stroke();
+      g.strokeStyle = "#C23B2A"; g.lineWidth = 1.5; g.stroke();
+    }
+    return c;
+  }
+
+  function Scene(place, dpr) {
+    dpr = Math.min(2, dpr || 1);
+    const F = far(dpr), N = near(dpr);
+    return {
+      place: PLACES[place] || PLACES.wien,
+      // Kamera: camX = linke Bildkante in Weltkoordinaten
+      draw(ctx, camX) {
+        const fx = camX * PAR;
+        ctx.drawImage(F, fx * dpr, 0, W * dpr, ICE_TOP * dpr, 0, 0, W, ICE_TOP);
+        ctx.drawImage(N, camX * dpr, 0, W * dpr, H * dpr, 0, 0, W, H);
+      },
+    };
+  }
+
+  root.EKScene = { Scene, PLACES, W, H, WW, ICE_TOP, footY, scaleAt };
+})(typeof window !== "undefined" ? window : globalThis);
+
+/* COLD MEDAL EISKUNSTLAUF – Ablauf, Bildschirme, Eingabe, Taktband, Ergebnis, Spielstand. */
+(function () {
+  "use strict";
+  const VERSION = "0.1";
+  // Seiten-Einstellungen aus dem Build (eigenes Hosting: Adresse, Hoster, Impressum); im claude.ai-Artefakt leer
+  const SITE = Object.assign({ web: false, url: "", impressum: null }, {"web": true, "url": "https://matpeins-debug.github.io/cold-medal-eiskunstlauf/", "hoster": "GitHub Pages (GitHub Inc., USA)", "drittland": "GitHub ist nach dem EU-US Data Privacy Framework zertifiziert; die Übermittlung in die USA stützt sich auf den Angemessenheitsbeschluss der EU-Kommission dazu.", "impressum": {"name": "", "adresse": "", "mail": ""}} || {});
+  const M = window.EKMusic, K = window.EKSkate, F = window.EKFigure, SC = window.EKScene;
+  const W = SC.W, H = SC.H, WW = SC.WW;
+  const $ = (id) => document.getElementById(id);
+  const clamp = (v, a, b) => (v < a ? a : v > b ? b : v);
+  const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+  const dec = (v, n) => (Math.round(v * 100) / 100).toFixed(n === undefined ? 2 : n).replace(".", ",");
+  const sg = (x) => (x > 0 ? "+" : x < 0 ? "−" : "±") + Math.abs(x);
+  // Zahl und Einheit nie trennen
+  const nb = (s) => String(s).replace(/(\d) (?=[A-Za-zäöü%·])/g, "$1 ").replace(/(Platz|Takt) (?=\d)/g, "$1 ");
+  const smooth = (t) => { t = clamp(t, 0, 1); return t * t * (3 - 2 * t); };
+  const NAT = { AUT: "Österreich", GER: "Deutschland", SUI: "Schweiz", ITA: "Italien", FRA: "Frankreich", NOR: "Norwegen", SWE: "Schweden",
+    CZE: "Tschechien", SLO: "Slowenien", POL: "Polen", NED: "Niederlande", USA: "USA", CAN: "Kanada", JPN: "Japan" };
+
+  // ------------------------------------------------------------------ Spielstand (nur auf diesem Gerät; Aussehen zieht später in pass/ um)
+  const KEY = "coldmedal-eiskunstlauf";
+  const DEF = { v: 1, name: "", nat: "AUT", look: F.DEF_LOOK, help: "anf", sound: 1, preset: "salon", lat: 0, best: 0, bestTrain: 0, runs: 0 };
+  function sanitize(o) {
+    const S = Object.assign({}, DEF, { look: F.cleanLook(null) });
+    if (o && typeof o === "object") {
+      if (typeof o.name === "string") S.name = o.name.replace(/[<>&"]/g, "").trim().slice(0, 14);
+      if (NAT[o.nat]) S.nat = o.nat;
+      S.look = F.cleanLook(o.look);
+      if (o.help === "pro" || o.help === "anf") S.help = o.help;
+      S.sound = o.sound === 0 ? 0 : 1;
+      if (M.PRESETS[o.preset]) S.preset = o.preset;
+      if (Number.isFinite(o.lat)) S.lat = clamp(Math.round(o.lat / 10) * 10, -200, 400);
+      for (const k of ["best", "bestTrain", "runs"]) if (Number.isFinite(o[k]) && o[k] >= 0) S[k] = +o[k];
+    }
+    return S;
+  }
+  let S = sanitize(null);
+  try { S = sanitize(JSON.parse(localStorage.getItem(KEY) || "null")); } catch (e) { /* ohne Speicher */ }
+  function save() { try { localStorage.setItem(KEY, JSON.stringify(S)); } catch (e) { /* egal */ } }
+
+  // ------------------------------------------------------------------ Bühne: 844 × 390, skaliert; im Hochformat gedreht
+  const stage = $("stage"), cv = $("cv"), ctx = cv.getContext("2d");
+  let uiS = 1, rotated = false, dpr = 1;
+  function layout() {
+    const vw = window.innerWidth, vh = window.innerHeight;
+    rotated = vh > vw * 1.05;
+    const aw = rotated ? vh : vw, ah = rotated ? vw : vh;
+    uiS = Math.min(aw / W, ah / H);
+    const ox = (aw - W * uiS) / 2, oy = (ah - H * uiS) / 2;
+    stage.style.transform = rotated ? `translate(${vw - oy}px, ${ox}px) rotate(90deg) scale(${uiS})` : `translate(${ox}px, ${oy}px) scale(${uiS})`;
+    dpr = Math.min(3, (window.devicePixelRatio || 1) * uiS);
+    cv.width = Math.round(W * dpr); cv.height = Math.round(H * dpr);
+  }
+  // Bildschirmpunkt → Bühnenpunkt
+  function stagePoint(cx, cy) {
+    const r = stage.getBoundingClientRect();
+    if (!rotated) return [(cx - r.left) / uiS, (cy - r.top) / uiS];
+    return [(cy - r.top) / uiS, (r.right - cx) / uiS];
+  }
+  layout();
+  window.addEventListener("resize", layout);
+  let scene = SC.Scene("wien", Math.min(2, (window.devicePixelRatio || 1) * uiS));
+
+  // ------------------------------------------------------------------ Ton
+  let ctxA = null, player = null, keep = null;
+  const IOS = /iP(hone|ad|od)/.test(navigator.userAgent || "") || (navigator.platform === "MacIntel" && (navigator.maxTouchPoints || 0) > 1);
+  function silentWav(sr) {
+    const n = Math.round(sr * 0.5), bytes = new Uint8Array(44 + n * 2), v = new DataView(bytes.buffer);
+    const str = (o, s) => { for (let i = 0; i < s.length; i++) bytes[o + i] = s.charCodeAt(i); };
+    str(0, "RIFF"); v.setUint32(4, 36 + n * 2, true); str(8, "WAVE"); str(12, "fmt "); v.setUint32(16, 16, true); v.setUint16(20, 1, true); v.setUint16(22, 1, true);
+    v.setUint32(24, sr, true); v.setUint32(28, sr * 2, true); v.setUint16(32, 2, true); v.setUint16(34, 16, true); str(36, "data"); v.setUint32(40, n * 2, true);
+    let bin = ""; for (let i = 0; i < bytes.length; i += 0x8000) bin += String.fromCharCode.apply(null, bytes.subarray(i, i + 0x8000));
+    return "data:audio/wav;base64," + btoa(bin);
+  }
+  function unlock() {
+    if (!S.sound || testMode) return;
+    try { if (navigator.audioSession) navigator.audioSession.type = "playback"; } catch (e) { /* egal */ }
+    try {
+      if (!ctxA) {
+        const AC = window.AudioContext || window.webkitAudioContext; if (!AC) return;
+        ctxA = new AC({ latencyHint: "interactive" }); player = M.Player(ctxA, ctxA.destination);
+        const sb = ctxA.createBufferSource(); sb.buffer = ctxA.createBuffer(1, 1, 22050); sb.connect(ctxA.destination); sb.start(0);
+      }
+      if (ctxA.state !== "running") { const p = ctxA.resume(); if (p && p.catch) p.catch(() => {}); }
+      if (IOS) {
+        if (!keep) { keep = document.createElement("audio"); keep.setAttribute("playsinline", ""); keep.loop = true; keep.src = silentWav(ctxA.sampleRate); }
+        if (keep.paused) { const p = keep.play(); if (p && p.catch) p.catch(() => {}); }
+      }
+    } catch (e) { ctxA = null; player = null; }
+  }
+  // kurze Geräusche: Kufe bei der Landung, Sturz, Applaus
+  function noiseBuf(sec) { const b = ctxA.createBuffer(1, Math.round(ctxA.sampleRate * sec), ctxA.sampleRate), d = b.getChannelData(0); for (let i = 0; i < d.length; i++) d[i] = Math.random() * 2 - 1; return b; }
+  function sfx(kind) {
+    if (!ctxA || !S.sound) return;
+    const c = ctxA, t = c.currentTime, out = c.destination;
+    const burst = (at, dur, f, q, vol, type) => {
+      const s = c.createBufferSource(), fl = c.createBiquadFilter(), g = c.createGain();
+      s.buffer = noiseBuf(dur + 0.05); fl.type = type || "bandpass"; fl.frequency.value = f; fl.Q.value = q;
+      g.gain.setValueAtTime(0, at); g.gain.linearRampToValueAtTime(vol, at + 0.01); g.gain.exponentialRampToValueAtTime(0.0001, at + dur);
+      s.connect(fl); fl.connect(g); g.connect(out); s.start(at); s.stop(at + dur + 0.05);
+    };
+    if (kind === "land") burst(t, 0.35, 3200, 0.8, 0.22);
+    else if (kind === "fall") { burst(t, 0.25, 180, 0.7, 0.5, "lowpass"); burst(t + 0.05, 0.5, 2200, 0.6, 0.15); }
+    else if (kind === "applause") for (let i = 0; i < 160; i++) burst(t + Math.random() * 3.2 * Math.sqrt(Math.random()), 0.05, 1500 + Math.random() * 2500, 1.2, 0.05 + Math.random() * 0.05);
+  }
+
+  // ------------------------------------------------------------------ Lauf
+  const PROG = K.PROGRAMS.wien, SCORE = M.SCORES[PROG.music];
+  let run = null, testMode = false;
+  const kHelp = () => (S.help === "anf" ? 1.4 : 1);
+  function songTime() {
+    if (!run) return 0;
+    if (run.fake) return run.fakeT;
+    return player && player.playing ? player.heardNow() - player.t0 : run.lastT;
+  }
+  // Ereignisse der Elemente, für Taktband und Hinweise
+  function buildMarks(bt) {
+    const out = [];
+    for (const e of PROG.elements) {
+      if (e.kind === "jump") out.push({ t: bt[e.tk], t2: bt[e.land], kind: "hold", el: e });
+      else if (e.kind === "spin") for (let i = 1; i <= e.turns; i++) out.push({ t: bt[e.from + 3 * i], kind: "spin", el: e });
+      else if (e.kind === "steps") for (const [b, d] of e.arrows) out.push({ t: bt[b], kind: "step", dir: d, el: e });
+      else if (e.kind === "pose") out.push({ t: bt[e.at], kind: "pose", el: e });
+    }
+    return out;
+  }
+  function elWindow(e, bt) {
+    if (e.kind === "jump") return [bt[e.tk] - 1.2, bt[e.land] + 0.7];
+    if (e.kind === "spin") return [bt[e.from] - 0.3, bt[e.from + 3 * e.turns] + 0.6];
+    if (e.kind === "steps") return [bt[e.arrows[0][0]] - 0.5, bt[e.arrows[e.arrows.length - 1][0]] + 0.5];
+    return [bt[e.at] - 0.8, bt[e.at] + 0.6];
+  }
+  function startRun(mode, opt) {
+    opt = opt || {};
+    const fake = !!opt.fake || testMode || !player;
+    const bt = M.grid(SCORE, SCORE.bpm, true);
+    run = { mode, bt, marks: buildMarks(bt), inputs: [], fake, fakeT: -0.6, lastT: 0, done: {}, pops: [], p: 0, camX: WW / 2 - W / 2,
+      dir: 1, turn: 0, spinV: 0, jump: null, fallUntil: -1, landUntil: -1, lastSwipe: null, posed: false, finished: false, k: kHelp(), seed: (Date.now() & 0xffff) || 7 };
+    show(null); $("hud").hidden = false; buildChips();
+    if (!fake) player.start(SCORE.id, { preset: S.preset, swing: true });
+  }
+  function abortRun() { if (player && player.playing) player.stop(); run = null; $("hud").hidden = true; show("scrMenu"); }
+
+  function addInput(type, dir) {
+    if (!run || run.finished) return;
+    const t = songTime() - (run.fake ? 0 : S.lat / 1000);
+    const inp = { t, type }; if (dir) inp.dir = dir;
+    run.inputs.push(inp);
+    feedback(inp);
+  }
+  // sofortige Rückmeldung: nächste passende Marke suchen
+  function feedback(inp) {
+    const r = run, k = r.k;
+    let best = null;
+    const consider = (t, win, ok) => { const d = inp.t - t; if (Math.abs(d) <= win && (!best || Math.abs(d) < Math.abs(best.d))) best = { d, ok }; };
+    for (const m of r.marks) {
+      if (inp.type === "down" && m.kind === "hold") consider(m.t, K.WIN.jump * k, true);
+      if (inp.type === "up" && m.kind === "hold") consider(m.t2, K.WIN.fall * k, true);
+      if (inp.type === "down" && m.kind === "pose") consider(m.t, K.WIN.pose * k, true);
+      if (inp.type === "circle" && m.kind === "spin") consider(m.t, K.WIN.spin * k, true);
+      if (inp.type === "swipe" && m.kind === "step") consider(m.t, K.WIN.step * k, m.dir === inp.dir);
+    }
+    // Sprung: Absprung merken für das Bild
+    if (inp.type === "down") {
+      const jm = r.marks.find((m) => m.kind === "hold" && Math.abs(inp.t - m.t) <= K.WIN.jump * k && !(r.jump && r.jump.el === m.el));
+      if (jm) r.jump = { el: jm.el, t0: inp.t, t1: null, land: jm.t2 };
+      const pm = r.marks.find((m) => m.kind === "pose" && Math.abs(inp.t - m.t) <= K.WIN.pose * k);
+      if (pm) r.posed = true;
+    }
+    if (inp.type === "up" && r.jump && r.jump.t1 === null) {
+      r.jump.t1 = inp.t;
+      const dl = inp.t - r.jump.land;
+      if (Math.abs(dl) > K.WIN.fall * k) { r.fallUntil = inp.t + 1.3; sfx("fall"); } else { r.landUntil = inp.t + 0.6; sfx("land"); }
+    }
+    if (inp.type === "swipe") r.lastSwipe = { dir: inp.dir, t: inp.t };
+    if (!best) return;
+    const ms = Math.round(best.d * 1000), T = M.TIMING, a = Math.abs(ms);
+    const word = !best.ok ? "Falsche Richtung" : a <= T.perfect ? "Perfekt" : a <= T.good ? "Gut" : ms < 0 ? "Zu früh" : "Zu spät";
+    pop(best.ok ? `${word} ${sg(ms)} ms` : word, !best.ok || a > T.good ? "#E8A07A" : a <= T.perfect ? "#F3C969" : "#F1E7D2");
+  }
+  function pop(text, col) { if (run) run.pops.push({ text: nb(text), col, t: performance.now() }); }
+
+  // ------------------------------------------------------------------ Eingabe: Touch, Maus/Touchpad, Tastatur
+  const track = { pts: [], acc: 0, lastV: null, lastMove: 0, swipeAt: 0 };
+  function inWindow(kind) {
+    if (!run) return false;
+    const t = songTime(), e = PROG.elements.find((x) => x.kind === kind); if (!e) return false;
+    const [a, b] = elWindow(e, run.bt); return t >= a && t <= b;
+  }
+  function onMove(x, y, now) {
+    const T = track;
+    T.pts.push([x, y, now]); while (T.pts.length && now - T.pts[0][2] > 160) T.pts.shift();
+    // Kreisen für die Pirouette: Drehung der Bewegungsrichtung aufsummieren
+    if (inWindow("spin") && T.pts.length >= 2) {
+      const p = T.pts[T.pts.length - 2], v = [x - p[0], y - p[1]], len = Math.hypot(v[0], v[1]);
+      if (len > 2.5) {
+        if (now - T.lastMove > 400) T.acc = 0;
+        if (T.lastV) { const a = Math.atan2(T.lastV[0] * v[1] - T.lastV[1] * v[0], T.lastV[0] * v[0] + T.lastV[1] * v[1]); T.acc += a; }
+        T.lastV = v; T.lastMove = now;
+        if (Math.abs(T.acc) >= Math.PI * 2) { T.acc -= Math.sign(T.acc) * Math.PI * 2; addInput("circle"); if (run) run.spinV = 1; }
+      }
+    } else { T.acc = 0; T.lastV = null; }
+    // Wischen für die Schritte
+    if (inWindow("steps") && T.pts.length >= 2 && now - T.swipeAt > 200) {
+      const p0 = T.pts[0], dx = x - p0[0], dy = y - p0[1];
+      if (Math.hypot(dx, dy) > 38) {
+        T.swipeAt = now; T.pts = [[x, y, now]];
+        addInput("swipe", Math.abs(dx) > Math.abs(dy) ? (dx > 0 ? "r" : "l") : (dy > 0 ? "d" : "u"));
+      }
+    }
+  }
+  let pointerDown = false;
+  cv.addEventListener("pointerdown", (e) => {
+    if (!run) return; e.preventDefault(); pointerDown = true;
+    try { cv.setPointerCapture(e.pointerId); } catch (er) { /* egal */ }
+    const [x, y] = stagePoint(e.clientX, e.clientY); track.pts = [[x, y, performance.now()]];
+    addInput("down");
+  });
+  const up = (e) => { if (!run || !pointerDown) return; pointerDown = false; e.preventDefault(); addInput("up"); };
+  cv.addEventListener("pointerup", up); cv.addEventListener("pointercancel", up);
+  cv.addEventListener("pointermove", (e) => {
+    if (!run) return;
+    const list = e.getCoalescedEvents ? e.getCoalescedEvents() : [e];
+    for (const ev of list.length ? list : [e]) { const [x, y] = stagePoint(ev.clientX, ev.clientY); onMove(x, y, performance.now()); }
+  });
+  const KEYDIR = { ArrowLeft: "l", ArrowRight: "r", ArrowUp: "u", ArrowDown: "d" };
+  window.addEventListener("keydown", (e) => {
+    if (!run) { if (e.key === "Escape" && !$("scrMenu").hidden) return; return; }
+    if (e.key === "Escape") { abortRun(); return; }
+    if (e.repeat) { e.preventDefault(); return; }
+    if (e.key === " " || e.key === "Enter") { e.preventDefault(); addInput("down"); if (inWindow("spin")) { addInput("circle"); run.spinV = 1; } }
+    else if (KEYDIR[e.key]) { e.preventDefault(); addInput("swipe", KEYDIR[e.key]); }
+  });
+  window.addEventListener("keyup", (e) => { if (run && (e.key === " " || e.key === "Enter")) { e.preventDefault(); addInput("up"); } });
+  const canHover = () => window.matchMedia && window.matchMedia("(hover: hover) and (pointer: fine)").matches;
+
+  // ------------------------------------------------------------------ Element-Leiste
+  function buildChips() {
+    $("chips").innerHTML = PROG.elements.map((e) => `<span class="chip" data-id="${e.id}">${esc(e.short)}</span>`).join("");
+  }
+  function updateChips(t) {
+    const res = K.judge(PROG, run.bt, run.inputs, { k: run.k });
+    for (const e of PROG.elements) {
+      const ch = $("chips").querySelector(`[data-id="${e.id}"]`), [a, b] = elWindow(e, run.bt);
+      if (t > b + 0.2) {
+        if (!run.done[e.id]) {
+          const r = res.els.find((x) => x.id === e.id); run.done[e.id] = r;
+          ch.className = "chip " + r.status;
+          ch.textContent = e.kind === "pose" ? (r.status === "ok" ? "Pose ✓" : "Pose –") : `${e.short} ${r.status === "miss" ? "–" : dec(r.score)}`;
+          if (e.kind !== "pose") pop(r.status === "miss" ? `${e.name}: ausgelassen` : r.status === "fall" ? "Sturz −1" : `${e.name} +${dec(r.score)}`, r.status === "ok" ? "#F3C969" : "#E8A07A");
+        }
+      } else ch.classList.toggle("now", t >= a && t <= b);
+    }
+  }
+
+  // ------------------------------------------------------------------ Bewegung der Läuferin
+  function phaseAt(t) {
+    for (const e of PROG.elements) { const [a, b] = elWindow(e, run.bt); if (t >= a && t <= b) return e; }
+    return null;
+  }
+  function figureState(t, dt) {
+    const r = run, bt = r.bt, el = phaseAt(t);
+    const speed = el && el.kind === "spin" && t > bt[el.from] - 0.2 ? 0 : el && el.kind === "steps" ? 0.55 : el && el.kind === "pose" && t > bt[el.at] ? 0 : 1;
+    r.p += dt * speed;
+    const P = r.p, x = WW / 2 + 660 * Math.sin(2 * Math.PI * P / 24), d = 0.52 + 0.3 * Math.sin(2 * Math.PI * P / 9.5 + 1);
+    const vx = Math.cos(2 * Math.PI * P / 24);
+    if (speed > 0 && Math.abs(vx) > 0.08) r.dir = vx > 0 ? 1 : -1;
+    // Grundpose: Schwung auf der Eins
+    const bi = Math.max(0, bt.findIndex((b) => b > t) - 1), ph = bi >= 0 && bt[bi + 1] ? (t - bt[bi]) / (bt[bi + 1] - bt[bi]) : 0;
+    const inBar = ((bi % 3) + ph) / 3;
+    let pose = F.mix(F.POSES.stroke, F.POSES.glide, smooth(inBar * 2.2)), lift = 0, turn = 0, tilt = 0;
+    if (t < 0) pose = F.POSES.glide;
+    if (el && el.kind === "jump") {
+      const j = r.jump && r.jump.el === el ? r.jump : null;
+      if (!j || t < j.t0) pose = F.mix(pose, F.POSES.prep, smooth(1 - (bt[el.tk] - t) / 0.9));
+      if (j && t >= j.t0) {
+        const end = j.t1 !== null ? j.t1 : Math.max(j.land, t);
+        if (j.t1 === null || t < j.t1) {
+          const u = clamp((t - j.t0) / Math.max(0.3, j.land - j.t0), 0, 1.3);
+          lift = 46 * Math.sin(Math.PI * clamp(u, 0, 1)); turn = u * Math.PI * 4; pose = F.POSES.air;
+        } else if (t < end + 0.01) pose = F.POSES.air;
+      }
+    }
+    if (t < r.fallUntil) { pose = F.POSES.fallen; tilt = -1.25 * smooth((r.fallUntil - t) > 1.0 ? (1.3 - (r.fallUntil - t)) / 0.3 : 1); lift = -4; }
+    else if (t < r.landUntil) pose = F.mix(F.POSES.land, pose, smooth(1 - (r.landUntil - t) / 0.6));
+    if (el && el.kind === "spin" && t > bt[el.from] - 0.2 && t < bt[el.from + 12] + 0.3) {
+      pose = F.POSES.spin; r.spinV = Math.max(0.25, r.spinV - dt * 0.6); r.turn += dt * Math.PI * 2 * (0.6 + 2.2 * r.spinV); turn = r.turn;
+    }
+    if (el && el.kind === "steps") {
+      const s = r.lastSwipe && t - r.lastSwipe.t < 0.35 ? r.lastSwipe.dir : null;
+      pose = s === "u" ? F.POSES.stepU : s === "d" ? F.POSES.stepD : F.mix(F.POSES.stepA, F.POSES.stepB, (Math.sin(Math.PI * (bi + ph)) + 1) / 2);
+    }
+    if (el && el.kind === "pose" && (r.posed || t > bt[el.at] + 0.4)) pose = F.mix(pose, F.POSES.final, smooth((t - bt[el.at] + 0.3) / 0.4));
+    return { x, d, pose, lift, turn, tilt, dir: r.dir };
+  }
+
+  // ------------------------------------------------------------------ Zeichnen
+  let FONT = null;
+  const font = () => FONT || (FONT = getComputedStyle(document.body).getPropertyValue("--font-display").trim() || "sans-serif");
+  function drawLane(t) {
+    const y0 = 350, h = 34, px = 120, pps = 175;
+    ctx.fillStyle = "rgba(20,27,37,0.72)"; ctx.fillRect(0, y0, W, h);
+    const bt = run.bt;
+    // Schläge
+    for (let i = 0; i < bt.length; i++) {
+      const x = px + (bt[i] - t) * pps; if (x < -10 || x > W + 10) continue;
+      ctx.fillStyle = i % 3 === 0 ? "rgba(241,231,210,0.55)" : "rgba(241,231,210,0.2)"; ctx.fillRect(x - (i % 3 === 0 ? 1 : 0.5), y0 + 4, i % 3 === 0 ? 2 : 1, h - 8);
+    }
+    ctx.textAlign = "center"; ctx.textBaseline = "middle";
+    for (const m of run.marks) {
+      const x = px + (m.t - t) * pps, x2 = m.t2 !== undefined ? px + (m.t2 - t) * pps : x;
+      if (x2 < -20 || x > W + 20) continue;
+      const yc = y0 + h / 2;
+      if (m.kind === "hold") {
+        ctx.fillStyle = "rgba(221,164,59,0.35)"; ctx.fillRect(x, yc - 5, x2 - x, 10);
+        ctx.fillStyle = "#DDA43B"; ctx.beginPath(); ctx.arc(x, yc, 9, 0, 7); ctx.fill();
+        ctx.strokeStyle = "#DDA43B"; ctx.lineWidth = 3; ctx.fillStyle = "#141B25"; ctx.beginPath(); ctx.arc(x2, yc, 8, 0, 7); ctx.fill(); ctx.stroke();
+      } else {
+        ctx.fillStyle = m.kind === "step" ? "#8FB4D1" : "#DDA43B"; ctx.beginPath(); ctx.arc(x, yc, 11, 0, 7); ctx.fill();
+        ctx.fillStyle = "#141B25"; ctx.font = "bold 15px " + font();
+        ctx.fillText(m.kind === "spin" ? "⟳" : m.kind === "pose" ? "★" : { l: "←", r: "→", u: "↑", d: "↓" }[m.dir], x, yc + 1);
+      }
+    }
+    // Linie
+    ctx.fillStyle = "#C23B2A"; ctx.fillRect(px - 1.5, y0 - 3, 3, h + 6);
+    // Hinweis zum nächsten Element
+    const nx = PROG.elements.find((e) => { const [a, b] = elWindow(e, bt); return b > t && a - 2.6 < t; });
+    if (nx && (S.help === "anf" || t < 8)) {
+      const hint = { jump: canHover() ? "Leertaste drücken, halten, loslassen" : "drücken, halten, loslassen", spin: canHover() ? "kreisen oder Leertaste auf jedes ⟳" : "mit dem Finger kreisen, jede Runde auf ⟳",
+        steps: canHover() ? "Pfeiltasten oder wischen" : "in Pfeilrichtung wischen", pose: "tippen auf den Schlussakkord" }[nx.kind];
+      ctx.font = "600 14px " + font();
+      const txt = nx.name.toUpperCase() + "  ·  " + hint, tw = ctx.measureText(txt).width + 22;
+      ctx.fillStyle = "rgba(241,231,210,0.92)"; ctx.fillRect(W / 2 - tw / 2, y0 - 30, tw, 22);
+      ctx.fillStyle = "#141B25"; ctx.fillText(txt, W / 2, y0 - 18.5);
+    }
+  }
+  function drawRing(fx, fy, s, t) {
+    if (S.help !== "anf") return;
+    for (const m of run.marks) {
+      if (m.kind !== "hold") continue;
+      const lead = m.t - t;
+      if (lead > 0 && lead < 1.4) {
+        const r = (26 + lead * 48) * s; ctx.strokeStyle = `rgba(243,201,105,${0.9 - lead * 0.5})`; ctx.lineWidth = 3;
+        ctx.beginPath(); ctx.ellipse(fx, fy - 30 * s, r, r * 0.9, 0, 0, 7); ctx.stroke();
+      }
+      const j = run.jump && run.jump.el === m.el ? run.jump : null;
+      if (j && j.t1 === null && t >= j.t0 && t < m.t2 + 0.5) {
+        const u = clamp((t - j.t0) / (m.t2 - j.t0), 0, 1), R = 30 * s;
+        ctx.strokeStyle = "rgba(241,231,210,0.35)"; ctx.lineWidth = 5; ctx.beginPath(); ctx.arc(fx, fy - 70 * s, R * 0.5, 0, 7); ctx.stroke();
+        ctx.strokeStyle = "#F3C969"; ctx.beginPath(); ctx.arc(fx, fy - 70 * s, R * 0.5, -Math.PI / 2, -Math.PI / 2 + u * Math.PI * 2); ctx.stroke();
+      }
+    }
+  }
+  function drawPops() {
+    const now = performance.now();
+    run.pops = run.pops.filter((p) => now - p.t < 1300).slice(-4);
+    ctx.textAlign = "center"; ctx.font = "700 17px " + font();
+    run.pops.forEach((p, i) => {
+      const a = (now - p.t) / 1300, y = 70 + i * 24 - a * 14;
+      ctx.globalAlpha = 1 - a * a; ctx.lineWidth = 4; ctx.strokeStyle = "#141B25"; ctx.strokeText(p.text, W / 2, y); ctx.fillStyle = p.col; ctx.fillText(p.text, W / 2, y);
+    });
+    ctx.globalAlpha = 1;
+  }
+  let lastFrame = performance.now(), idleP = 0;
+  function frame(now) {
+    requestAnimationFrame(frame);
+    const dt = Math.min(0.05, (now - lastFrame) / 1000); lastFrame = now;
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    if (!run) { idle(dt); return; }
+    if (run.fake && !run.manual) run.fakeT += dt;
+    const t = songTime(); run.lastT = t;
+    render(t, dt);
+    if (!run.finished && t > run.bt[run.bt.length - 1] + 2.2) finish();
+  }
+  function render(t, dt) {
+    const st = figureState(t, dt);
+    const fy = SC.footY(st.d), s = SC.scaleAt(st.d);
+    const target = clamp(st.x - W / 2 + st.dir * 60, 0, WW - W);
+    run.camX += (target - run.camX) * Math.min(1, dt * 2.2);
+    scene.draw(ctx, run.camX);
+    const fx = st.x - run.camX;
+    ctx.fillStyle = "rgba(20,27,37,0.18)"; ctx.beginPath(); ctx.ellipse(fx, fy + 3, 18 * s * (1 - st.lift / 120), 4 * s, 0, 0, 7); ctx.fill();
+    drawRing(fx, fy, s, t);
+    F.draw(ctx, { x: fx, y: fy, s, dir: st.dir, pose: st.pose, lift: st.lift, turn: st.turn, tilt: st.tilt, look: S.look });
+    drawLane(t); drawPops();
+    updateChips(t);
+  }
+  function idle(dt) {
+    idleP += dt;
+    const x = WW / 2 + 420 * Math.sin(idleP / 5), d = 0.55 + 0.25 * Math.sin(idleP / 3), camX = clamp(x - W * 0.62, 0, WW - W);
+    scene.draw(ctx, camX);
+    const pose = F.mix(F.POSES.stroke, F.POSES.glide, smooth((Math.sin(idleP * 2.4) + 1) / 2));
+    F.draw(ctx, { x: x - camX, y: SC.footY(d), s: SC.scaleAt(d), dir: Math.cos(idleP / 5) >= 0 ? 1 : -1, pose, look: S.look });
+  }
+
+  // ------------------------------------------------------------------ Ergebnis
+  function finish() {
+    const r = run; r.finished = true;
+    if (player && player.playing) player.stop();
+    const res = K.judge(PROG, r.bt, r.inputs, { k: r.k });
+    S.runs++;
+    let board = null, rank = 0;
+    if (r.mode === "comp") {
+      board = K.field(r.seed, 5).concat([{ name: S.name || "Du", nat: S.nat, tes: res.tes, pcsTotal: res.pcsTotal, ded: res.ded, total: res.total, me: true }]);
+      board.sort((a, b) => b.total - a.total); rank = board.findIndex((x) => x.me) + 1;
+      if (res.total > S.best) S.best = res.total;
+    } else if (res.total > S.bestTrain) S.bestTrain = res.total;
+    save();
+    sfx("applause");
+    $("hud").hidden = true;
+    showResult(res, board, rank);
+    window.__ek.last = res;
+  }
+  function tipFor(res) {
+    const tm = res.timing;
+    if (!tm) return "Tipp: Drück auf ● und lass auf ○ los, genau wenn die Zeichen die rote Linie erreichen.";
+    if (res.falls) return "Tipp: Ein Sturz kommt vom Loslassen weit neben dem ○. Halte, bis das ○ die Linie erreicht.";
+    if (tm.bias > 40) return `Du liegst im Schnitt ${tm.bias} ms zu spät. Mit Bluetooth-Kopfhörern hilft „Verzögerung“ in den Einstellungen.`;
+    if (tm.bias < -40) return `Du bist im Schnitt ${-tm.bias} ms zu früh: lass den Schlag kommen, dann erst tippen.`;
+    const weak = res.els.filter((e) => e.kind !== "pose" && e.status !== "ok");
+    if (weak.length) return `Am meisten Punkte liegen noch in: ${weak.map((e) => e.name).join(", ")}.`;
+    return tm.mean <= 60 ? "Stark im Takt. Probier „Experte“ in den Einstellungen: ohne Ring und mit engerem Fenster." : "Gut. Je näher an der Linie, desto mehr Ausführungspunkte (GOE).";
+  }
+  function showResult(res, board, rank) {
+    $("rKick").textContent = `${SC.PLACES.wien.venue.toUpperCase()} · ${run.mode === "comp" ? "KÜR · WETTKAMPF" : "TRAINING"}`;
+    $("rTotal").textContent = dec(res.total);
+    $("rRank").textContent = board ? nb(`Platz ${rank} von ${board.length}`) : "Punkte";
+    $("rSplit").innerHTML = nb(`Technik ${dec(res.tes)} · Komponenten ${dec(res.pcsTotal)} (Komposition ${dec(res.pcs.comp)}, Präsentation ${dec(res.pcs.pres)}, Können ${dec(res.pcs.skill)})`)
+      + (res.ded ? ` · <b>Abzug −${res.ded}</b>` : "");
+    const tm = res.timing;
+    $("rTime").innerHTML = tm ? `<b>Ø ${tm.mean}&nbsp;ms</b><span>durchschnittliche Abweichung vom Takt: ${tm.word}<br>Tendenz ${sg(tm.bias)}&nbsp;ms (${tm.tend}) · ${tm.perfect} von ${tm.n} perfekt</span>`
+      : `<b>–</b><span>keine Eingabe im Takt</span>`;
+    $("rEls").innerHTML = res.els.filter((e) => e.kind !== "pose" || e.status === "ok").map((e) => {
+      const lv = e.level ? ` <small>Stufe ${e.level}</small>` : "";
+      const goe = e.status === "miss" || e.kind === "pose" ? "" : sg(e.goe);
+      return `<tr class="${e.status}"><td class="e">${esc(e.name)}${lv}</td><td class="n">${e.kind === "pose" ? "" : dec(e.status === "miss" ? 0 : (e.base || 0))}</td><td class="n">${goe}</td><td class="n">${e.kind === "pose" ? "✓" : dec(e.score)}</td><td class="why">${esc(nb(e.note || ""))}</td></tr>`;
+    }).join("");
+    $("rBoard").innerHTML = board ? board.map((b, i) => `<tr class="${b.me ? "me" : ""}"><td class="n">${i + 1}.</td><td class="nm">${esc(b.name)} <small>${b.nat}</small></td><td class="n">${dec(b.total)}</td></tr>`).join("")
+      : `<tr><td>Bestes Training</td><td class="n">${dec(S.bestTrain)}</td></tr><tr><td>Bester Wettkampf</td><td class="n">${dec(S.best)}</td></tr>`;
+    $("rTip").textContent = tipFor(res);
+    show("scrRes");
+  }
+
+  // ------------------------------------------------------------------ Bildschirme
+  const SCREENS = ["scrMenu", "scrLook", "scrSet", "scrIntro", "scrRes", "scrInfo"];
+  function show(id) { for (const s of SCREENS) $(s).hidden = s !== id; if (id === "scrMenu") fillMenu(); }
+  function fillMenu() {
+    const P = SC.PLACES.wien;
+    $("mPlace").textContent = `${P.venue} · ${P.name}`; $("mFact").textContent = P.fact;
+    $("mBest").textContent = S.best ? nb(`Bestwert ${dec(S.best)} Punkte`) : "gegen fünf andere, zum Donauwalzer";
+    $("mFoot").textContent = `Version ${VERSION} · inoffizielles Fanspiel · Musik gemeinfrei, eigener Satz`;
+  }
+  let pendingMode = "comp";
+  function intro(mode) {
+    pendingMode = mode;
+    $("iKick").textContent = mode === "comp" ? "KÜR · WETTKAMPF · WIEN" : "TRAINING · WIEN";
+    const d = canHover();
+    $("hJump").textContent = d ? "Leertaste auf ● drücken, halten, auf ○ loslassen." : "Auf ● drücken, halten, auf ○ loslassen.";
+    $("hSpin").textContent = d ? "Mit der Maus kreisen oder Leertaste auf jedes ⟳." : "Mit dem Finger kreisen: jede Runde endet auf einem ⟳.";
+    $("hStep").textContent = d ? "Pfeiltasten oder Maus in Pfeilrichtung schwingen." : "In Pfeilrichtung wischen, genau auf den Schlag.";
+    $("hPose").textContent = "Auf den Schlussakkord tippen.";
+    show("scrIntro");
+  }
+  $("bComp").onclick = () => { unlock(); if (!S.name) { openLook(() => intro("comp")); return; } intro("comp"); };
+  $("bTrain").onclick = () => { unlock(); intro("train"); };
+  $("iGo").onclick = () => { unlock(); startRun(pendingMode); };
+  $("abort").onclick = abortRun;
+  $("rAgain").onclick = () => { unlock(); startRun(run ? run.mode : "comp"); };
+  $("rMenu").onclick = () => { run = null; show("scrMenu"); };
+
+  // Gestalten
+  let lookNext = null;
+  const lcv = $("lookCv"), lctx = lcv.getContext("2d");
+  function drawLook() {
+    lctx.setTransform(1, 0, 0, 1, 0, 0); lctx.clearRect(0, 0, lcv.width, lcv.height);
+    F.draw(lctx, { x: 100, y: 225, s: 2.2, dir: 1, pose: F.POSES.final, look: S.look });
+  }
+  function opts(id, n, label, sel, set, col) {
+    const el = $(id); el.innerHTML = "";
+    for (let i = 0; i < n; i++) {
+      const b = document.createElement("button");
+      if (col) { b.className = "sw" + (i === sel() ? " on" : ""); b.style.background = col[i]; b.setAttribute("aria-label", label(i)); }
+      else { b.className = "pill" + (i === sel() ? " on" : ""); b.textContent = label(i); }
+      b.onclick = () => { set(i); save(); opts(id, n, label, sel, set, col); drawLook(); };
+      el.appendChild(b);
+    }
+  }
+  function openLook(next) {
+    lookNext = next || null;
+    $("lName").value = S.name;
+    $("lNat").innerHTML = Object.entries(NAT).map(([k, v]) => `<option value="${k}"${k === S.nat ? " selected" : ""}>${v}</option>`).join("");
+    const L = S.look;
+    opts("oHair", F.HAIRS.length, (i) => F.HAIRS[i], () => L.hair, (i) => (L.hair = i));
+    opts("oHairC", F.HAIRC.length, (i) => "Haarfarbe " + (i + 1), () => L.hairC, (i) => (L.hairC = i), F.HAIRC);
+    opts("oSkin", F.SKIN.length, (i) => "Hautton " + (i + 1), () => L.skin, (i) => (L.skin = i), F.SKIN);
+    opts("oSuit", F.SUIT.length, (i) => "Kostüm " + (i + 1), () => L.suit, (i) => (L.suit = i), F.SUIT);
+    opts("oAcc", F.SUIT.length, (i) => "Streifen " + (i + 1), () => L.accent, (i) => (L.accent = i), F.SUIT);
+    drawLook(); show("scrLook");
+  }
+  $("lName").oninput = (e) => { const v = e.target.value.replace(/[<>&"]/g, "").slice(0, 14); if (v !== e.target.value) e.target.value = v; S.name = v; save(); };
+  $("lNat").onchange = (e) => { if (NAT[e.target.value]) { S.nat = e.target.value; save(); } };
+  $("lDone").onclick = () => { S.name = S.name.trim(); save(); const n = lookNext; lookNext = null; if (n) n(); else show("scrMenu"); };
+  $("bLook").onclick = () => openLook();
+
+  // Einstellungen
+  function fillSet() {
+    const pills = (id, list, cur, set) => { const el = $(id); el.innerHTML = ""; for (const [v, t] of list) { const b = document.createElement("button"); b.className = "pill" + (v === cur ? " on" : ""); b.textContent = t; b.onclick = () => { set(v); save(); fillSet(); }; el.appendChild(b); } };
+    pills("sHelp", [["anf", "Anfänger"], ["pro", "Experte"]], S.help, (v) => (S.help = v));
+    pills("sPreset", Object.entries(M.PRESETS).map(([k, v]) => [k, v.name]), S.preset, (v) => (S.preset = v));
+    pills("sSound", [[1, "An"], [0, "Aus"]], S.sound, (v) => (S.sound = v));
+    $("sLat").textContent = nb(`${S.lat} ms`);
+  }
+  $("sLm").onclick = () => { S.lat = clamp(S.lat - 10, -200, 400); save(); fillSet(); };
+  $("sLp").onclick = () => { S.lat = clamp(S.lat + 10, -200, 400); save(); fillSet(); };
+  $("bSet").onclick = () => { fillSet(); show("scrSet"); };
+  $("sDone").onclick = () => show("scrMenu");
+
+  // Info: Fanspiel, Musik, Ort mit Quelle, Datenschutz, Impressum
+  function openInfo() {
+    const P = SC.PLACES.wien, im = SITE.impressum || {};
+    $("ifKick").textContent = `COLD MEDAL · EISKUNSTLAUF · VERSION ${VERSION}`;
+    $("ifPlace").textContent = `${P.venue}: ${P.fact} Quelle: ${P.src}. Die Kulisse ist frei nachempfunden.`;
+    const lines = [im.name, im.adresse, im.mail].filter((x) => typeof x === "string" && x.trim());
+    $("ifImp").innerHTML = lines.length ? lines.map(esc).join("<br>") : "Privates Spieleprojekt, nicht kommerziell.";
+    const hoster = typeof SITE.hoster === "string" && SITE.hoster.trim() ? SITE.hoster.trim() : "";
+    const third = typeof SITE.drittland === "string" && SITE.drittland.trim() ? " " + SITE.drittland.trim() : "";
+    $("ifPriv").textContent = `Verantwortlich ist ${lines.length ? "der Herausgeber im Impressum" : "der Herausgeber"}. ${hoster ? `Die Seite liegt bei ${hoster}; beim Aufruf` : "Beim Aufruf der Seite"} verarbeitet der Webserver technisch nötige Daten wie deine IP-Adresse (berechtigtes Interesse, Art. 6 Abs. 1 lit. f DSGVO).${third} Du hast das Recht auf Auskunft, Berichtigung, Löschung, Einschränkung und Widerspruch sowie auf Beschwerde bei der Datenschutzbehörde.`;
+    show("scrInfo");
+  }
+  $("bInfo").onclick = openInfo;
+  $("ifDone").onclick = () => show("scrMenu");
+  // eigenes Hosting: offline spielbar
+  if (SITE.web && "serviceWorker" in navigator && (location.protocol === "https:" || location.hostname === "localhost")) navigator.serviceWorker.register("sw.js").catch(() => {});
+
+  document.addEventListener("visibilitychange", () => { if (document.hidden && run && !run.finished) abortRun(); });
+
+  // ------------------------------------------------------------------ Testzugang
+  window.__ek = {
+    VERSION, get S() { return S; }, get run() { return run; }, sanitize, K, M,
+    test(on) { testMode = !!on; },
+    start(mode) { startRun(mode || "comp", { fake: true }); run.manual = true; },
+    // Zeit vorspulen in kleinen Schritten (Bild wird mitgerechnet)
+    step(sec) { const n = Math.ceil(sec / 0.02); for (let i = 0; i < n && run && !run.finished; i++) { run.fakeT += sec / n; render(run.fakeT, sec / n); if (run.fakeT > run.bt[run.bt.length - 1] + 2.2) finish(); } },
+    stepTo(t) { if (run) this.step(Math.max(0, t - run.fakeT)); },
+    input: addInput,
+    // ganze Kür mit Eingaben um off Sekunden versetzt
+    autoplay(off) {
+      const ins = K.perfectInputs(PROG, run.bt, off || 0);
+      for (const i of ins) { this.stepTo(i.t); addInput(i.type, i.dir); }
+      this.stepTo(run.bt[run.bt.length - 1] + 2.5);
+    },
+    fig(t) { return figureState(t, 0); },
+    screen() { return SCREENS.find((s) => !$(s).hidden) || (run ? "run" : ""); },
+  };
+
+  fillMenu(); show("scrMenu");
+  requestAnimationFrame(frame);
+})();
+</script>
+</body>
+</html>
