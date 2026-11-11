@@ -834,48 +834,103 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
     ctx.restore();
   }
 
-  // Figur zeichnen: x, y = Kufe auf dem Eis; s Maßstab; dir 1 = nach rechts; turn = Drehwinkel (Sprung, Pirouette); lift = Höhe
+  // Figur zeichnen: x, y = Kufe auf dem Eis; s Maßstab; dir 1 = nach rechts; lift = Höhe; tilt = Kippen (Sturz)
+  // turn = Drehung um die eigene Achse (Sprung, Pirouette). Die Pose ist ein Seitenprofil (x vorn, y unten); jedes Gelenk bekommt
+  // eine Tiefe z (Schultern und Hüfte haben Breite), dann wird um die senkrechte Achse gedreht und von hinten nach vorn gezeichnet.
+  // So bleiben Rumpf und Kopf beim Drehen rund, und Arme, Beine und Frisur wandern um den Körper.
+  const Z = { sh: 6.2, hip: 3.2 };
   function draw(ctx, o) {
     const L = o.look || DEF_LOOK, p = o.pose, s = o.s || 1;
-    const skin = SKIN[L.skin], suit = SUIT[L.suit], suitD = shade(suit, 0.78), acc = SUIT[L.accent === L.suit ? (L.suit + 3) % SUIT.length : L.accent];
+    const skin = SKIN[L.skin], suit = SUIT[L.suit], suitD = shade(suit, 0.8), acc = SUIT[L.accent === L.suit ? (L.suit + 3) % SUIT.length : L.accent];
+    const th = o.turn || 0, c = Math.cos(th), sn = Math.sin(th);
     ctx.save();
     ctx.translate(o.x, o.y - (o.lift || 0) * s);
     if (o.tilt) ctx.rotate(o.tilt);
-    const cw = Math.cos(o.turn || 0), sx = Math.sign(cw || 1) * Math.max(0.28, Math.abs(cw));
-    ctx.scale(s * (o.dir || 1) * sx, s);
+    ctx.scale(s * (o.dir || 1), s);
     ctx.lineCap = "round"; ctx.lineJoin = "round";
-    // Standbein bestimmt die Hüfte
+    // Profil-Gelenke (wie bisher)
     const sHip = p.sL[0], sKn = p.sL[0] - p.sL[1];
     const t1 = vec(sHip, LEN.thigh), t2 = vec(sKn, LEN.shin);
-    const hip = [-(t1[0] + t2[0]), -(t1[1] + t2[1]) + 0];
+    const hip = [-(t1[0] + t2[0]), -(t1[1] + t2[1])];
     const knee = [hip[0] + t1[0], hip[1] + t1[1]], ank = [0, 0];
     const fK = vec(p.fL[0], LEN.thigh), fKn = [hip[0] + fK[0], hip[1] + fK[1]], fS = vec(p.fL[0] - p.fL[1], LEN.shin), fAn = [fKn[0] + fS[0], fKn[1] + fS[1]];
     const nk = [hip[0] + Math.sin(rad(p.lean)) * LEN.torso, hip[1] - Math.cos(rad(p.lean)) * LEN.torso];
     const sh = [nk[0], nk[1] + 2.5];
     const arm = (a) => { const u = vec(a[0], LEN.ua), e = [sh[0] + u[0], sh[1] + u[1]], f = vec(a[0] + a[1], LEN.fa); return [sh, e, [e[0] + f[0], e[1] + f[1]]]; };
     const aB = arm(p.aB), aF = arm(p.aF);
-    // hinten: Spielbein, hinterer Arm
-    limb(ctx, [hip, fKn, fAn], 5, suitD); boot(ctx, fAn, p.fL[0] - p.fL[1]);
-    limb(ctx, aB, 3.4, suitD);
-    ctx.beginPath(); ctx.arc(aB[2][0], aB[2][1], 2.1, 0, 7); ctx.fillStyle = skin; ctx.strokeStyle = INK; ctx.lineWidth = 1.1; ctx.fill(); ctx.stroke();
-    limb(ctx, [hip, knee, ank], 5.2, suit); boot(ctx, ank, sKn);
-    // Rumpf: Einteiler mit Schrägstreifen
-    ctx.save(); ctx.translate(hip[0], hip[1]); ctx.rotate(rad(p.lean));
-    ctx.beginPath(); ctx.moveTo(-6.2, 2.5); ctx.lineTo(-4.6, -6); ctx.bezierCurveTo(-5, -10, -8, -18, -7, -28 + 2.5);
-    ctx.lineTo(7, -28 + 2.5); ctx.bezierCurveTo(8, -18, 5, -10, 4.6, -6); ctx.lineTo(6.2, 2.5); ctx.closePath();
-    ctx.fillStyle = suit; ctx.strokeStyle = INK; ctx.lineWidth = 1.5; ctx.fill(); ctx.stroke();
-    ctx.beginPath(); ctx.moveTo(-6.2, -12.5); ctx.lineTo(6.6, -20.5); ctx.lineTo(6.9, -17); ctx.lineTo(-5.6, -9); ctx.closePath(); ctx.fillStyle = acc; ctx.fill();
-    // Hals und Kopf
-    ctx.fillStyle = skin; ctx.fillRect(-1.8, -30.5, 3.6, 4.5);
-    ctx.translate(0, -35.5);
-    ctx.strokeStyle = INK; ctx.lineWidth = 1.3;
-    const H = HAIRP[L.hair], hc = HAIRC[L.hairC];
-    for (const b of H.back) shape(ctx, b, hc);
-    ctx.beginPath(); ctx.arc(0, 0, 6.2, 0, 7); ctx.fillStyle = skin; ctx.lineWidth = 1.5; ctx.fill(); ctx.stroke();
-    ctx.lineWidth = 1.3; for (const t of H.top) shape(ctx, t, hc);
+    // Drehachse: senkrecht durch die Hüfte (Sprung) bzw. die Kufe (Pirouette steht ohnehin darüber)
+    const ax = hip[0];
+    // Punkt (Profil x, y, Tiefe z) → Bild [x, y, Tiefe zum Betrachter]
+    const P = (q, z) => { const x = q[0] - ax; return [ax + x * c - z * sn, q[1], x * sn + z * c]; };
+    const depth = (pts) => pts.reduce((m, q) => m + q[2], 0) / pts.length;
+    const parts = [];
+    // Arme und Beine: Schulter bzw. Hüfte seitlich versetzt, Hände und Füße etwas weiter außen
+    const limb3 = (pts, z0, z1, w, col, foot, hand) => {
+      const q = pts.map((pt, i) => P(pt, z0 + (z1 - z0) * i / (pts.length - 1)));
+      parts.push({ d: depth(q), f: () => {
+        limb(ctx, q, w, col);
+        if (hand) { const h = q[q.length - 1]; ctx.beginPath(); ctx.arc(h[0], h[1], 2.1, 0, 7); ctx.fillStyle = skin; ctx.strokeStyle = INK; ctx.lineWidth = 1.1; ctx.fill(); ctx.stroke(); }
+        if (foot !== undefined) bootR(ctx, q[q.length - 1], foot, c);
+      } });
+    };
+    limb3([hip, fKn, fAn], -Z.hip, -Z.hip, 5, suitD, p.fL[0] - p.fL[1]);
+    limb3([hip, knee, ank], Z.hip, Z.hip * 0.6, 5.2, suit, sKn);
+    limb3(aB, -Z.sh, -Z.sh - 2, 3.4, suitD, undefined, true);
+    limb3(aF, Z.sh, Z.sh + 2, 3.4, suit, undefined, true);
+    // Rumpf: Querschnitt als Ellipse (Tiefe im Profil, Breite von vorn); sichtbare halbe Breite je Höhe
+    const hw = (dep, wid) => Math.sqrt((dep * c) ** 2 + (wid * sn) ** 2);
+    const lvl = [[2.5, 6.2, 6.8], [-6, 4.6, 5.4], [-18, 7.2, 7.4], [-25.5, 7, 8.6]]; // [y im Rumpf, Tiefe, Breite]
+    // Mitte des Querschnitts liegt im Profil etwas vor der Wirbelsäule; gedreht wandert sie mit
+    const front = (sn >= 0 ? 1 : -1);
+    parts.push({ d: 0, f: () => {
+      ctx.save(); ctx.translate(P(hip, 0)[0], hip[1]);
+      const lean = rad(p.lean) * c; ctx.rotate(lean);
+      const L2 = lvl.map(([y, dp, wd]) => [y, hw(dp, wd)]);
+      ctx.beginPath(); ctx.moveTo(-L2[0][1], L2[0][0]);
+      for (const [y, w] of L2.slice(1)) ctx.lineTo(-w, y);
+      for (const [y, w] of L2.slice().reverse()) ctx.lineTo(w, y);
+      ctx.closePath(); ctx.fillStyle = suit; ctx.strokeStyle = INK; ctx.lineWidth = 1.5; ctx.fill(); ctx.stroke();
+      // Schrägstreifen vorn (von hinten unsichtbar)
+      const vis = clamp01((Math.abs(c) * 0.9 + sn * 1.2 + 0.2));
+      if (vis > 0.05) {
+        ctx.globalAlpha = vis; const w1 = hw(5.8, 6.2) * 0.98, w2 = hw(7.1, 7.6) * 0.98, dirS = c >= 0 ? 1 : -1;
+        ctx.beginPath(); ctx.moveTo(-w1 * dirS, -12.5 + 0); ctx.lineTo(w2 * dirS, -20.5); ctx.lineTo(w2 * dirS, -17); ctx.lineTo(-w1 * dirS, -9); ctx.closePath();
+        ctx.fillStyle = acc; ctx.fill(); ctx.globalAlpha = 1;
+      }
+      ctx.fillStyle = skin; ctx.fillRect(-1.8, -30.5, 3.6, 4.5);
+      // Kopf: Kreis bleibt rund; Frisur dreht mit (Hinterkopf liegt hinten = −x im Profil)
+      ctx.translate(0, -35.5);
+      const H = HAIRP[L.hair], hc = HAIRC[L.hairC];
+      const hair = (list, behind) => {
+        for (const h of list) {
+          // Tiefe des Haarteils: Hinterkopf (Profil −x) kommt nach vorn, wenn der Rücken zum Betrachter zeigt
+          const hx = h[0] === "C" ? -(+h.split(" ")[1]) : -4, dz = hx * sn;
+          if ((dz > 0.5) === behind) continue;
+          ctx.save(); ctx.scale(-c || -0.01, 1);
+          ctx.strokeStyle = INK; ctx.lineWidth = 1.3 / Math.max(0.3, Math.abs(c)); shape(ctx, h, hc); ctx.restore();
+        }
+      };
+      hair(H.back, false);
+      ctx.beginPath(); ctx.arc(0, 0, 6.2, 0, 7); ctx.fillStyle = skin; ctx.strokeStyle = INK; ctx.lineWidth = 1.5; ctx.fill(); ctx.stroke();
+      // Oberkopf: von vorn als Haaransatz rundum, im Profil wie gezeichnet
+      ctx.save(); ctx.scale(-(Math.abs(c) < 0.35 ? 0.35 * Math.sign(c || 1) : c), 1); ctx.strokeStyle = INK; ctx.lineWidth = 1.3;
+      for (const t of H.top) shape(ctx, t, hc);
+      ctx.restore();
+      if (sn > 0.35) { ctx.beginPath(); ctx.ellipse(0, -2.6, 6.3, 3.6 * sn, 0, Math.PI, 0); ctx.fillStyle = hc; ctx.fill(); ctx.strokeStyle = INK; ctx.lineWidth = 1.2; ctx.stroke(); }
+      else if (sn < -0.35) { ctx.beginPath(); ctx.ellipse(0, -0.6, 6.3, 6.4 * -sn, 0, Math.PI - 0.3, 0.3); ctx.closePath(); ctx.fillStyle = hc; ctx.fill(); ctx.strokeStyle = INK; ctx.lineWidth = 1.2; ctx.stroke(); }
+      hair(H.back, true);
+      ctx.restore();
+    } });
+    parts.sort((a, b2) => a.d - b2.d).forEach((x) => x.f());
     ctx.restore();
-    limb(ctx, aF, 3.4, suit);
-    ctx.beginPath(); ctx.arc(aF[2][0], aF[2][1], 2.1, 0, 7); ctx.fillStyle = skin; ctx.strokeStyle = INK; ctx.lineWidth = 1.1; ctx.fill(); ctx.stroke();
+  }
+  const clamp01 = (v) => (v < 0 ? 0 : v > 1 ? 1 : v);
+  // Stiefel: Länge folgt der Drehung (Fuß zeigt nach vorn)
+  function bootR(ctx, ank, shinDeg, c) {
+    ctx.save(); ctx.translate(ank[0], ank[1]); ctx.scale(Math.sign(c || 1) * Math.max(0.35, Math.abs(c)), 1); ctx.rotate(-rad(shinDeg));
+    ctx.beginPath(); ctx.moveTo(-2.5, -3.5); ctx.lineTo(2.5, -3.5); ctx.lineTo(6, 1); ctx.lineTo(-2.5, 1.6); ctx.closePath();
+    ctx.fillStyle = "#F1E7D2"; ctx.strokeStyle = INK; ctx.lineWidth = 1.3; ctx.fill(); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(-5, 4.2); ctx.lineTo(7.5, 4.2); ctx.lineWidth = 1.6; ctx.stroke();
     ctx.restore();
   }
 
@@ -1013,7 +1068,7 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
 /* COLD MEDAL EISKUNSTLAUF – Ablauf, Bildschirme, Eingabe, Taktband, Ergebnis, Spielstand. */
 (function () {
   "use strict";
-  const VERSION = "0.1";
+  const VERSION = "0.1.1";
   // Seiten-Einstellungen aus dem Build (eigenes Hosting: Adresse, Hoster, Impressum); im claude.ai-Artefakt leer
   const SITE = Object.assign({ web: false, url: "", impressum: null }, {"web": true, "url": "https://matpeins-debug.github.io/cold-medal-eiskunstlauf/", "hoster": "GitHub Pages (GitHub Inc., USA)", "drittland": "GitHub ist nach dem EU-US Data Privacy Framework zertifiziert; die Übermittlung in die USA stützt sich auf den Angemessenheitsbeschluss der EU-Kommission dazu.", "impressum": {"name": "", "adresse": "", "mail": ""}} || {});
   const M = window.EKMusic, K = window.EKSkate, F = window.EKFigure, SC = window.EKScene;
