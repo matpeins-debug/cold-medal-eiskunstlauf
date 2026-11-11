@@ -883,6 +883,12 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
     stepU: { lean: -4, crouch: 0, sL: [0, 2], fL: [-20, 4], aF: [158, -6], aB: [-156, -6] },
     stepD: { lean: 18, crouch: 8, sL: [10, 30], fL: [-46, 6], aF: [70, -10], aB: [-74, -10] },
     final: { lean: -8, crouch: 0, sL: [0, 0], fL: [-26, 0], aF: [168, 6], aB: [-102, -16] },
+    // Choreografie zwischen den Elementen
+    spiral: { lean: 72, crouch: 0, sL: [1, 1], fL: [-118, 0], aF: [112, -12], aB: [-96, -14] },
+    portUp: { lean: 2, crouch: 1, sL: [0, 0], fL: [-48, 2], aF: [150, -14], aB: [-150, -14] },
+    inaBauer: { lean: -22, crouch: 4, sL: [-8, 10], fL: [26, 4], aF: [150, -20], aB: [-120, -20] },
+    flick: { lean: 4, crouch: 2, sL: [2, 6], fL: [-50, 4], aF: [128, -24], aB: [-132, -24] },
+    twizzle: { lean: 0, crouch: 2, sL: [0, 2], fL: [18, 60], aF: [150, 8], aB: [150, 8] },
     fallen: { lean: 10, crouch: 2, sL: [30, 60], fL: [-10, 50], aF: [60, 30], aB: [-30, 40] },
   };
 
@@ -1205,7 +1211,7 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
 /* COLD MEDAL EISKUNSTLAUF – Ablauf, Bildschirme, Eingabe, Taktband, Ergebnis, Spielstand. */
 (function () {
   "use strict";
-  const VERSION = "0.2.1";
+  const VERSION = "0.2.2";
   // Seiten-Einstellungen aus dem Build (eigenes Hosting: Adresse, Hoster, Impressum); im claude.ai-Artefakt leer
   const SITE = Object.assign({ web: false, url: "", impressum: null }, {"web": true, "url": "https://matpeins-debug.github.io/cold-medal-eiskunstlauf/", "hoster": "GitHub Pages (GitHub Inc., USA)", "drittland": "GitHub ist nach dem EU-US Data Privacy Framework zertifiziert; die Übermittlung in die USA stützt sich auf den Angemessenheitsbeschluss der EU-Kommission dazu.", "impressum": {"name": "", "adresse": "", "mail": ""}} || {});
   const M = window.EKMusic, K = window.EKSkate, F = window.EKFigure, SC = window.EKScene;
@@ -1484,6 +1490,22 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
     r.face += Math.sign(df) * Math.min(Math.abs(df), dt * 3.6);
     let pose = F.strokePose(inBar), lift = 0, turn = 0, tilt = 0;
     r.swap = bar % 2 !== 0;
+    // Choreografie zur Melodie, wenn gerade kein Element läuft. Jede Phrase hat 4 Takte:
+    // 1 „da da da“ = Laufschritt, 2 langer Ton = Spirale / Arme heben / Ina Bauer, 3 „pam pam“ = Armakzente, 4 „pam pam“ = Twizzle-Drehung
+    const free = !el || (el.kind === "pose" && t < bt[el.at] - 0.8);
+    if (free && t > bt[12] - 0.2) {
+      const rel = bar - 4, pos = ((rel % 4) + 4) % 4, phrase = Math.floor(rel / 4), k = bi % 3;
+      if (pos === 1) {
+        const ch = [F.POSES.spiral, F.POSES.portUp, F.POSES.inaBauer][((phrase % 3) + 3) % 3];
+        pose = F.mix(pose, ch, smooth(inBar / 0.25) * smooth((1 - inBar) / 0.2));
+      } else if (pos === 2 && k > 0) {
+        const a = 1 - clamp((t - bt[bi]) / 0.3, 0, 1);
+        pose = F.mix(pose, F.POSES.flick, a * a);
+      } else if (pos === 3 && rel >= 0) {
+        const u = clamp((inBar - 0.34) / 0.6, 0, 1);
+        if (u > 0 && u < 1) { pose = F.mix(pose, F.POSES.twizzle, Math.sin(Math.PI * u)); turn += smooth(u) * Math.PI * 2; }
+      }
+    }
     if (el && el.kind === "jump") {
       const j = r.jump && r.jump.el === el ? r.jump : null;
       if (!j || t < j.t0) pose = F.mix(pose, F.POSES.prep, smooth(1 - (bt[el.tk] - t) / 0.9));
