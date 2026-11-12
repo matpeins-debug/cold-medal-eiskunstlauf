@@ -339,6 +339,7 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
       <div class="kicker" id="ifKick"></div>
       <div class="ifBody">
         <h3>Fanspiel</h3><p>Inoffizielles Fanspiel ohne Verbindung zur Internationalen Eislaufunion (ISU), zu Verbänden oder Veranstaltern. Alle Läuferinnen und Läufer sind erfunden; Elemente und Wertung folgen dem echten Sport, in eigenen Worten.</p>
+        <h3>Wertung</h3><p>Technik: Grundwert jedes Elements mal GOE (Abweichung vom Schlag). Komponenten: Komposition (Plan und Choreo-Note), Präsentation (Takt 60 %, Ausdruck 20 %: Choreo-Figuren ✦ auf den Schlag getippt, Ausstrahlung 20 %: Schlusspose, ohne Sturz, längste Serie sauberer Elemente) und läuferisches Können. Sturz −1.</p>
         <h3>Musik</h3><p>Johann Strauss (Sohn), „An der schönen blauen Donau“ (1867); Émile Waldteufel, „Die Schlittschuhläufer“ (1882); Iosif Ivanovici, „Donauwellen“ (1880); Johannes Brahms, Wiegenlied „Guten Abend, gut' Nacht“ (1868). Alle gemeinfrei; eigener, vereinfachter Satz, im Browser erzeugt, keine Aufnahme.</p>
         <h3>Ort</h3><p id="ifPlace"></p>
         <h3>Datenschutz</h3><p>Kein Konto, keine Werbung, keine Cookies, keine Analyse. Name, Aussehen, Bestwerte und Einstellungen speichert das Spiel nur im Browser auf diesem Gerät; es sendet nichts an einen Server.</p><p id="ifPriv"></p>
@@ -965,7 +966,10 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
     slots.forEach((id, i) => {
       if (!id || id === "~") return;
       const c = CATALOG[id], bar = sec.first + sec.len * i;
-      if (c.kind === "choreo") { choreo[i] = id; return; }
+      if (c.kind === "choreo") {
+        // Ausdruck: die Figur wird auf der Eins des zweiten Takts getroffen (tippen) – zählt zur Präsentation
+        choreo[i] = id; els.push({ id, kind: "expr", name: c.name, short: "✦", slot: i, at: (bar + 1) * 3 }); return;
+      }
       const base = { id, kind: c.kind, name: c.name, short: c.short, w: c.w, slot: i };
       if (c.kind === "jump" && c.combo) {
         // zwei Teile: der zweite springt einen Schlag nach der Landung ab
@@ -1064,7 +1068,14 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
     return { status: "ok", score: 0, goe: 0, devs: [ms(d.t - tg)], note: "auf den Schlussakkord" };
   }
 
-  const JUDGE = { jump: judgeJump, spin: judgeSpin, steps: judgeSteps, pose: judgePose };
+  function judgeExpr(e, bt, inp, k) {
+    const tg = bt[e.at]; let d = null;
+    for (const x of inp) if (x.type === "down" && Math.abs(x.t - tg) <= WIN.pose * k && (!d || Math.abs(x.t - tg) < Math.abs(d.t - tg))) d = x;
+    if (!d) return { status: "miss", score: 0, goe: 0, devs: [], note: "Figur nicht getroffen" };
+    const dv = ms(d.t - tg);
+    return { status: "ok", score: 0, goe: 0, devs: [dv], q: Math.abs(dv) <= 60 ? 1 : Math.abs(dv) <= 120 ? 0.7 : 0.4, note: "Ausdruck auf den Schlag" };
+  }
+  const JUDGE = { jump: judgeJump, spin: judgeSpin, steps: judgeSteps, pose: judgePose, expr: judgeExpr };
 
   // ganze Kür werten. bt: Schlagzeiten ab Musikbeginn (EKMusic.grid), inputs zeitlich sortiert, opt.k: Großzügigkeit
   function judge(prog, bt, inputs, opt) {
@@ -1073,7 +1084,7 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
     // Höhepunkt der Musik: sauberes Element dort +1 GOE
     const peak = (prog.sec && prog.sec.peak) || [];
     els.forEach((x) => {
-      if (x.kind === "pose" || x.status !== "ok" || !peak.includes(x.slot) || x.land === "hand" || x.land === "wobble") return;
+      if (x.kind === "pose" || x.kind === "expr" || x.status !== "ok" || !peak.includes(x.slot) || x.land === "hand" || x.land === "wobble") return;
       x.peak = true; x.goe = Math.min(5, x.goe + 1); x.score = r2((x.base || 0) * (1 + x.goe / 10)); x.note = (x.note ? x.note + " · " : "") + "auf dem Höhepunkt";
     });
     // Kombinationen: zweiter Teil zählt nur nach einem stehenden ersten; in der Liste als eine Zeile
@@ -1091,18 +1102,26 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
     const falls = els.filter((x) => x.status === "fall").length;
     const all = [].concat(...els.map((x) => x.devs));
     const tim = root.EKMusic ? root.EKMusic.timingStats(all) : null;
-    const scored = els.filter((x) => x.kind !== "pose" && !x.inCombo), done = scored.filter((x) => x.status !== "miss").length / scored.length;
+    const scored = els.filter((x) => x.kind !== "pose" && x.kind !== "expr" && !x.inCombo), done = scored.filter((x) => x.status !== "miss").length / scored.length;
     const meanDev = all.length ? mean(all) : 400, pose = els.find((x) => x.kind === "pose");
     // Komposition: die geplante Choreografie (Musik, Bogen, Abwechslung, Kostüm) zählt bis 1,5 Punkte, Höhepunkt genutzt 0,25
     const pl = plan(prog.slots || [], prog.look, prog.music), variety = pl.total * 0.15 + (els.some((x) => x.peak) ? 0.25 : 0);
     const pcs = {
       comp: q4(clamp(3 + 4.5 * done + (pose && pose.status === "ok" ? 1.25 : 0) - 0.75 * falls + variety, 1.5, 9.75)),
-      pres: q4(clamp(10 - meanDev / k / 22, 1.5, 9.75)),
+      pres: 0,
       skill: q4(clamp(3 + 6.5 * done - 1.5 * falls + (meanDev < 60 ? 0.5 : 0), 1.5, 9.75)),
     };
+    // Präsentation wie im echten Sport: Takt (Ø Abweichung), Ausdruck (Choreo-Figuren auf den Schlag getroffen),
+    // Ausstrahlung (Schlusspose, ohne Sturz, längste Serie sauberer Elemente)
+    const takt = clamp(10 - meanDev / k / 22, 0, 10), ex = els.filter((x) => x.kind === "expr");
+    const ausdruck = ex.length ? clamp(3 + 7 * ex.reduce((a, x) => a + (x.q || 0), 0) / ex.length, 0, 10) : 4;
+    let run0 = 0, longest = 0; for (const x of scored) { const y = x.row || x; if (x.status === "ok" && y.goe >= 1) { run0++; longest = Math.max(longest, run0); } else run0 = 0; }
+    const ausstrahlung = clamp(2 + (pose && pose.status === "ok" ? 3 : 0) + (falls ? 0 : 2) + 3 * (scored.length ? longest / scored.length : 0), 0, 10);
+    pcs.pres = q4(clamp(0.6 * takt + 0.2 * ausdruck + 0.2 * ausstrahlung, 1.5, 9.75));
+    const presParts = { takt: r2(takt), ausdruck: r2(ausdruck), ausstrahlung: r2(ausstrahlung), expr: ex.length, exprOk: ex.filter((x) => x.status === "ok").length };
     const pcsTotal = r2((pcs.comp + pcs.pres + pcs.skill) * PCS_FACTOR);
     const ded = falls;
-    return { els, tes, pcs, pcsTotal, ded, falls, total: r2(tes + pcsTotal - ded), timing: tim, devs: all, plan: pl };
+    return { els, tes, pcs, pcsTotal, ded, falls, total: r2(tes + pcsTotal - ded), timing: tim, devs: all, plan: pl, presParts };
   }
 
   // perfekte Eingaben für eine Kür (Tests, Vorführung); off = Abweichung in Sekunden
@@ -1112,6 +1131,7 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
       if (e.kind === "jump") out.push({ t: bt[e.tk] + off, type: "down" }, { t: bt[e.land] + off, type: "up" });
       else if (e.kind === "spin") for (let i = 1; i <= e.turns; i++) out.push({ t: bt[e.from + 3 * i] + off, type: "circle" });
       else if (e.kind === "steps") for (const [b, dir] of e.arrows) out.push({ t: bt[b] + off, type: "swipe", dir });
+      else if (e.kind === "expr") out.push({ t: bt[e.at] + off, type: "down" }, { t: bt[e.at] + off + 0.15, type: "up" });
       else if (e.kind === "pose") out.push({ t: bt[e.at] + off, type: "down" }, { t: bt[e.at] + off + 0.2, type: "up" });
     }
     return out.sort((a, b) => a.t - b.t);
@@ -1697,7 +1717,7 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
 /* COLD MEDAL EISKUNSTLAUF – Ablauf, Bildschirme, Eingabe, Taktband, Ergebnis, Spielstand. */
 (function () {
   "use strict";
-  const VERSION = "0.9";
+  const VERSION = "0.10";
   // Seiten-Einstellungen aus dem Build (eigenes Hosting: Adresse, Hoster, Impressum); im claude.ai-Artefakt leer
   const SITE = Object.assign({ web: false, url: "", impressum: null }, {"web": true, "url": "https://matpeins-debug.github.io/cold-medal-eiskunstlauf/", "hoster": "GitHub Pages (GitHub Inc., USA)", "drittland": "GitHub ist nach dem EU-US Data Privacy Framework zertifiziert; die Übermittlung in die USA stützt sich auf den Angemessenheitsbeschluss der EU-Kommission dazu.", "impressum": {"name": "", "adresse": "", "mail": ""}} || {});
   const M = window.EKMusic, K = window.EKSkate, F = window.EKFigure, SC = window.EKScene;
@@ -1849,6 +1869,7 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
       else if (e.kind === "spin") for (let i = 1; i <= e.turns; i++) out.push({ t: bt[e.from + 3 * i], kind: "spin", el: e });
       else if (e.kind === "steps") for (const [b, d] of e.arrows) out.push({ t: bt[b], kind: "step", dir: d, el: e });
       else if (e.kind === "pose") out.push({ t: bt[e.at], kind: "pose", el: e });
+      else if (e.kind === "expr") out.push({ t: bt[e.at], kind: "expr", el: e });
     }
     return out;
   }
@@ -1977,7 +1998,7 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
     for (const m of r.marks) {
       if (inp.type === "down" && m.kind === "hold") consider(m.t, K.WIN.jump * k * (m.el.w || 1), true);
       if (inp.type === "up" && m.kind === "hold") consider(m.t2, K.WIN.fall * k * (m.el.w || 1), true);
-      if (inp.type === "down" && m.kind === "pose") consider(m.t, K.WIN.pose * k, true);
+      if (inp.type === "down" && (m.kind === "pose" || m.kind === "expr")) consider(m.t, K.WIN.pose * k, true);
       if (inp.type === "circle" && m.kind === "spin") consider(m.t, K.WIN.spin * k, true);
       if (inp.type === "swipe" && m.kind === "step") consider(m.t, K.WIN.step * k, m.dir === inp.dir);
     }
@@ -1988,6 +2009,9 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
       const pm = r.marks.find((m) => m.kind === "pose" && Math.abs(inp.t - m.t) <= K.WIN.pose * k);
       if (pm && !r.posed && r.pos) r.paint.marks.push({ x: r.pos[0], y: r.pos[1], kind: "pose", ok: true });
       if (pm) r.posed = true;
+      // Ausdruck getroffen: Figur leuchtet auf, Publikum seufzt „ah“
+      const xm = r.marks.find((m) => m.kind === "expr" && Math.abs(inp.t - m.t) <= K.WIN.pose * k && !m.hit);
+      if (xm) { xm.hit = true; r.exprT = inp.t; const good = Math.abs(inp.t - xm.t) <= 0.06 * k; r.burstQ += good ? 26 : 12; sfx("cheer", good ? 0.6 : 0.3); r.burst = Math.max(r.burst, good ? 0.7 : 0.4); }
     }
     if (inp.type === "up" && r.jump && r.jump.t1 === null) {
       r.jump.t1 = inp.t;
@@ -2082,10 +2106,11 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
           res = res || K.judge(PROG, run.bt, run.inputs, { k: run.k });
           const r = res.els[i]; run.done[i] = r;
           ch.className = "chip " + r.status;
-          ch.textContent = e.kind === "pose" ? (r.status === "ok" ? "Pose ✓" : "Pose –") : `${e.short} ${r.status === "miss" ? "–" : dec(r.score)}`;
-          if (r.status === "ok" && e.kind !== "pose") { run.burst = Math.max(run.burst, r.goe >= 2 ? 1 : 0.55); sfx("cheer", r.goe >= 2 ? 1 : 0.5); }
+          ch.textContent = e.kind === "pose" ? (r.status === "ok" ? "Pose ✓" : "Pose –") : e.kind === "expr" ? (r.status === "ok" ? "✦ ✓" : "✦ –") : `${e.short} ${r.status === "miss" ? "–" : dec(r.score)}`;
+          if (r.status === "ok" && e.kind !== "pose" && e.kind !== "expr") { run.burst = Math.max(run.burst, r.goe >= 2 ? 1 : 0.55); sfx("cheer", r.goe >= 2 ? 1 : 0.5); }
           const nm = e.part ? e.short.replace(/^\+/, "") : e.name;
-          if (e.kind !== "pose" && !(e.part === "b" && r.status === "miss" && run.done[i - 1] && run.done[i - 1].status !== "ok")) pop(r.status === "miss" ? `${nm}: ausgelassen` : r.status === "fall" ? "Sturz −1" : `${nm} +${dec(r.score)}`, r.status === "ok" ? "#F3C969" : "#E8A07A");
+          if (e.kind === "expr" && r.status === "ok") pop(`${e.name} · Ausdruck${r.q >= 1 ? " ★" : ""}`, "#E9C8EE");
+          if (e.kind !== "pose" && e.kind !== "expr" && !(e.part === "b" && r.status === "miss" && run.done[i - 1] && run.done[i - 1].status !== "ok")) pop(r.status === "miss" ? `${nm}: ausgelassen` : r.status === "fall" ? "Sturz −1" : `${nm} +${dec(r.score)}`, r.status === "ok" ? "#F3C969" : "#E8A07A");
           if (r.peak) { pop("Höhepunkt der Musik · +1 GOE", "#FFE7A0"); run.burst = 1; run.burstQ += 30; }
           if (e.part === "b" && r.status === "ok" && run.done[i - 1] && run.done[i - 1].status === "ok") pop("Kombination!", "#FFE7A0");
         }
@@ -2095,7 +2120,7 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
 
   // ------------------------------------------------------------------ Bewegung der Läuferin
   function phaseAt(t) {
-    for (const e of PROG.elements) { const [a, b] = elWindow(e, run.bt); if (t >= a && t <= b) return e; }
+    for (const e of PROG.elements) { if (e.kind === "expr") continue; const [a, b] = elWindow(e, run.bt); if (t >= a && t <= b) return e; } // Ausdruck läuft in der Choreografie mit
     return null;
   }
   function figureState(t, dt) {
@@ -2208,9 +2233,9 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
         ctx.fillStyle = "#DDA43B"; ctx.beginPath(); ctx.arc(x, yc, 9, 0, 7); ctx.fill();
         ctx.strokeStyle = "#DDA43B"; ctx.lineWidth = 3; ctx.fillStyle = "#141B25"; ctx.beginPath(); ctx.arc(x2, yc, 8, 0, 7); ctx.fill(); ctx.stroke();
       } else {
-        ctx.fillStyle = m.kind === "step" ? "#F1E7D2" : "#DDA43B"; ctx.beginPath(); ctx.arc(x, yc, 13, 0, 7); ctx.fill();
+        ctx.fillStyle = m.kind === "step" ? "#F1E7D2" : m.kind === "expr" ? "#D8A9DE" : "#DDA43B"; ctx.beginPath(); ctx.arc(x, yc, 13, 0, 7); ctx.fill();
         ctx.fillStyle = m.kind === "step" ? "#C23B2A" : "#141B25"; ctx.font = "bold 17px " + font();
-        ctx.fillText(m.kind === "spin" ? "⟳" : m.kind === "pose" ? "★" : { l: "←", r: "→", u: "↑", d: "↓" }[m.dir], x, yc + 1);
+        ctx.fillText(m.kind === "spin" ? "⟳" : m.kind === "pose" ? "★" : m.kind === "expr" ? "✦" : { l: "←", r: "→", u: "↑", d: "↓" }[m.dir], x, yc + 1);
       }
     }
     // Linie
@@ -2228,7 +2253,7 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
   }
   // Hilfe direkt an der Läuferin: das nächste Zeichen schwebt über ihr, ein goldener Ring schließt sich genau auf dem Schlag.
   // Sprung: ● drücken, dann füllt sich der Bogen bis ○ loslassen. Unter den Kufen pulsieren die drei Schläge des Takts.
-  const SYM = { spin: "⟳", pose: "★" };
+  const SYM = { spin: "⟳", pose: "★", expr: "✦" };
   function cueMark(t) {
     const j = run.jump;
     if (j && j.t1 === null && t >= j.t0 && t < j.land + 0.4) return { kind: "holding", m: run.marks.find((x) => x.kind === "hold" && x.el === j.el), j };
@@ -2276,12 +2301,12 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
       } else {
         const lead = m.t - t, hit = run.inputs.some((i) => Math.abs(i.t - m.t) < 0.3 && (m.kind === "step" ? i.type === "swipe" : m.kind === "spin" ? i.type === "circle" : i.type === "down"));
         ctx.globalAlpha = hit ? 0.35 : 1;
-        ctx.fillStyle = m.kind === "hold" || m.kind === "pose" ? "#DDA43B" : "#F1E7D2"; ctx.strokeStyle = "#141B25"; ctx.lineWidth = 2.5;
+        ctx.fillStyle = m.kind === "hold" || m.kind === "pose" ? "#DDA43B" : m.kind === "expr" ? "#D8A9DE" : "#F1E7D2"; ctx.strokeStyle = "#141B25"; ctx.lineWidth = 2.5;
         ctx.beginPath(); ctx.arc(fx, y, R, 0, 7); ctx.fill(); ctx.stroke();
         if (lead > 0) { ctx.strokeStyle = "#F3C969"; ctx.lineWidth = 3.5; ctx.beginPath(); ctx.arc(fx, y, R + 3 + lead * 28, 0, 7); ctx.stroke(); }
         ctx.fillStyle = m.kind === "step" ? "#C23B2A" : "#141B25"; ctx.font = "bold 24px " + font();
         ctx.fillText(m.kind === "step" ? STEP[m.dir][0] : m.kind === "hold" ? "●" : SYM[m.kind], fx, y + 1);
-        label(fx, y + R + 12, m.kind === "step" ? STEP[m.dir][1].toUpperCase() : m.kind === "hold" ? (canHover() ? "LEERTASTE DRÜCKEN" : "DRÜCKEN") : m.kind === "spin" ? "RUNDE AUF DEN SCHLAG" : "POSE");
+        label(fx, y + R + 12, m.kind === "step" ? STEP[m.dir][1].toUpperCase() : m.kind === "hold" ? (canHover() ? "LEERTASTE DRÜCKEN" : "DRÜCKEN") : m.kind === "spin" ? "RUNDE AUF DEN SCHLAG" : m.kind === "expr" ? `TIPPEN: ${m.el.name.toUpperCase()}` : "POSE");
         ctx.globalAlpha = 1;
       }
     }
@@ -2546,7 +2571,7 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
     if (res.falls) return "Tipp: Ein Sturz kommt vom Loslassen weit neben dem ○. Halte, bis das ○ die Linie erreicht.";
     if (tm.bias > 40) return `Du liegst im Schnitt ${tm.bias} ms zu spät. Mit Bluetooth-Kopfhörern hilft „Verzögerung“ in den Einstellungen.`;
     if (tm.bias < -40) return `Du bist im Schnitt ${-tm.bias} ms zu früh: lass den Schlag kommen, dann erst tippen.`;
-    const weak = res.els.filter((e) => e.kind !== "pose" && !e.inCombo && (e.row || e).status !== "ok");
+    const weak = res.els.filter((e) => e.kind !== "pose" && e.kind !== "expr" && !e.inCombo && (e.row || e).status !== "ok");
     if (weak.length) return `Am meisten Punkte liegen noch in: ${weak.map((e) => e.name).join(", ")}.`;
     return tm.mean <= 60 ? "Stark im Takt. Probier „Experte“ in den Einstellungen: ohne Ring und mit engerem Fenster." : "Gut. Je näher an der Linie, desto mehr Ausführungspunkte (GOE).";
   }
@@ -2555,6 +2580,7 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
     $("rTotal").textContent = dec(res.total);
     $("rRank").textContent = board ? nb(`Platz ${rank} von ${board.length}`) : "Punkte";
     $("rSplit").innerHTML = nb(`Technik ${dec(res.tes)} · Komponenten ${dec(res.pcsTotal)} (Komposition ${dec(res.pcs.comp)}, Präsentation ${dec(res.pcs.pres)}, Können ${dec(res.pcs.skill)})`)
+      + (res.presParts ? nb(` · Präsentation: Takt ${dec(res.presParts.takt)}, Ausdruck ${dec(res.presParts.ausdruck)}${res.presParts.expr ? ` (${res.presParts.exprOk}/${res.presParts.expr} ✦)` : " (keine Choreo-Figur)"}, Ausstrahlung ${dec(res.presParts.ausstrahlung)}`) : "")
       + (res.ded ? ` · <b>Abzug −${res.ded}</b>` : "")
       + (run.gifts ? nb(` · aufs Eis: ${run.gifts.fl} Blumen, ${run.gifts.toys} Stofftiere`) : "")
       + (run.bestStreak >= 3 ? nb(` · längste Serie ${run.bestStreak}`) : "")
@@ -2562,11 +2588,11 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
     const tm = res.timing;
     $("rTime").innerHTML = tm ? `<b>Ø ${tm.mean}&nbsp;ms</b><span>durchschnittliche Abweichung vom Takt: ${tm.word}<br>Tendenz ${sg(tm.bias)}&nbsp;ms (${tm.tend}) · ${tm.perfect} von ${tm.n} perfekt</span>`
       : `<b>–</b><span>keine Eingabe im Takt</span>`;
-    $("rEls").innerHTML = res.els.filter((e) => !e.inCombo && (e.kind !== "pose" || e.status === "ok")).map((e0) => {
+    $("rEls").innerHTML = res.els.filter((e) => !e.inCombo && e.kind !== "expr" && (e.kind !== "pose" || e.status === "ok")).map((e0) => {
       const e = e0.row ? Object.assign({}, e0, e0.row) : e0;
       const lv = e.level ? ` <small>Stufe ${e.level}</small>` : "";
-      const goe = e.status === "miss" || e.kind === "pose" ? "" : sg(e.goe);
-      return `<tr class="${e.status}"><td class="e">${esc(e.name)}${lv}</td><td class="n">${e.kind === "pose" ? "" : dec(e.status === "miss" ? 0 : (e.base || 0))}</td><td class="n">${goe}</td><td class="n">${e.kind === "pose" ? "✓" : dec(e.score)}</td><td class="why">${esc(nb(e.note || ""))}</td></tr>`;
+      const goe = e.status === "miss" || e.kind === "pose" || e.kind === "expr" ? "" : sg(e.goe);
+      return `<tr class="${e.status}"><td class="e">${esc(e.name)}${lv}</td><td class="n">${e.kind === "pose" || e.kind === "expr" ? "" : dec(e.status === "miss" ? 0 : (e.base || 0))}</td><td class="n">${goe}</td><td class="n">${e.kind === "pose" || e.kind === "expr" ? "✓" : dec(e.score)}</td><td class="why">${esc(nb(e.note || ""))}</td></tr>`;
     }).join("");
     $("rBoard").innerHTML = board ? board.map((b, i) => `<tr class="${b.me ? "me" : ""}"><td class="n">${i + 1}.</td><td class="nm">${esc(b.name)} <small>${b.nat}</small></td><td class="n">${dec(b.total)}</td></tr>`).join("")
       : `<tr><td>Bestes Training</td><td class="n">${dec(S.bestTrain)}</td></tr><tr><td>Bester Wettkampf</td><td class="n">${dec(S.best)}</td></tr>`;
@@ -2588,7 +2614,7 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
     pendingMode = mode;
     $("iKick").textContent = mode === "comp" ? "KÜR · WETTKAMPF · WIEN" : "TRAINING · WIEN";
     const d = canHover();
-    $("hJump").textContent = (d ? "Leertaste auf ● drücken, halten, auf ○ loslassen." : "Auf ● drücken, halten, auf ○ loslassen.") + (PROG.elements.some((e) => e.part) ? " Kombination: gleich danach das nächste ●." : "");
+    $("hJump").textContent = (d ? "Leertaste auf ● drücken, halten, auf ○ loslassen." : "Auf ● drücken, halten, auf ○ loslassen.") + (PROG.elements.some((e) => e.part) ? " Kombination: gleich danach das nächste ●." : "") + (PROG.elements.some((e) => e.kind === "expr") ? " ✦ Choreo-Figur: tippen, wenn sie kommt." : "");
     $("hSpin").textContent = d ? "Mit der Maus kreisen oder Leertaste auf jedes ⟳." : "Mit dem Finger kreisen: jede Runde endet auf einem ⟳.";
     $("hStep").textContent = (d ? "Pfeiltaste in Pfeilrichtung (oder Maus schwingen)" : "In Pfeilrichtung wischen") + ", wenn der Pfeil die Linie erreicht: ← → zur Seite, ↑ Hüpfer, ↓ tief in die Knie.";
     $("hPose").textContent = "Auf den Schlussakkord tippen.";
