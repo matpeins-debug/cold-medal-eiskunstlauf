@@ -191,6 +191,10 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
 .plTot { white-space: nowrap; }
 .plTot b { font-size: 21px; }
 .plTot #pLook { font-size: 10px; padding: 2px 6px; min-width: 0; }
+.pHead { align-items: center; gap: 8px; }
+#pMusic .pill { font-size: 10.5px; padding: 3px 7px; }
+.pHead .pSum { font-size: 11px; text-align: right; }
+.pHead .kicker { white-space: nowrap; }
 </style>
 </head>
 <body>
@@ -243,7 +247,7 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
 
   <section class="scr" id="scrProg" hidden>
     <div class="card wide prog">
-      <div class="pHead"><div class="kicker">MEINE KÜR · DONAUWALZER</div><div class="pSum" id="pSum"></div></div>
+      <div class="pHead"><div class="kicker" id="pKick">MEINE KÜR</div><div class="opts" id="pMusic"></div><div class="pSum" id="pSum"></div></div>
       <div class="tl" id="tl"></div>
       <div class="pBody"><div class="pick" id="pick"></div><div class="pPlan" id="pPlan"></div></div>
       <div class="pFoot"><span class="note" id="pMsg"></span>
@@ -306,7 +310,7 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
       <div class="kicker" id="ifKick"></div>
       <div class="ifBody">
         <h3>Fanspiel</h3><p>Inoffizielles Fanspiel ohne Verbindung zur Internationalen Eislaufunion (ISU), zu Verbänden oder Veranstaltern. Alle Läuferinnen und Läufer sind erfunden; Elemente und Wertung folgen dem echten Sport, in eigenen Worten.</p>
-        <h3>Musik</h3><p>Johann Strauss (Sohn), „An der schönen blauen Donau“ (1867). Gemeinfrei; eigener, vereinfachter Satz, im Browser erzeugt, keine Aufnahme.</p>
+        <h3>Musik</h3><p>Johann Strauss (Sohn), „An der schönen blauen Donau“ (1867); Émile Waldteufel, „Die Schlittschuhläufer“ (1882); Iosif Ivanovici, „Donauwellen“ (1880); Johannes Brahms, Wiegenlied „Guten Abend, gut' Nacht“ (1868). Alle gemeinfrei; eigener, vereinfachter Satz, im Browser erzeugt, keine Aufnahme.</p>
         <h3>Ort</h3><p id="ifPlace"></p>
         <h3>Datenschutz</h3><p>Kein Konto, keine Werbung, keine Cookies, keine Analyse. Name, Aussehen, Bestwerte und Einstellungen speichert das Spiel nur im Browser auf diesem Gerät; es sendet nichts an einen Server.</p><p id="ifPriv"></p>
         <h3>Impressum</h3><p id="ifImp"></p>
@@ -357,7 +361,14 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
     G: { b: ["G2", "D2"], c: ["G3", "B3", "D4"] },
     E7: { b: ["E2", "B1"], c: ["G#3", "B3", "D4"] },
     Bm: { b: ["B1", "F#2"], c: ["F#3", "B3", "D4"] },
+    D7: { b: ["D2", "A1"], c: ["F#3", "A3", "C4"] },
+    Em: { b: ["E2", "B1"], c: ["G3", "B3", "E4"] },
+    Am: { b: ["A1", "E2"], c: ["A3", "C4", "E4"] },
+    Dm: { b: ["D2", "A1"], c: ["F3", "A3", "D4"] },
+    Gm: { b: ["G1", "D2"], c: ["G3", "Bb3", "D4"] },
   };
+  // Takt eine Oktave höher (für Wiederholungen mit mehr Glanz)
+  const up = (bar) => [bar[0], bar[1] === "." ? "." : bar[1].replace(/([A-G][#b]?)(\d)/g, (_, n, o) => n + (+o + 1))];
 
   // Johann Strauss (Sohn), „An der schönen blauen Donau“ op. 314 (1867, gemeinfrei), erster Walzer, eigener vereinfachter Satz in D-Dur.
   // Melodie je Takt: "Schlag:Note[:Dauer]", Schläge 1–3, Dauer in Schlägen (Standard 1). "." = Takt ohne Melodie.
@@ -392,7 +403,50 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
     ],
     end: "D",
   };
-  const SCORES = { donau: DONAU, barca: BARCA };
+  // Émile Waldteufel, „Die Schlittschuhläufer“ (Les Patineurs) op. 183 (1882, gemeinfrei) – Walzer, inspiriert vom Eislaufplatz
+  // im Bois de Boulogne. Hauptthema zweimal, eigener Satz in G-Dur.
+  const SK_A = [
+    ["G", "1:B4:3"], ["G", "1:D5:2 3:E5"], ["D7", "1:E5:6"], ["D7", "."], ["D7", "1:C5:3"], ["D7", "1:E5:2 3:F#5"], ["G", "1:F#5:6"], ["G", "."],
+    ["Em", "1:A5:3"], ["Em", "1:G5:2 3:B4"], ["Am", "1:D5:3"], ["Am", "1:C5:2 3:B4"], ["D", "1:B4:3"], ["D7", "1:A4:3"],
+  ];
+  const SKATERS = {
+    id: "skaters", title: "Die Schlittschuhläufer", short: "Schlittschuhläufer", composer: "Émile Waldteufel, 1882",
+    bpm: 152, meter: 3, pulse: 1, acc: "waltz", swing: false, finNote: "G5",
+    bars: [["G", "."], ["G", "."], ["D7", "."], ["D7", "."],
+      ...SK_A, ["G", "1:G4 2:E5 3:D5"], ["D7", "1:C5 2:B4 3:A4"],
+      ...SK_A, ["G", "1:G4:3"], ["G", "1:D5 2:B4 3:G4"]],
+    end: "G",
+  };
+  // Johannes Brahms, Wiegenlied „Guten Abend, gut' Nacht“ op. 49 Nr. 4 (1868, gemeinfrei) – ruhig und zart, Teile A A B B, eigener Satz in D-Dur
+  const BR_A = (last) => [
+    ["D", "1:A4:1.5 2.5:F#4:0.5 3:F#4"], ["D", "1:A4:2 3:F#4:0.5 3.5:A4:0.5"], ["A7", "1:D5 2:C#5:1.5 3.5:B4:0.5"], ["A7", "1:B4 2:A4 3:E4:0.5 3.5:F#4:0.5"],
+    ["A7", "1:G4 2:E4 3:E4:0.5 3.5:F#4:0.5"], ["A7", "1:G4:2 3:E4:0.5 3.5:G4:0.5"], ["A7", "1:C#5:0.5 1.5:B4:0.5 2:A4 3:C#5"], ["D", "1:D5:2 " + last],
+  ];
+  const BR_B = (last) => [
+    ["G", "1:D5:2 3:B4:0.5 3.5:G4:0.5"], ["D", "1:A4:2 3:F#4:0.5 3.5:D4:0.5"], ["Em", "1:G4 2:A4 3:B4"], ["A7", "1:A4:2 3:D4:0.5 3.5:D4:0.5"],
+    ["G", "1:D5:2 3:B4:0.5 3.5:G4:0.5"], ["D", "1:A4:2 3:F#4:0.5 3.5:D4:0.5"], ["A7", "1:G4:0.5 1.5:A4:0.25 1.75:G4:0.25 2:F#4 3:E4"], ["D", last ? "1:D4:2 " + last : "1:D4:3"],
+  ];
+  const BRAHMS = {
+    id: "brahms", title: "Wiegenlied", short: "Wiegenlied", composer: "Johannes Brahms, 1868",
+    bpm: 104, meter: 3, pulse: 1, acc: "waltz", swing: false, finNote: "D5",
+    bars: [["D", "."], ["D", "."], ["A7", "."], ["A7", "3:F#4:0.5 3.5:F#4:0.5"],
+      ...BR_A("3:F#4:0.5 3.5:F#4:0.5"), ...BR_A("3:D4:0.5 3.5:D4:0.5"), ...BR_B("3:D4:0.5 3.5:D4:0.5"), ...BR_B("")],
+    end: "D",
+  };
+  // Iosif Ivanovici, „Donauwellen“ (1880, gemeinfrei) – Walzer in Moll, sehnsüchtig; das Thema beim zweiten Mal eine Oktave höher
+  const IV_A = [
+    ["A7", "1:A3:4"], ["A7", "2:C#4 3:D4"], ["A7", "1:E4:4"], ["A7", "2:C#4 3:A3"], ["Dm", "1:F4:4"], ["Dm", "2:E4 3:D4"], ["D7", "1:A4:6"], ["D7", "."],
+    ["Gm", "1:Bb4:4"], ["Gm", "2:A4 3:G4"], ["Dm", "1:A4:4"], ["Dm", "2:G4 3:F4"], ["A7", "1:E4:4"], ["A7", "2:F4 3:E4"], ["Dm", "1:D4:6"], ["Dm", "."],
+  ];
+  const WELLEN = {
+    id: "wellen", title: "Donauwellen", short: "Donauwellen", composer: "Iosif Ivanovici, 1880",
+    bpm: 138, meter: 3, pulse: 1, acc: "waltz", swing: false, finNote: "D5",
+    bars: [["Dm", "."], ["Dm", "."], ["A7", "."], ["A7", "."], ...IV_A, ...IV_A.map(up)],
+    end: "Dm",
+  };
+  DONAU.short = "Donauwalzer"; BARCA.short = "Barcarole";
+  const SCORES = { donau: DONAU, barca: BARCA, skaters: SKATERS, brahms: BRAHMS, wellen: WELLEN };
+  const KUER = ["donau", "skaters", "wellen", "brahms"]; // Stücke für die Kür: je 36 Takte im 3/4-Takt, Melodie ab Takt 4
 
   // Stück → Ereignisliste in Schlägen: { beat, m, dur, part: "mel"|"bass"|"chord", acc }
   function events(score) {
@@ -730,7 +784,7 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
     return { n, mean, bias, perfect, good, word, tend };
   }
 
-  root.EKMusic = { SCORES, PRESETS, Player, events, midi, fromMidi, timingStats, TIMING, beatRel, grid };
+  root.EKMusic = { SCORES, KUER, PRESETS, Player, events, midi, fromMidi, timingStats, TIMING, beatRel, grid };
 })(typeof window !== "undefined" ? window : globalThis);
 
 /* Cold Medal · Eiskunstlauf – Kür, Elemente und Wertung (ohne DOM, in Node testbar).
@@ -776,20 +830,42 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
   // Die Musik in Abschnitte: acht Phrasen zu je vier Takten ab dem Einsatz der Melodie (Takt 4); jedes Element füllt eine Phrase,
   // die Schrittfolge zwei. Danach immer die Schlusspose auf dem Schlussakkord.
   // peak: Abschnitte mit dem musikalischen Höhepunkt (höchster Ton D6, volle Kraft) – ein sauberes Element dort bekommt +1 GOE
-  const SECTIONS = { donau: { first: 4, len: 4, n: 8, end: 108, peak: [4, 5] } };
+  const SEC0 = { first: 4, len: 4, n: 8, end: 108 };
+  const SECTIONS = {
+    donau: Object.assign({ peak: [4, 5] }, SEC0), // höchster Ton D6
+    skaters: Object.assign({ peak: [2, 6] }, SEC0), // Aufschwung des Themas (A5)
+    wellen: Object.assign({ peak: [5, 6] }, SEC0), // Thema eine Oktave höher, B5
+    brahms: Object.assign({ peak: [4, 6] }, SEC0), // Mittelteil „Morgen früh …“ steigt zum D5
+  };
+  const MUSIC_NAME = { donau: "Donauwalzer", skaters: "Schlittschuhläufer", wellen: "Donauwellen", brahms: "Wiegenlied" };
   // Choreografie wie im Tanzsport durchplanen: jeder Abschnitt hat eine Stimmung, zu der manche Elemente besser passen
   const MOODS = {
     donau: [
       ["Thema, erste Welle", ["jump", "choreo"]], ["Thema steigt", ["jump"]], ["Spannung", ["spin", "jump"]], ["Spannung löst sich", ["spin", "choreo"]],
       ["Höhepunkt", ["steps", "jump"]], ["Höhepunkt", ["steps", "jump"]], ["Wärme, Ausklang", ["spin", "choreo"]], ["Schluss", ["jump", "spin"]],
     ],
+    skaters: [
+      ["Gleiten, das Thema", ["jump", "choreo"]], ["Thema schwingt aus", ["spin", "choreo"]], ["Aufschwung", ["jump", "steps"]], ["Lauf ins Ziel", ["steps", "jump"]],
+      ["Thema noch einmal", ["jump", "choreo"]], ["schwingt aus", ["spin", "choreo"]], ["Aufschwung", ["steps", "jump"]], ["Schluss", ["steps", "jump", "spin"]],
+    ],
+    wellen: [
+      ["dunkel und tief", ["choreo", "spin"]], ["Sehnsucht", ["spin", "jump"]], ["die Welle steigt", ["jump", "choreo"]], ["sinkt zurück", ["spin", "choreo"]],
+      ["eine Oktave höher", ["jump", "choreo"]], ["Leidenschaft", ["steps", "jump"]], ["Höhepunkt", ["steps", "jump"]], ["Ausklang", ["spin", "choreo"]],
+    ],
+    brahms: [
+      ["sanftes Wiegen", ["choreo", "spin"]], ["Wiegen", ["spin", "choreo"]], ["noch einmal sanft", ["choreo", "jump"]], ["Ruhe", ["spin", "choreo"]],
+      ["steigt auf", ["jump", "steps"]], ["sinkt zurück", ["steps", "spin"]], ["steigt noch einmal", ["jump", "steps"]], ["gute Nacht", ["steps", "spin", "choreo"]],
+    ],
   };
   // Kostüm zur Musik (Index wie EKFigure.SUIT: Rot, Blau, Grün, Gold, Violett, Nachtblau): Wert 0 … 10 und ein Wort dazu
   const COSTUME = {
     donau: { fit: [5, 10, 4, 8, 7, 6], best: "Blau wie die Donau, Gold oder Violett für den Ballsaal" },
+    skaters: { fit: [7, 9, 5, 7, 6, 10], best: "Winterfarben: Nachtblau, Eisblau, dazu Rot oder Gold" },
+    wellen: { fit: [10, 5, 4, 7, 8, 9], best: "leidenschaftlich: Rot oder Nachtblau, Violett" },
+    brahms: { fit: [3, 9, 7, 6, 10, 8], best: "zart: Violett, Blau oder Nachtblau" },
   };
   function plan(slots, look, music) {
-    music = music || "donau";
+    music = SECTIONS[music] ? music : "donau";
     const moods = MOODS[music], sec = SECTIONS[music], ids = slots.map((x) => (x === "~" ? "~" : x));
     const kindAt = (i) => { let id = ids[i]; if (id === "~") id = ids[i - 1]; return id && CATALOG[id] ? CATALOG[id].kind : null; };
     // 1 Musik: passt das Element zur Stimmung des Abschnitts? Gleiten zählt halb
@@ -817,7 +893,7 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
       { id: "musik", name: "Passt zur Musik", v: r1(music10), why: misfit.length ? `Abschnitt ${misfit.map((i) => i + 1).join(", ")}: ${moods[misfit[0]][0]} – dort passt eher ${moods[misfit[0]][1].map((k) => KIND_DE[k]).join(" oder ")}` : "jedes Element passt zur Stimmung" },
       { id: "aufbau", name: "Spannungsbogen", v: r1(clamp(arc, 0, 10)), why: arcWhy[0] || "steigert sich bis zum Höhepunkt" },
       { id: "abw", name: "Abwechslung", v: r1(vari), why: same ? "zweimal hintereinander dasselbe" : kinds.size < 3 ? "mehr verschiedene Elemente (Sprung, Pirouette, Schritte, Choreo)" : empty > 2 ? "viel Gleiten" : !chor.size ? "Tipp: eine Choreo-Figur in einen freien Abschnitt" : "abwechslungsreich" },
-      { id: "kostuem", name: "Kostüm", v: r1(cost), why: su === ac ? "Streifen in derselben Farbe wie das Kostüm" : C.fit[su] >= 8 ? "passt zum Donauwalzer" : "Tipp: " + C.best },
+      { id: "kostuem", name: "Kostüm", v: r1(cost), why: su === ac ? "Streifen in derselben Farbe wie das Kostüm" : C.fit[su] >= 8 ? "passt zur Musik" : "Tipp: " + C.best },
     ];
     const total = r1(parts.reduce((a, x) => a + x.v, 0) / parts.length);
     return { total, parts, moods };
@@ -855,6 +931,7 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
   // aus dem Plan die Kür mit Schlägen bauen
   function buildProgram(slots, music) {
     music = music || "donau";
+    if (!SECTIONS[music]) music = "donau";
     const sec = SECTIONS[music], els = [], choreo = {};
     slots.forEach((id, i) => {
       if (!id || id === "~") return;
@@ -871,7 +948,7 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
       else if (c.kind === "steps") els.push(Object.assign(base, { levels: c.levels, arrows: STEP_PATTERN.map(([o, d]) => [bar * 3 + o, d]) }));
     });
     els.push({ id: "Pose", kind: "pose", name: "Schlusspose", short: "Pose", at: sec.end });
-    return { id: "eigen", music, name: "Kür zum Donauwalzer", elements: els, slots: slots.slice(), choreo, sec };
+    return { id: "eigen", music, name: "Kür: " + (MUSIC_NAME[music] || music), elements: els, slots: slots.slice(), choreo, sec };
   }
   // Summe der höchsten Grundwerte (für den Editor)
   function maxBase(slots) {
@@ -1025,7 +1102,7 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
     });
   }
 
-  root.EKSkate = { PROGRAMS, CATALOG, RULES, SECTIONS, DEFAULT_SLOTS, check, cleanSlots, buildProgram, plan, MOODS, COSTUME, maxBase, WIN, judge, goeFrom, perfectInputs, field, PCS_FACTOR };
+  root.EKSkate = { PROGRAMS, CATALOG, RULES, SECTIONS, DEFAULT_SLOTS, check, cleanSlots, buildProgram, plan, MOODS, COSTUME, MUSIC_NAME, maxBase, WIN, judge, goeFrom, perfectInputs, field, PCS_FACTOR };
 })(typeof window !== "undefined" ? window : globalThis);
 
 /* Cold Medal · Eiskunstlauf – Figur im Plakatstil (Canvas). Gleicher Körper und gleiche Posen für alle; erkennbar nur an Frisur,
@@ -1591,7 +1668,7 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
 /* COLD MEDAL EISKUNSTLAUF – Ablauf, Bildschirme, Eingabe, Taktband, Ergebnis, Spielstand. */
 (function () {
   "use strict";
-  const VERSION = "0.7";
+  const VERSION = "0.8";
   // Seiten-Einstellungen aus dem Build (eigenes Hosting: Adresse, Hoster, Impressum); im claude.ai-Artefakt leer
   const SITE = Object.assign({ web: false, url: "", impressum: null }, {"web": true, "url": "https://matpeins-debug.github.io/cold-medal-eiskunstlauf/", "hoster": "GitHub Pages (GitHub Inc., USA)", "drittland": "GitHub ist nach dem EU-US Data Privacy Framework zertifiziert; die Übermittlung in die USA stützt sich auf den Angemessenheitsbeschluss der EU-Kommission dazu.", "impressum": {"name": "", "adresse": "", "mail": ""}} || {});
   const M = window.EKMusic, K = window.EKSkate, F = window.EKFigure, SC = window.EKScene;
@@ -1611,7 +1688,7 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
 
   // ------------------------------------------------------------------ Spielstand (nur auf diesem Gerät; Aussehen zieht später in pass/ um)
   const KEY = "coldmedal-eiskunstlauf";
-  const DEF = { v: 1, prog: null, name: "", nat: "AUT", look: F.DEF_LOOK, help: "anf", sound: 1, preset: "salon", lat: 0, best: 0, bestTrain: 0, runs: 0, flowers: 0, toys: 0, album: [] };
+  const DEF = { v: 1, prog: null, name: "", nat: "AUT", look: F.DEF_LOOK, help: "anf", sound: 1, preset: "salon", lat: 0, music: "donau", best: 0, bestTrain: 0, runs: 0, flowers: 0, toys: 0, album: [] };
   function sanitize(o) {
     const S = Object.assign({}, DEF, { look: F.cleanLook(null), prog: K.DEFAULT_SLOTS.slice(), album: [] });
     if (o && typeof o === "object") {
@@ -1623,6 +1700,7 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
       if (M.PRESETS[o.preset]) S.preset = o.preset;
       if (Number.isFinite(o.lat)) S.lat = clamp(Math.round(o.lat / 10) * 10, -200, 400);
       S.prog = K.cleanSlots(o.prog);
+      if (M.KUER.includes(o.music)) S.music = o.music;
       S.album = Array.isArray(o.album) ? o.album.filter((a) => a && typeof a.img === "string" && a.img.startsWith("data:image/jpeg;base64,") && a.img.length < 250000)
         .slice(0, 8).map((a) => ({ img: a.img, date: String(a.date || "").slice(0, 12), score: String(a.score || "").slice(0, 12), venue: String(a.venue || "").slice(0, 40) })) : [];
       for (const k of ["best", "bestTrain", "runs", "flowers", "toys"]) if (Number.isFinite(o[k]) && o[k] >= 0) S[k] = +o[k];
@@ -1723,7 +1801,8 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
   }
 
   // ------------------------------------------------------------------ Lauf
-  const SCORE = M.SCORES.donau;
+  let SCORE = M.SCORES.donau;
+  const useMusic = () => { SCORE = M.SCORES[M.KUER.includes(S.music) ? S.music : "donau"]; return SCORE; };
   let PROG = K.buildProgram(S.prog);
   let run = null, testMode = false;
   const kHelp = () => (S.help === "anf" ? 1.3 : 1);
@@ -1753,7 +1832,7 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
   function startRun(mode, opt) {
     opt = opt || {};
     const fake = !!opt.fake || testMode || !player;
-    PROG = K.buildProgram(S.prog); PROG.look = S.look;
+    useMusic(); PROG = K.buildProgram(S.prog, SCORE.id); PROG.look = S.look;
     const bt = M.grid(SCORE, SCORE.bpm, true);
     run = { mode, bt, marks: buildMarks(bt), inputs: [], fake, fakeT: -0.6, lastT: 0, done: {}, pops: [], p: 0, camX: WW / 2 - W / 2,
       dir: 1, face: 0, trail: [], trailT: 0, turn: 0, spinV: 0, jump: null, fallUntil: -1, landUntil: -1, lastSwipe: null, posed: false, finished: false, k: kHelp(), paint: { pts: [], marks: [], t: 0 }, sparks: [], burstQ: 0, lastQ: null, pos: null, intensity: 0.6, cheer: 0, burst: 0, streak: 0, bestStreak: 0, accI: 0, throws: null, intT: 0, seed: (Date.now() & 0xffff) || 7 };
@@ -1791,7 +1870,7 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
       if (E.t > 1.7 && !E.spoke) {
         E.spoke = true; run.burst = 0;
         const nm = (S.name || "").trim(), nat = NAT[S.nat] || "";
-        const text = `Meine Damen und Herren! Auf dem Eis: ${nm || "unsere nächste Läuferin"}${nat ? ", " + nat : ""}. Zur Musik von Johann Strauss: An der schönen blauen Donau.`;
+        const text = `Meine Damen und Herren! Auf dem Eis: ${nm || "unsere nächste Läuferin"}${nat ? ", " + nat : ""}. Zur Musik von ${SCORE.composer.replace(/,.*$/, "")}: ${SCORE.title}.`;
         E.banner = `${nm || "Auf dem Eis"}${nat ? " · " + nat : ""}`;
         const dur = speak(text, () => { if (run && run.entry === E) { E.phase = 2; E.t = 0; } });
         sfx("crackle", dur + 0.5);
@@ -2472,7 +2551,7 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
   function fillMenu() {
     const P = SC.PLACES.wien;
     $("mPlace").textContent = `${P.venue} · ${P.name}`; $("mFact").textContent = P.fact;
-    $("mBest").textContent = S.best ? nb(`Bestwert ${dec(S.best)} Punkte`) : "gegen fünf andere, zum Donauwalzer";
+    $("mBest").textContent = S.best ? nb(`Bestwert ${dec(S.best)} Punkte`) : `gegen fünf andere, zur Musik „${useMusic().short}“`;
     $("mFoot").textContent = `Version ${VERSION} · inoffizielles Fanspiel`;
   }
   let pendingMode = "comp";
@@ -2540,13 +2619,19 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
     return K.check(a).length ? null : a;
   }
   function fillProg() {
+    useMusic();
     const bt = M.grid(SCORE, SCORE.bpm, true), sl = S.prog;
+    $("pKick").textContent = "MEINE KÜR";
+    $("pMusic").innerHTML = M.KUER.map((id) => `<button class="pill${S.music === id ? " on" : ""}" data-mu="${id}" title="${esc(M.SCORES[id].composer)}">${esc(M.SCORES[id].short)}</button>`).join("")
+      + `<button class="pill" id="pListen">${listenOn ? "■ Stopp" : "▶ Anhören"}</button>`;
+    $("pMusic").querySelectorAll("[data-mu]").forEach((b) => (b.onclick = () => { S.music = b.dataset.mu; save(); if (listenOn) listen(true); fillProg(); }));
+    $("pListen").onclick = () => listen(!listenOn);
     if (sl[pSel] === "~") pSel--;
     $("tl").innerHTML = sl.map((id, i) => {
       if (id === "~") return "";
       const c = CAT[id], b0 = secBar(i), b1 = b0 + SEC.len * (c && c.slots ? c.slots : 1);
       const val = !c ? "" : c.kind === "choreo" ? "Choreo" : c.kind === "jump" ? dec(c.base) : `bis ${dec(c.levels[c.levels.length - 1])}`;
-      const pk = (SEC.peak || []).includes(i) ? `<em class="peak">♪ Höhepunkt</em>` : "";
+      const pk = (K.SECTIONS[SCORE.id].peak || []).includes(i) ? `<em class="peak">♪ Höhepunkt</em>` : "";
       return `<button class="slot ${c ? c.kind : "empty"}${i === pSel ? " sel" : ""}" data-i="${i}"><small>ab ${mmss(bt[b0 * 3])}</small>${pk}<b>${c ? esc(c.combo ? c.short : c.name) : "Gleiten"}</b><i>${val}</i></button>`;
     }).join("");
     $("tl").querySelectorAll(".slot").forEach((b) => (b.onclick = () => { pSel = +b.dataset.i; fillProg(); }));
@@ -2570,7 +2655,7 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
     $("pSum").innerHTML = nb(`Grundwert bis ${dec(K.maxBase(sl))} · ${nj} von ${K.RULES.jumps} Sprüngen · ${ns} von ${K.RULES.spins} Pirouetten`);
     const nc = ids.filter((x) => CAT[x].combo).length;
     $("pSum").innerHTML += nb(` · ${nc} von ${K.RULES.combos} Kombinationen`);
-    const pl = K.plan(sl, S.look);
+    const pl = K.plan(sl, S.look, SCORE.id);
     $("pPlan").innerHTML = `<div class="plTot"><small>CHOREO</small><b>${dec(pl.total)}</b><small>/ 10</small><button class="pill" id="pLook">Kostüm</button></div>`
       + pl.parts.map((x) => `<div class="plRow"><span>${esc(x.name)}</span><i style="--v:${x.v * 10}%"></i><b>${dec(x.v)}</b><em>${esc(x.why)}</em></div>`).join("")
 ;
@@ -2578,9 +2663,18 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
     $("tl").querySelectorAll(".slot").forEach((b) => { const m = pl.moods[+b.dataset.i]; if (m) b.title = `${m[0]}: passt ${m[1].map((k) => ({ jump: "Sprung", spin: "Pirouette", steps: "Schritte", choreo: "Choreo" })[k]).join(" oder ")}`; });
     $("pMsg").textContent = "♪ Höhepunkt: sauberes Element +1 GOE · Kombi: nach der Landung gleich wieder ● · grau = nicht erlaubt";
   }
+  // Musik im Editor anhören
+  let listenOn = false;
+  function listen(on) {
+    unlock();
+    if (player && player.playing) player.stop();
+    listenOn = !!on && !!player;
+    if (listenOn) { player.start(SCORE.id, { preset: S.preset, swing: true }); player.onEnd = () => { listenOn = false; if (!$("scrProg").hidden) fillProg(); }; }
+    if (!$("scrProg").hidden) fillProg();
+  }
   $("bProg").onclick = () => { pSel = 0; const c = CAT[S.prog[0]]; if (c && c.kind === "jump") { pRot = c.rot; pCombo = c.combo ? c.combo[1].slice(1) : ""; } fillProg(); show("scrProg"); };
   $("pDef").onclick = () => { S.prog = K.DEFAULT_SLOTS.slice(); save(); fillProg(); };
-  $("pDone").onclick = () => show("scrMenu");
+  $("pDone").onclick = () => { if (listenOn) listen(false); show("scrMenu"); };
 
   // Einstellungen
   function fillSet() {
