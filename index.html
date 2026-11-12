@@ -300,19 +300,29 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
 .rTime { flex: none; display: flex; align-items: center; gap: 8px; border: 1px solid rgba(243,201,105,0.5); background: rgba(10,16,34,0.5); padding: 4px 10px; }
 .rTime b { font-family: var(--font-display); font-size: 24px; color: #F3C969; white-space: nowrap; }
 .rTime span { font-size: 10.5px; line-height: 1.25; color: rgba(241,231,210,0.8); }
-.jury { border-top: 1px solid rgba(243,201,105,0.3); border-bottom: 1px solid rgba(243,201,105,0.3); padding: 4px 0; }
+.jury { border-top: 1px solid rgba(227,184,96,0.45); border-bottom: 1px solid rgba(227,184,96,0.45); padding: 5px 0 6px; position: relative; }
+.jury::before, .jury::after { content: "◆"; position: absolute; left: 50%; transform: translateX(-50%); font-size: 7px; color: #E3B860; line-height: 1; background: transparent; }
+.jury::before { top: -4px; } .jury::after { bottom: -4px; }
 .jHead { display: flex; align-items: baseline; gap: 10px; font-size: 11px; color: rgba(241,231,210,0.85); white-space: nowrap; overflow: hidden; height: 16px; }
-.jHead small { font-family: var(--font-display); font-size: 10px; letter-spacing: 0.14em; color: #F3C969; }
-.jHead span { overflow: hidden; text-overflow: ellipsis; }
-.jHead span small { color: rgba(241,231,210,0.55); letter-spacing: 0; font-family: inherit; }
-.jRow { display: grid; grid-template-columns: repeat(9, 1fr); gap: 4px; margin-top: 3px; }
-.judge { position: relative; display: flex; flex-direction: column; align-items: center; padding: 2px 0 3px; background: rgba(255,255,255,0.05); border: 1px solid rgba(241,231,210,0.2); cursor: pointer; opacity: 0.25; transform: rotateX(70deg); transition: opacity 0.25s, transform 0.35s, background 0.2s; }
+.jHead > small { font-family: var(--font-display); font-size: 10px; letter-spacing: 0.32em; color: #E3B860; }
+.jHead span { overflow: hidden; text-overflow: ellipsis; font-style: italic; }
+.jHead span b { font-style: normal; font-weight: 600; color: #F3D58A; }
+.jHead span small { color: rgba(241,231,210,0.55); letter-spacing: 0; font-family: inherit; font-style: normal; }
+.jRow { display: grid; grid-template-columns: repeat(9, 1fr); gap: 5px; margin-top: 8px; perspective: 600px; }
+/* Richterkarte im Art-déco: Samtschwarz, doppelter Goldrand, Fächer oben, Note in Elfenbein, Name kursiv */
+.judge { position: relative; display: flex; flex-direction: column; align-items: center; padding: 6px 0 4px; cursor: pointer;
+  background: radial-gradient(120% 90% at 50% 0%, #2A2440 0%, #14111F 70%); border: 1px solid rgba(227,184,96,0.75);
+  box-shadow: inset 0 0 0 2px #14111F, inset 0 0 0 2.6px rgba(227,184,96,0.35), 0 2px 6px rgba(0,0,0,0.35);
+  opacity: 0; transform: rotateY(-90deg); transition: opacity 0.3s, transform 0.5s cubic-bezier(.2,.8,.2,1), box-shadow 0.25s; }
+.judge::before { content: ""; position: absolute; top: -7px; left: 50%; width: 20px; height: 10px; transform: translateX(-50%);
+  background: repeating-conic-gradient(from -90deg at 50% 100%, #E3B860 0 6deg, transparent 6deg 15deg); -webkit-mask: radial-gradient(circle at 50% 100%, #000 10px, transparent 10.5px); mask: radial-gradient(circle at 50% 100%, #000 10px, transparent 10.5px); opacity: 0.9; }
 .judge.on { opacity: 1; transform: none; }
-.judge small { font-family: var(--font-display); font-size: 8.5px; color: rgba(241,231,210,0.6); white-space: nowrap; }
-.judge b { font-family: var(--font-display); font-size: 15px; color: var(--paper); font-variant-numeric: tabular-nums; }
-.judge i { font-style: normal; font-size: 9px; color: rgba(241,231,210,0.55); white-space: nowrap; }
-.judge.out b { text-decoration: line-through; color: rgba(241,231,210,0.45); }
-.judge.sel { border-color: #F3C969; background: rgba(243,201,105,0.14); }
+.judge small { font-family: var(--font-display); font-size: 8px; letter-spacing: 0.14em; color: rgba(227,184,96,0.85); white-space: nowrap; margin-top: 2px; }
+.judge b { font-family: var(--font-display); font-size: 16px; color: #FFF4D6; font-variant-numeric: tabular-nums; letter-spacing: 0.02em; text-shadow: 0 0 10px rgba(243,213,138,0.35); }
+.judge i { font-family: var(--font-body); font-style: italic; font-size: 9.5px; color: rgba(241,231,210,0.7); white-space: nowrap; }
+.judge.out { border-color: rgba(227,184,96,0.3); }
+.judge.out b { color: rgba(241,231,210,0.35); text-shadow: none; text-decoration: line-through; text-decoration-color: rgba(227,184,96,0.7); text-decoration-thickness: 1px; }
+.judge.sel { box-shadow: inset 0 0 0 2px #14111F, inset 0 0 0 2.6px #E3B860, 0 0 14px rgba(243,213,138,0.45); }
 .rBody { flex: 1; min-height: 0; display: flex; gap: 12px; }
 .rElsWrap { flex: 1.3; min-width: 0; overflow-y: auto; }
 .card.res .els { width: 100%; border-collapse: collapse; font-size: 12px; color: var(--paper); }
@@ -352,7 +362,7 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
 .rTot b { font-size: 34px; }
 .rTime b { font-size: 21px; }
 .rTime { padding: 3px 8px; }
-.judge { padding: 1px 0 2px; }
+.judge { padding: 5px 0 2px; }
 .judge b { font-size: 14px; }
 .card.res { position: absolute; inset: 12px 16px; flex: none; }
 </style>
@@ -2380,24 +2390,44 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
       else if (style < 0.6) { g.beginPath(); g.arc(x, y - 2.2 * s, 4 * s, Math.PI, 0); g.fill(); g.fillRect(x - 5.6 * s, y - 2.4 * s, 11.2 * s, 1.5 * s); } // Melone
       else { g.beginPath(); g.moveTo(x - 3.6 * s, y - 2.2 * s); g.lineTo(x - 3 * s, y - 7 * s); g.quadraticCurveTo(x, y - 5.6 * s, x + 3 * s, y - 7 * s); g.lineTo(x + 3.6 * s, y - 2.2 * s); g.fill(); g.fillRect(x - 6 * s, y - 2.6 * s, 12 * s, 1.6 * s); g.fillStyle = "#1C1F26"; g.fillRect(x - 3.6 * s, y - 3.6 * s, 7.2 * s, 1.2 * s); } // Hut mit Band
     }
-    // Preisgericht: erhöhter Tisch an der Bande, neun Richterinnen und Richter mit leuchtenden Bildschirmen, darüber ein Schild
+    // Preisgericht wie bei einem Ball der 1920er: Loge mit Samtbehang und Goldfransen, Messinglampen mit grünem Schirm,
+    // die Damen und Herren in Abendgarderobe (Frack mit Fliege, Glockenhut mit Perlen), darüber ein Schild in Gold mit Lorbeer
     {
       const x0 = JX - JW, x1 = JX + JW;
-      g.fillStyle = "#1B2440"; g.fillRect(x0 - 6, 160, x1 - x0 + 12, 44);
-      const cols = ["#2F3E55", "#3C3240", "#1E2734", "#4C5A3E", "#2F3E55", "#5B3A2E", "#1E2734", "#3C3240", "#2F3E55"], skins = ["#E6C2A0", "#C9966C", "#F0D5BC", "#9C6644", "#E6C2A0", "#F0D5BC", "#C9966C", "#E6C2A0", "#9C6644"];
+      // Rückwand der Loge: dunkles Holz mit Täfelung
+      const wg = g.createLinearGradient(0, 158, 0, 204); wg.addColorStop(0, "#2A1B17"); wg.addColorStop(1, "#1A1110"); g.fillStyle = wg; g.fillRect(x0 - 8, 158, x1 - x0 + 16, 46);
+      g.strokeStyle = "rgba(227,184,96,0.35)"; g.lineWidth = 1; for (let x = x0; x < x1; x += 50) g.strokeRect(x + 3, 162, 44, 18);
+      g.strokeStyle = "#E3B860"; g.lineWidth = 1.5; g.strokeRect(x0 - 8, 158, x1 - x0 + 16, 46);
+      const DRESS = ["#111318", "#111318", "#2A1E3A", "#111318", "#4A1424", "#111318", "#111318", "#1E2A3A", "#111318"], skins = ["#E6C2A0", "#C9966C", "#F0D5BC", "#9C6644", "#E6C2A0", "#F0D5BC", "#C9966C", "#E6C2A0", "#9C6644"];
+      const LADY = [false, true, false, false, true, false, true, false, false], HAIR = ["#3A2A1E", "#B0A79A", "#1C1F26", "#5B3A2E", "#3A2A1E", "#C8C0B4", "#1C1F26", "#3A2A1E", "#6E4A32"];
       for (let i = 0; i < 9; i++) {
-        const x = x0 + 18 + i * ((x1 - x0 - 36) / 8), y = 182;
-        g.fillStyle = cols[i]; g.beginPath(); g.ellipse(x, y + 13, 9, 10, 0, Math.PI, 0); g.fill();
+        const x = x0 + 18 + i * ((x1 - x0 - 36) / 8), y = 180;
+        g.fillStyle = DRESS[i]; g.beginPath(); g.ellipse(x, y + 13, 9, 10, 0, Math.PI, 0); g.fill();
+        if (!LADY[i]) { g.fillStyle = "#F4EFE4"; g.beginPath(); g.moveTo(x - 2.6, y + 4.5); g.lineTo(x, y + 12); g.lineTo(x + 2.6, y + 4.5); g.closePath(); g.fill(); g.fillStyle = "#111318"; g.beginPath(); g.moveTo(x - 2.4, y + 4.4); g.lineTo(x, y + 5.6); g.lineTo(x - 2.4, y + 6.8); g.moveTo(x + 2.4, y + 4.4); g.lineTo(x, y + 5.6); g.lineTo(x + 2.4, y + 6.8); g.fill(); } // Hemdbrust und Fliege
+        else { g.fillStyle = "#F4EFE4"; for (let k = -3; k <= 3; k++) { g.beginPath(); g.arc(x + k * 1.3, y + 5.2 + Math.abs(k) * -0.25 + 0.8, 0.7, 0, 7); g.fill(); } } // Perlenkette
         g.fillStyle = skins[i]; g.beginPath(); g.arc(x, y, 4.6, 0, 7); g.fill();
-        g.fillStyle = i % 3 === 1 ? "#B0A79A" : "#3A2A1E"; g.beginPath(); g.arc(x, y - 1.6, 4.8, Math.PI, 0); g.fill();
-        // Bildschirm: kaltes Licht von unten
-        const sg = g.createRadialGradient(x, y + 12, 1, x, y + 12, 14); sg.addColorStop(0, "rgba(160,210,255,0.55)"); sg.addColorStop(1, "rgba(160,210,255,0)"); g.fillStyle = sg; g.fillRect(x - 14, y - 2, 28, 28);
-        g.fillStyle = "#CFE3FF"; g.fillRect(x - 5, y + 9, 10, 6);
+        g.fillStyle = HAIR[i];
+        if (LADY[i]) { g.fillStyle = ["#111318", "#4A1424", "#2A1E3A"][i % 3]; g.beginPath(); g.ellipse(x, y - 1.2, 5.4, 5, 0, Math.PI, 0); g.fill(); g.fillRect(x - 5.8, y - 1.6, 11.6, 1.8); g.fillStyle = "#E3B860"; g.fillRect(x - 5.4, y - 2.8, 10.8, 1); }
+        else { g.beginPath(); g.arc(x, y - 1.4, 4.8, Math.PI, 0); g.fill(); g.fillRect(x - 4.8, y - 1.6, 1.4, 2.6); }
       }
-      g.fillStyle = "#23466B"; g.fillRect(x0, 192, x1 - x0, 12);
-      g.fillStyle = "#DDA43B"; g.fillRect(x0, 192, x1 - x0, 2);
-      g.fillStyle = "#1B2440"; g.fillRect(JX - 48, 146, 96, 14); g.strokeStyle = "#DDA43B"; g.lineWidth = 1; g.strokeRect(JX - 48, 146, 96, 14);
-      g.fillStyle = "#F3C969"; g.font = "bold 8px sans-serif"; g.textAlign = "center"; g.textBaseline = "middle"; g.fillText("PREISGERICHT", JX, 153.5);
+      // Tisch mit Samtbehang, Goldborte und Fransen
+      g.fillStyle = "#5A1420"; g.fillRect(x0 - 6, 190, x1 - x0 + 12, 14);
+      const vg = g.createLinearGradient(0, 190, 0, 204); vg.addColorStop(0, "rgba(255,255,255,0.08)"); vg.addColorStop(1, "rgba(0,0,0,0.3)"); g.fillStyle = vg; g.fillRect(x0 - 6, 190, x1 - x0 + 12, 14);
+      for (let x = x0; x < x1; x += 24) { g.fillStyle = "rgba(0,0,0,0.18)"; g.fillRect(x + 11, 192, 2, 12); }
+      g.fillStyle = "#E3B860"; g.fillRect(x0 - 6, 189, x1 - x0 + 12, 2); g.fillStyle = "rgba(227,184,96,0.8)"; for (let x = x0 - 6; x < x1 + 6; x += 3) g.fillRect(x, 202, 1.2, 2);
+      // Messinglampen mit grünem Schirm zwischen den Richtern: warmes Licht auf Gesichter und Tisch
+      for (let i = 0; i < 8; i++) {
+        const x = x0 + 18 + (i + 0.5) * ((x1 - x0 - 36) / 8), y = 186;
+        const lg = g.createRadialGradient(x, y + 2, 1, x, y + 2, 18); lg.addColorStop(0, "rgba(255,214,140,0.6)"); lg.addColorStop(1, "rgba(255,214,140,0)"); g.fillStyle = lg; g.fillRect(x - 18, y - 16, 36, 30);
+        g.fillStyle = "#B88A3A"; g.fillRect(x - 0.6, y - 2, 1.2, 5); g.fillStyle = "#1F5A44"; g.beginPath(); g.moveTo(x - 4, y); g.lineTo(x - 2.5, y - 3.5); g.lineTo(x + 2.5, y - 3.5); g.lineTo(x + 4, y); g.closePath(); g.fill();
+        g.fillStyle = "#FFE7A8"; g.fillRect(x - 3, y, 6, 0.8);
+      }
+      // Schild: dunkles Holz, Goldrahmen, Lorbeer links und rechts
+      const sx0 = JX - 56, sw = 112;
+      g.fillStyle = "#1A1110"; g.fillRect(sx0, 143, sw, 15); g.strokeStyle = "#E3B860"; g.lineWidth = 1.2; g.strokeRect(sx0 + 0.5, 143.5, sw - 1, 14); g.lineWidth = 0.6; g.strokeRect(sx0 + 2.5, 145.5, sw - 5, 10);
+      g.fillStyle = "#F3D58A"; g.font = "600 7.5px Georgia, serif"; g.textAlign = "center"; g.textBaseline = "middle"; g.fillText("P R E I S G E R I C H T", JX, 151);
+      for (const sg of [-1, 1]) { g.strokeStyle = "#C9A24E"; g.lineWidth = 0.9; g.beginPath(); g.arc(JX + sg * (sw / 2 + 9), 152, 7, sg > 0 ? Math.PI * 0.6 : -Math.PI * 0.4, sg > 0 ? Math.PI * 1.4 : Math.PI * 0.4); g.stroke();
+        g.fillStyle = "#C9A24E"; for (let k = 0; k < 5; k++) { const a = (sg > 0 ? Math.PI * 0.75 : Math.PI * 0.25) + sg * (k - 2) * 0.32; const lx = JX + sg * (sw / 2 + 9) + Math.cos(a) * 7, ly = 152 + Math.sin(a) * 7; g.beginPath(); g.ellipse(lx, ly, 2.4, 1.1, a + Math.PI / 2, 0, 7); g.fill(); } }
     }
     // Bande: Papierweiß mit farbigen Feldern, keine Schrift
     g.fillStyle = "#F1E7D2"; g.fillRect(0, 204, w, ICE_TOP - 204);
@@ -2631,7 +2661,7 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
 /* COLD MEDAL EISKUNSTLAUF – Ablauf, Bildschirme, Eingabe, Taktband, Ergebnis, Spielstand. */
 (function () {
   "use strict";
-  const VERSION = "0.23";
+  const VERSION = "0.24";
   // Seiten-Einstellungen aus dem Build (eigenes Hosting: Adresse, Hoster, Impressum); im claude.ai-Artefakt leer
   const SITE = Object.assign({ web: false, url: "", impressum: null }, {"web": true, "url": "https://matpeins-debug.github.io/cold-medal-eiskunstlauf/", "hoster": "GitHub Pages (GitHub Inc., USA)", "drittland": "GitHub ist nach dem EU-US Data Privacy Framework zertifiziert; die Übermittlung in die USA stützt sich auf den Angemessenheitsbeschluss der EU-Kommission dazu.", "impressum": {"name": "", "adresse": "", "mail": ""}} || {});
   const M = window.EKMusic, K = window.EKSkate, F = window.EKFig, SC = window.EKScene;
