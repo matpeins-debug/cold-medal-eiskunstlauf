@@ -424,6 +424,7 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
 .intro .own { margin: 0; text-align: center; color: #F3D58A; font-style: italic; font-size: 12.5px; }
 #pDef:disabled { opacity: 0.55; cursor: default; font-size: 11px; }
 .srow.sub { font-size: 11px; font-style: italic; opacity: 0.75; margin-top: -4px; }
+#scrSet .note { padding-right: 130px; }
 </style>
 </head>
 <body>
@@ -2831,7 +2832,7 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
 /* COLD MEDAL EISKUNSTLAUF – Ablauf, Bildschirme, Eingabe, Taktband, Ergebnis, Spielstand. */
 (function () {
   "use strict";
-  const VERSION = "0.30";
+  const VERSION = "0.31";
   // Seiten-Einstellungen aus dem Build (eigenes Hosting: Adresse, Hoster, Impressum); im claude.ai-Artefakt leer
   const SITE = Object.assign({ web: false, url: "", impressum: null }, {"web": true, "url": "https://matpeins-debug.github.io/cold-medal-eiskunstlauf/", "hoster": "GitHub Pages (GitHub Inc., USA)", "drittland": "GitHub ist nach dem EU-US Data Privacy Framework zertifiziert; die Übermittlung in die USA stützt sich auf den Angemessenheitsbeschluss der EU-Kommission dazu.", "impressum": {"name": "", "adresse": "", "mail": ""}} || {});
   const M = window.EKMusic, K = window.EKSkate, F = window.EKFig, SC = window.EKScene;
@@ -2904,7 +2905,7 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
   let scene = SC.Scene("wien", Math.min(2, (window.devicePixelRatio || 1) * uiS));
 
   // ------------------------------------------------------------------ Ton
-  let ctxA = null, player = null, keep = null;
+  let ctxA = null, player = null, keep = null, master = null;
   const IOS = /iP(hone|ad|od)/.test(navigator.userAgent || "") || (navigator.platform === "MacIntel" && (navigator.maxTouchPoints || 0) > 1);
   function silentWav(sr) {
     const n = Math.round(sr * 0.5), bytes = new Uint8Array(44 + n * 2), v = new DataView(bytes.buffer);
@@ -2920,7 +2921,7 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
     try {
       if (!ctxA) {
         const AC = window.AudioContext || window.webkitAudioContext; if (!AC) return;
-        ctxA = new AC({ latencyHint: "interactive" }); player = M.Player(ctxA, ctxA.destination);
+        ctxA = new AC({ latencyHint: "interactive" }); master = ctxA.createGain(); master.gain.value = S.sound ? 1 : 0; master.connect(ctxA.destination); player = M.Player(ctxA, master); // „Ton aus“ schaltet alles stumm, auch die Musik
         const sb = ctxA.createBufferSource(); sb.buffer = ctxA.createBuffer(1, 1, 22050); sb.connect(ctxA.destination); sb.start(0);
       }
       if (ctxA.state !== "running") { const p = ctxA.resume(); if (p && p.catch) p.catch(() => {}); }
@@ -2934,6 +2935,10 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
   // ein gemeinsamer Rausch-Puffer für alle Geräusche (nicht bei jedem Klatschen neu erzeugen: das ruckelt am Handy)
   let NOISE = null;
   function noiseBuf() { if (!NOISE) { NOISE = ctxA.createBuffer(1, ctxA.sampleRate, ctxA.sampleRate); const d = NOISE.getChannelData(0); for (let i = 0; i < d.length; i++) d[i] = Math.random() * 2 - 1; } return NOISE; }
+  function applySound() {
+    if (master && ctxA) master.gain.setTargetAtTime(S.sound ? 1 : 0, ctxA.currentTime, 0.03);
+    if (!S.sound) { try { if (window.speechSynthesis) window.speechSynthesis.cancel(); } catch (e) { /* egal */ } }
+  }
   function sfx(kind, lvl) {
     if (!ctxA || !S.sound) return;
     const c = ctxA, t = c.currentTime, out = player ? player.space : c.destination; // Geräusche klingen im selben Raum wie die Musik
@@ -4324,7 +4329,7 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
     pills("sHelp", [["anf", "Anfänger"], ["norm", "Normal"], ["pro", "Experte"]], S.help, (v) => (S.help = v));
     $("sHelpTxt").textContent = { anf: "langsamer, weite Fenster, kein Sturz, Hinweise immer · Wertung ×0,8", norm: "Original-Tempo, Hinweise am Anfang, Vorschlag im Kürplan · Wertung ×1", pro: "schneller, enge Fenster, keine Zeichen über der Läuferin; Kür selbst choreografieren, Choreo-Note zählt doppelt · Wertung ×1,15" }[S.help] || "";
     pills("sPreset", Object.entries(M.PRESETS).map(([k, v]) => [k, v.name]), S.preset, (v) => (S.preset = v));
-    pills("sSound", [[1, "An"], [0, "Aus"]], S.sound, (v) => (S.sound = v));
+    pills("sSound", [[1, "An"], [0, "Aus"]], S.sound, (v) => { S.sound = v; applySound(); });
     $("sLat").textContent = nb(`${S.lat} ms`);
   }
   $("sLm").onclick = () => { S.lat = clamp(S.lat - 10, -200, 400); save(); fillSet(); };
