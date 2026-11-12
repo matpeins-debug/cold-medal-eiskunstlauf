@@ -241,6 +241,41 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
 .studio .muC { white-space: normal; }
 .mus { grid-template-columns: repeat(4, minmax(0, 1fr)); }
 .secCol p { max-width: none; }
+/* Abspielknopf: rund, gold, Fortschrittsring */
+.bandRow { display: flex; align-items: center; gap: 8px; }
+.bandRow .band { flex: 1; }
+.playBtn { flex: none; width: 46px; height: 46px; padding: 0; border: 0; background: none; border-radius: 50%; filter: drop-shadow(0 0 10px rgba(243,201,105,0.35)); }
+.playBtn svg { width: 100%; height: 100%; display: block; }
+.playBtn .trk { fill: #F3C969; stroke: rgba(243,201,105,0.25); stroke-width: 3; }
+.playBtn .prg { fill: none; stroke: #FFF4D6; stroke-width: 3; transform: rotate(-90deg); transform-origin: 22px 22px; transition: stroke-dashoffset 0.12s linear; }
+.playBtn .ico { fill: #141B25; }
+.playBtn.on .trk { fill: #FFE7A0; }
+.playBtn:active { transform: scale(0.94); }
+.ptime { flex: none; width: 66px; font-family: var(--font-display); font-size: 11px; color: rgba(241,231,210,0.7); text-align: right; font-variant-numeric: tabular-nums; }
+.muC { cursor: pointer; }
+.muF { display: flex; align-items: center; gap: 8px; width: 100%; }
+.muF em { margin-left: auto; font-style: normal; color: #F3C969; }
+.muPlay { width: 30px; height: 30px; border-radius: 50%; border: 0; padding: 7px; background: #F3C969; display: flex; align-items: center; justify-content: center; box-shadow: 0 0 10px rgba(243,201,105,0.35); }
+.muPlay svg { width: 100%; height: 100%; fill: #141B25; }
+.muPlay.on { background: #FFF4D6; }
+/* Meine Kür im Menü */
+.planCard { display: flex; flex-direction: column; gap: 5px; padding: 7px 10px 6px; text-align: left; color: var(--paper); border: 2px solid var(--ink-deep); box-shadow: 3px 3px 0 var(--ink-deep); background: radial-gradient(ellipse at 50% -20%, #34467A 0%, #1A2544 60%, #0F1730 100%); }
+.pcHead { display: flex; align-items: baseline; gap: 8px; white-space: nowrap; }
+.pcHead b { font-family: var(--font-display); font-size: 11px; letter-spacing: 0.14em; color: #F3C969; }
+.pcHead i { font-style: normal; font-family: var(--font-display); font-weight: 700; font-size: 14px; }
+.pcHead em { margin-left: auto; font-style: normal; font-family: var(--font-display); font-size: 11px; color: #F3C969; }
+.pcStrip { display: grid; grid-template-columns: repeat(8, 1fr); gap: 3px; }
+.ms { height: 16px; display: flex; align-items: center; justify-content: center; font-size: 9px; color: rgba(241,231,210,0.85); border-top: 3px solid rgba(241,231,210,0.3); background: rgba(255,255,255,0.07); }
+.ms.jump { border-top-color: #F3C969; } .ms.spin { border-top-color: #9EC3E6; } .ms.steps { border-top-color: #9FD0A6; grid-column: span 2; } .ms.choreo { border-top-color: #D8A9DE; }
+.ms.empty { border-top-style: dashed; background: transparent; }
+.pcFoot { font-family: var(--font-display); font-weight: 700; font-size: 11.5px; letter-spacing: 0.08em; text-transform: uppercase; color: rgba(241,231,210,0.85); }
+.pcFoot b { color: #F3C969; font-size: 14px; }
+.planCard:active { transform: translate(2px, 2px); box-shadow: 1px 1px 0 var(--ink-deep); }
+.sTitle .playBtn { width: 38px; height: 38px; margin-left: 4px; }
+.sTitle .ptime { width: auto; text-align: left; }
+.piece { flex: 0 1 auto; }
+.piece b { overflow: visible; }
+.piece i { font-size: 13px; }
 </style>
 </head>
 <body>
@@ -260,9 +295,9 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
       <div class="place"><b id="mPlace"></b><span id="mFact"></span></div>
       <div class="col">
         <button class="big red" id="bComp"><span>Kür · Wettkampf</span><small id="mBest"></small></button>
-        <button class="big" id="bTrain"><span>Training</span><small>ohne Wertung gegen andere</small></button>
+        <button class="planCard" id="bProg"><span class="pcHead"><b>MEINE KÜR</b><i id="mPiece"></i><em id="mNote"></em></span><span class="pcStrip" id="mStrip"></span><span class="pcFoot">Kürplan gestalten <b>›</b></span></button>
         <div class="row2">
-          <button class="mid" id="bProg">Kürplan</button>
+          <button class="mid" id="bTrain">Training</button>
           <button class="mid" id="bLook">Figur</button>
           <button class="mid" id="bAlbum">Album</button>
           <button class="mid" id="bSet">Optionen</button>
@@ -294,7 +329,7 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
   <section class="scr" id="scrProg" hidden>
     <div class="card wide prog studio">
       <div class="sHead">
-        <div class="sTitle"><div class="kicker">MEINE KÜR</div><button class="piece" id="pPiece"></button></div>
+        <div class="sTitle"><div class="kicker">MEINE KÜR</div><button class="piece" id="pPiece"></button><button class="playBtn" id="pPlay" aria-label="Musik anhören"><svg viewBox="0 0 44 44"><circle class="trk" cx="22" cy="22" r="19.5"/><circle class="prg" id="pPrg" cx="22" cy="22" r="19.5"/><path class="ico" id="pIco" d="M18 14 L31 22 L18 30 Z"/></svg></button><span class="ptime" id="pTime"></span></div>
         <div class="sActs"><button class="noteBtn" id="pNoteBtn"><small>CHOREO-NOTE</small><b id="pNote"></b></button><button class="mid" id="pDef">Vorschlag</button><button class="mid red" id="pDone">Fertig</button></div>
       </div>
       <div class="band"><canvas id="pBand"></canvas></div>
@@ -1740,7 +1775,7 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
 /* COLD MEDAL EISKUNSTLAUF – Ablauf, Bildschirme, Eingabe, Taktband, Ergebnis, Spielstand. */
 (function () {
   "use strict";
-  const VERSION = "0.12";
+  const VERSION = "0.13";
   // Seiten-Einstellungen aus dem Build (eigenes Hosting: Adresse, Hoster, Impressum); im claude.ai-Artefakt leer
   const SITE = Object.assign({ web: false, url: "", impressum: null }, {"web": true, "url": "https://matpeins-debug.github.io/cold-medal-eiskunstlauf/", "hoster": "GitHub Pages (GitHub Inc., USA)", "drittland": "GitHub ist nach dem EU-US Data Privacy Framework zertifiziert; die Übermittlung in die USA stützt sich auf den Angemessenheitsbeschluss der EU-Kommission dazu.", "impressum": {"name": "", "adresse": "", "mail": ""}} || {});
   const M = window.EKMusic, K = window.EKSkate, F = window.EKFigure, SC = window.EKScene;
@@ -2658,6 +2693,7 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
     const P = SC.PLACES.wien;
     $("mPlace").textContent = `${P.venue} · ${P.name}`; $("mFact").textContent = P.fact;
     $("mBest").textContent = S.best ? nb(`Bestwert ${dec(S.best)} Punkte`) : `gegen fünf andere, zur Musik „${useMusic().short}“`;
+    fillPlanCard();
     $("mFoot").textContent = `Version ${VERSION} · inoffizielles Fanspiel`;
   }
   let pendingMode = "comp";
@@ -2763,7 +2799,7 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
       const si = Math.floor((beat - b0) / 12); $("tl").querySelectorAll(".slot").forEach((el) => el.classList.toggle("play", +el.dataset.i === si || (+el.dataset.i === si - 1 && el.classList.contains("steps"))));
     }
   }
-  (function bandLoop() { requestAnimationFrame(bandLoop); if (listenOn && !$("scrProg").hidden) drawBand(); })();
+  (function bandLoop() { requestAnimationFrame(bandLoop); if (listenOn && !$("scrProg").hidden) { drawBand(); playUI(); } })();
   // Kürplan, so einfach wie möglich: oben das Stück, darunter die Melodie und die acht Abschnitte.
   // Unten links steht, was im gewählten Abschnitt in der Musik passiert, rechts wählt man: erst die Art, dann das Element.
   let pCat = null, pSheet = null;
@@ -2785,7 +2821,7 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
       pCat = curC ? curC.kind : fit[0];
       if (curC && curC.kind === "jump") { pRot = curC.rot; pCombo = curC.combo ? curC.combo[1].replace(/^\d/, "") : ""; }
     }
-    $("pPiece").innerHTML = `<b>♪ ${esc(SCORE.short)}</b><small>${esc(SCORE.composer.replace(/,.*$/, ""))}</small><i>wechseln ▾</i>`;
+    $("pPiece").innerHTML = `<b>♪ ${esc(SCORE.short)}</b><i>▾</i>`;
     $("pNote").textContent = dec(pl.total);
     // Abschnitte
     $("tl").innerHTML = sl.map((id, i) => {
@@ -2835,6 +2871,7 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
     $("pTweak").querySelectorAll("[data-rot]").forEach((b) => (b.onclick = () => { pRot = +b.dataset.rot; fillProg(); }));
     $("pTweak").querySelectorAll("[data-combo]").forEach((b) => (b.onclick = () => { pCombo = b.dataset.combo; fillProg(); }));
     fillSheet(pl);
+    playUI();
     requestAnimationFrame(drawBand);
   }
   // Blätter über dem Kürplan: Musik wählen, Choreo-Note mit Kostüm
@@ -2843,10 +2880,10 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
     if (!pSheet) return;
     const C = $("pSheetC");
     if (pSheet === "musik") {
-      C.innerHTML = `<div class="kicker">MUSIK FÜR DIE KÜR</div><div class="mus">` + M.KUER.map((id) => { const sc = M.SCORES[id]; return `<button class="muC${S.music === id ? " on" : ""}" data-mu="${id}"><b>${esc(sc.title)}</b><small>${esc(sc.composer)}</small><i>${esc(MUSIC_INFO[id] || "")}</i><span>${mmss(M.grid(sc, sc.bpm, true)[108])} · ♩ ${sc.bpm}</span></button>`; }).join("") + `</div>`
-        + `<div class="shFoot"><button class="mid" id="pListen">${listenOn ? "■ Stopp" : "▶ Anhören"}</button><span>Jedes Stück hat eigene Stimmungen und Höhepunkte.</span></div>`;
-      C.querySelectorAll("[data-mu]").forEach((b) => (b.onclick = () => { S.music = b.dataset.mu; save(); if (listenOn) listen(true); pCat = null; fillProg(); }));
-      $("pListen").onclick = () => listen(!listenOn);
+      C.innerHTML = `<div class="kicker">MUSIK FÜR DIE KÜR</div><div class="mus">` + M.KUER.map((id) => { const sc = M.SCORES[id]; const pl2 = listenOn && SCORE.id === id; return `<div class="muC${S.music === id ? " on" : ""}" data-mu="${id}"><b>${esc(sc.title)}</b><small>${esc(sc.composer)}</small><i>${esc(MUSIC_INFO[id] || "")}</i><span class="muF"><button class="muPlay${pl2 ? " on" : ""}" data-mu="${id}" aria-label="anhören"><svg viewBox="0 0 24 24"><path d="${pl2 ? "M7 5h3.5v14H7z M13.5 5H17v14h-3.5z" : "M8 5l11 7-11 7z"}"/></svg></button>${mmss(M.grid(sc, sc.bpm, true)[108])} · ♩ ${sc.bpm}${S.music === id ? `<em>gewählt ✓</em>` : ""}</span></div>`; }).join("") + `</div>`
+        + `<div class="shFoot"><span>Karte antippen = für die Kür wählen · ▶ = anhören. Jedes Stück hat eigene Stimmungen und Höhepunkte.</span></div>`;
+      C.querySelectorAll(".muC").forEach((b) => (b.onclick = () => { const was = SCORE.id; S.music = b.dataset.mu; save(); if (listenOn && was !== S.music) listen(true); pCat = null; fillProg(); }));
+      C.querySelectorAll(".muPlay").forEach((b) => (b.onclick = (ev) => { ev.stopPropagation(); const same = listenOn && SCORE.id === b.dataset.mu; S.music = b.dataset.mu; save(); pCat = null; listen(!same); }));
     } else {
       C.innerHTML = `<div class="kicker">CHOREO-NOTE ${dec(pl.total)} VON 10</div><div class="noteTab"><div class="lookBox"><canvas id="pFig" width="180" height="220"></canvas><button class="mid" id="pLook">Kostüm ändern</button></div><div class="plList">`
         + pl.parts.map((x) => `<div class="plRow"><span>${esc(x.name)}</span><i style="--v:${x.v * 10}%"></i><b>${dec(x.v)}</b><em>${esc(x.why)}</em></div>`).join("") + `</div></div>`
@@ -2863,12 +2900,32 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
     unlock();
     if (player && player.playing) player.stop();
     listenOn = !!on && !!player;
-    if (listenOn) { player.start(SCORE.id, { preset: S.preset, swing: true }); player.onEnd = () => { listenOn = false; if (!$("scrProg").hidden) fillProg(); }; }
+    if (listenOn) { useMusic(); player.start(SCORE.id, { preset: S.preset, swing: true }); player.onEnd = () => { listenOn = false; playUI(); if (!$("scrProg").hidden) fillProg(); }; }
+    playUI();
     if (!$("scrProg").hidden) fillProg();
   }
-  $("bProg").onclick = () => { pSel = 0; pCat = null; pSheet = null; const c = CAT[S.prog[0]]; if (c && c.kind === "jump") { pRot = c.rot; pCombo = c.combo ? c.combo[1].slice(1) : ""; } fillProg(); show("scrProg"); };
+  // runder Abspielknopf mit Fortschrittsring und Zeit
+  const RING = 2 * Math.PI * 19.5;
+  function playUI() {
+    const tot = M.grid(SCORE, SCORE.bpm, true)[108] + 1.5;
+    let el = 0; if (listenOn && player && player.playing) el = clamp(player.heardNow() - player.t0, 0, tot);
+    $("pPrg").style.strokeDasharray = RING; $("pPrg").style.strokeDashoffset = RING * (1 - el / tot);
+    $("pIco").setAttribute("d", listenOn ? "M16 14 h4.5 v16 h-4.5 Z M23.5 14 h4.5 v16 h-4.5 Z" : "M18 14 L31 22 L18 30 Z");
+    $("pPlay").classList.toggle("on", listenOn);
+    $("pTime").textContent = listenOn ? `${mmss(el)} / ${mmss(tot)}` : mmss(tot);
+    document.querySelectorAll(".muPlay").forEach((b) => b.classList.toggle("on", listenOn && b.dataset.mu === SCORE.id));
+  }
+  $("pPlay").onclick = () => listen(!listenOn);
+  // Kürplan im Menü: das Herz der Kür – Stück, Choreo-Note und die acht Abschnitte auf einen Blick
+  function fillPlanCard() {
+    useMusic();
+    const sl = K.cleanSlots(S.prog), pl = K.plan(sl, S.look, SCORE.id);
+    $("mPiece").textContent = `♪ ${SCORE.short}`; $("mNote").textContent = `Choreo-Note ${dec(pl.total)}`;
+    $("mStrip").innerHTML = sl.map((id) => { if (id === "~") return ""; const c = CAT[id]; return `<span class="ms ${c ? c.kind : "empty"}">${c ? KIND[c.kind][0] : ""}</span>`; }).join("");
+  }
+  $("bProg").onclick = () => { if (listenOn) listen(false); pSel = 0; pCat = null; pSheet = null; const c = CAT[S.prog[0]]; if (c && c.kind === "jump") { pRot = c.rot; pCombo = c.combo ? c.combo[1].slice(1) : ""; } fillProg(); show("scrProg"); };
   $("pDef").onclick = () => { S.prog = K.DEFAULT_SLOTS.slice(); save(); fillProg(); };
-  $("pDone").onclick = () => { if (listenOn) listen(false); show("scrMenu"); };
+  $("pDone").onclick = () => { if (listenOn) listen(false); fillPlanCard(); show("scrMenu"); };
 
   // Einstellungen
   function fillSet() {
