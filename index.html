@@ -2861,7 +2861,7 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
 /* COLD MEDAL EISKUNSTLAUF – Ablauf, Bildschirme, Eingabe, Taktband, Ergebnis, Spielstand. */
 (function () {
   "use strict";
-  const VERSION = "0.34";
+  const VERSION = "0.35";
   // Seiten-Einstellungen aus dem Build (eigenes Hosting: Adresse, Hoster, Impressum); im claude.ai-Artefakt leer
   const SITE = Object.assign({ web: false, url: "", impressum: null }, {"web": true, "url": "https://matpeins-debug.github.io/cold-medal-eiskunstlauf/", "hoster": "GitHub Pages (GitHub Inc., USA)", "drittland": "GitHub ist nach dem EU-US Data Privacy Framework zertifiziert; die Übermittlung in die USA stützt sich auf den Angemessenheitsbeschluss der EU-Kommission dazu.", "impressum": {"name": "", "adresse": "", "mail": ""}} || {});
   const M = window.EKMusic, K = window.EKSkate, F = window.EKFig, SC = window.EKScene;
@@ -3033,7 +3033,7 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
   const LV = () => LEVELS[S.help] || LEVELS.norm;
   const kHelp = () => LV().k;
   // Choreo-Note: ein Vorschlag bekommt höchstens 8, selbst geändert bis 9, nur als Experte bis 10
-  const planCap = () => (LV().own ? 10 : S.progAuto ? 8 : 9);
+  const planCap = () => (S.progAuto ? 8 : LV().own ? 10 : 9);
   function songTime() {
     if (!run) return 0;
     if (run.fake) return run.fakeT;
@@ -4318,7 +4318,7 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
     } else if (pSheet === "saved") {
       const d = new Date(), date = `${d.getDate()}.${d.getMonth() + 1}.${d.getFullYear()}`;
       C.innerHTML = `<div class="kicker">MEINE KÜREN</div><div class="svNew"><input id="svName" maxlength="24" placeholder="Name, z. B. „Winterball“" value="${esc(nb(SCORE.short))}"><button class="mid gold" id="svSave">Aktuellen Plan speichern</button></div>`
-        + `<div class="svList">${S.saved.length ? S.saved.map((x, i) => { const pl2 = K.plan(x.prog, S.look, x.music, x.fx, LV().own ? 10 : x.auto ? 8 : 9); return `<div class="svC"><b>${esc(x.name)}</b><small>${esc(M.SCORES[x.music].short)} · ${esc(x.date)}${x.auto ? " · Vorschlag" : ""}</small><span class="svStrip">${x.prog.map((id) => { if (id === "~") return ""; const c = CAT[id]; return `<i class="ms ${c ? c.kind : "empty"}">${c ? KIND[c.kind][0] : ""}</i>`; }).join("")}</span><em>Choreo-Note ${dec(pl2.total)}</em><span class="svB"><button class="mid red" data-load="${i}">Laden</button><button class="mid" data-del="${i}">✕</button></span></div>`; }).join("") : `<div class="empty">Noch keine Kür gespeichert. Oben einen Namen geben und speichern – bis zu acht Küren.</div>`}</div>`
+        + `<div class="svList">${S.saved.length ? S.saved.map((x, i) => { const pl2 = K.plan(x.prog, S.look, x.music, x.fx, x.auto ? 8 : LV().own ? 10 : 9); return `<div class="svC"><b>${esc(x.name)}</b><small>${esc(M.SCORES[x.music].short)} · ${esc(x.date)}${x.auto ? " · Vorschlag" : ""}</small><span class="svStrip">${x.prog.map((id) => { if (id === "~") return ""; const c = CAT[id]; return `<i class="ms ${c ? c.kind : "empty"}">${c ? KIND[c.kind][0] : ""}</i>`; }).join("")}</span><em>Choreo-Note ${dec(pl2.total)}</em><span class="svB"><button class="mid red" data-load="${i}">Laden</button><button class="mid" data-del="${i}">✕</button></span></div>`; }).join("") : `<div class="empty">Noch keine Kür gespeichert. Oben einen Namen geben und speichern – bis zu acht Küren.</div>`}</div>`
         + `<div class="shFoot"><span>Gespeichert werden Elemente, Show-Effekte und Musik. Laden ersetzt den aktuellen Plan.</span></div>`;
       $("svSave").onclick = () => {
         const name = ($("svName").value || "Kür").replace(/[<>&"]/g, "").trim().slice(0, 24) || "Kür";
@@ -4375,8 +4375,16 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
   // Einstellungen
   function fillSet() {
     const pills = (id, list, cur, set) => { const el = $(id); el.innerHTML = ""; for (const [v, t] of list) { const b = document.createElement("button"); b.className = "pill" + (v === cur ? " on" : ""); b.textContent = t; b.onclick = () => { set(v); save(); fillSet(); }; el.appendChild(b); } };
-    pills("sHelp", [["anf", "Anfänger"], ["norm", "Normal"], ["pro", "Experte"]], S.help, (v) => { S.help = v; if (v === "pro" && S.progAuto) { S.prog = [null, null, null, null, null, null, null, null]; S.fx = K.cleanFx(null); S.progAuto = false; } });
-    $("sHelpTxt").textContent = { anf: "langsamer, weite Fenster, kein Sturz, Hinweise immer · Wertung ×0,8", norm: "Original-Tempo, Hinweise am Anfang, Vorschlag im Kürplan · Wertung ×1", pro: "schneller, enge Fenster, keine Zeichen über der Läuferin; Kür selbst choreografieren, Choreo-Note zählt doppelt · Wertung ×1,15" }[S.help] || "";
+    pills("sHelp", [["anf", "Anfänger"], ["norm", "Normal"], ["pro", "Experte"]], S.help, (v) => {
+      // Experte fängt mit einem leeren Kürplan an; der bisherige landet vorher in „Meine Küren“, damit nichts verloren geht
+      if (v === "pro" && S.help !== "pro" && S.prog.some((x) => x)) {
+        const d = new Date();
+        S.saved.unshift({ name: "Vor Experte · " + M.SCORES[S.music].short, prog: S.prog.slice(), fx: S.fx.slice(), music: S.music, auto: !!S.progAuto, date: `${d.getDate()}.${d.getMonth() + 1}.${d.getFullYear()}` }); S.saved = S.saved.slice(0, 8);
+        S.prog = [null, null, null, null, null, null, null, null]; S.fx = K.cleanFx(null); S.progAuto = false;
+      }
+      S.help = v;
+    });
+    $("sHelpTxt").textContent = { anf: "langsamer, weite Fenster, kein Sturz, Hinweise immer · Wertung ×0,8", norm: "Original-Tempo, Hinweise am Anfang, Vorschlag im Kürplan · Wertung ×1", pro: "schneller, enge Fenster, keine Zeichen über der Läuferin; leerer Kürplan zum Selbst-Choreografieren (der alte liegt in „Meine Küren“), Choreo-Note zählt doppelt · Wertung ×1,15" }[S.help] || "";
     pills("sPreset", Object.entries(M.PRESETS).map(([k, v]) => [k, v.name]), S.preset, (v) => (S.preset = v));
     pills("sSound", [[1, "An"], [0, "Aus"]], S.sound, (v) => { S.sound = v; applySound(); });
     $("sLat").textContent = nb(`${S.lat} ms`);
