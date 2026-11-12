@@ -534,6 +534,10 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
     Am: { b: ["A1", "E2"], c: ["A3", "C4", "E4"] },
     Dm: { b: ["D2", "A1"], c: ["F3", "A3", "D4"] },
     Gm: { b: ["G1", "D2"], c: ["G3", "Bb3", "D4"] },
+    A: { b: ["A1", "E2"], c: ["A3", "C#4", "E4"] },
+    "F#m": { b: ["F#1", "C#2"], c: ["F#3", "A3", "C#4"] },
+    B7: { b: ["B1", "F#2"], c: ["A3", "B3", "D#4"] },
+    C: { b: ["C2", "G2"], c: ["G3", "C4", "E4"] },
   };
   // Takt eine Oktave höher (für Wiederholungen mit mehr Glanz)
   const up = (bar) => [bar[0], bar[1] === "." ? "." : bar[1].replace(/([A-G][#b]?)(\d)/g, (_, n, o) => n + (+o + 1))];
@@ -612,9 +616,64 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
     bars: [["Dm", "."], ["Dm", "."], ["A7", "."], ["A7", "."], ...IV_A, ...IV_A.map(up)],
     end: "Dm",
   };
+  // Johann Strauss (Sohn), „Rosen aus dem Süden“ op. 388 (1880, gemeinfrei), erster Walzer in A-Dur. Damit lief die Olympiasiegerin 1936.
+  // Melodie nach der freien Violinstimme von 8notes.com (Noten geprüft), eigener Satz und eigene Harmonien.
+  const ROSEN_A = [
+    ["A", "1:C#4 3:E4:0.75 3.75:E4:0.25"], ["E7", "1:D5:2 3:C#5"], ["A", "1:C#4 3:E4:0.75 3.75:E4:0.25"], ["E7", "1:B4:2 3:A4"],
+    ["A", "1:C#4:2 3:E4"], ["E7", "1:G#4:2.5 3.5:F#4:0.5"], ["Bm", "1:F#4:3"], ["E7", "1:B3 3:E4"],
+  ];
+  const ROSEN = {
+    id: "rosen", title: "Rosen aus dem Süden", short: "Rosen aus dem Süden", composer: "Johann Strauss (Sohn), 1880",
+    bpm: 160, meter: 3, pulse: 1, acc: "waltz", swing: true, finNote: "A4",
+    bars: [["A", "."], ["A", "."], ["E7", "."], ["E7", "."],
+      ...ROSEN_A,
+      ["E7", "1:F4:2 3:F#4"], ["E7", "1:D4:2 3:B3"], ["E7", "1:G#4 3:G#4:0.5"], ["E7", "1:G#4:0.5 3:E4"],
+      ["Dm", "1:F4:2 3:F#4"], ["E7", "1:D4:2 3:B3"], ["E7", "1:E4 3:E4:0.5"], ["E7", "1:E4:0.5 3:E4"],
+      ...ROSEN_A.slice(0, 3), ["E7", "1:B4:2 3:A4:0.5 3.5:B4:0.5"],
+      ["F#m", "1:C#5 3:A4:0.5 3.5:F#4:0.5"], ["B7", "1:D#4 3:C#5"], ["E7", "1:B4:3"], ["E7", "1:C#5 2:B4 3:E4"],
+      ["A", "1:A4:3"], ["B7", "1:B4 2:A4 3:D#4"], ["E7", "1:G#4:2 3:G#4"], ["A", "1:C#5 3:C#5"],
+      ["D", "1:F#4 3:F#4"], ["B7", "1:B4:2 3:D#4:0.5 3.5:B4:0.5"], ["E7", "1:G#4:3"], ["E7", "1:C#5 2:B4 3:E4"]],
+    end: "A",
+  };
+  // Peter Tschaikowski, „Blumenwalzer“ aus dem Nussknacker (1892, gemeinfrei), Hauptthema in G-Dur.
+  // Melodie nach der freien Violinstimme von 8notes.com, eigener Satz. Kinder kennen ihn.
+  const FL_A = [
+    ["G", "1:B5:2 3:F#5"], ["Am", "1:A5:2 3:E5"], ["C", "1:G5:2 3:C5"], ["D7", "1:F#5:0.33 1.33:G5:0.33 1.67:F#5:0.33 2:F5:0.5 3:F#5:0.5"],
+  ];
+  const FL_B = [["C", "1:C6:2 3:G5"], ["G", "1:B5:2 3:F#5"], ["D7", "1:A5:2 3:D5"], ["G", "1:G5:0.33 1.33:A5:0.33 1.67:G5:0.33 2:F#5:0.5 3:G5:0.5"]];
+  const FLOWER = {
+    id: "blumen", title: "Blumenwalzer", short: "Blumenwalzer", composer: "Peter Tschaikowski, 1892",
+    bpm: 168, meter: 3, pulse: 1, acc: "waltz", swing: false, finNote: "G5",
+    bars: [["G", "."], ["G", "."], ["D7", "."], ["D7", "."],
+      ...FL_A, ...FL_B, ...FL_A,
+      ["C", "1:C6:2 3:G5"], ["E7", "1:C6:2 3:G#5"], ["Am", "1:C6:2 3:A5"], ["D7", "1:D6:0.5 1.5:D5:0.5 2:E5:0.5 2.5:F#5:0.5 3:G5:0.5 3.5:A5:0.5"],
+      ...FL_A, ...FL_B, ...FL_A,
+      ["C", "1:E6:2 3:D6"], ["Am", "1:E6:2 3:D6"], ["D7", "1:F#6:0.5 2:D6:0.5 2.5:D#6:0.5 3:E6:0.5 3.5:F#6:0.5"], ["G", "1:G6:3"]],
+    end: "G",
+  };
+  // Peter Tschaikowski, Walzer aus „Schwanensee“ (1877, gemeinfrei), 1. Akt, in A-Dur; erst schlicht, dann verziert eine Oktave höher.
+  // Melodie nach der freien Violinstimme von 8notes.com, eigener Satz.
+  const SW_LO = [
+    ["A", "2:C#5:1.5 3.5:B4:0.5"], ["E7", "1:D5:2 3:C#5"], ["A", "2:C#5:1.5 3.5:B4:0.5"], ["E7", "1:D5:2 3:C#5"],
+    ["Bm", "2:B4:1.5 3.5:A#4:0.5"], ["F#m", "1:C#5:2 3:B4"], ["Bm", "2:A#4 3:B4"], ["E7", "1:E5:3"],
+    ["A", "2:C#5:1.5 3.5:B4:0.5"], ["E7", "1:D5:2 3:C#5"], ["A", "2:C#5:1.5 3.5:B4:0.5"], ["E7", "1:D5:2 3:C#5"],
+    ["Bm", "2:B4:1.5 3.5:C#5:0.5"], ["A", "1:A4:0.5 2:C#5:1.5 3.5:B4:0.5"], ["E7", "1:A4:0.5 2:G#4:1.5 3.5:G4:0.5"], ["E7", "1:G#4:3"],
+  ];
+  const SW_HI = [
+    ["A", "2:C#5:1.5 3.5:B4:0.5"], ["E7", "1:D5:0.5 1.5:E5:0.5 2:C#5:0.5"], ["A", "2:C#5:1.5 3.5:B4:0.5"], ["E7", "1:D5:0.5 1.5:E5:0.5 2:C#5:0.5"],
+    ["A", "2:C#5:1.5 3.5:B4:0.5"], ["E7", "1:D5:0.5 1.5:E5:0.5 2:C#5:0.5"], ["Bm", "2:B4:1.5 3.5:A#4:0.5"], ["F#m", "1:C#5:0.5 1.5:E5:0.5 2:B4:0.5"],
+    ["Bm", "2:A#4 3:B4"], ["E7", "1:E5:3"], ["A", "2:C#5:1.5 3.5:B4:0.5"], ["E7", "1:D5:0.5 1.5:E5:0.5 2:C#5:0.5"],
+    ["A", "2:C#5:1.5 3.5:B4:0.5"], ["E7", "1:D5:0.5 1.5:E5:0.5 2:C#5:0.5"], ["E7", "2:B4:1.5 3.5:C#5:0.5"], ["E7", "1:A4:0.5 2:C#5:1.5 3.5:B4:0.5"],
+  ];
+  const SWAN = {
+    id: "schwan", title: "Schwanensee-Walzer", short: "Schwanensee", composer: "Peter Tschaikowski, 1877",
+    bpm: 150, meter: 3, pulse: 1, acc: "waltz", swing: false, finNote: "A4",
+    bars: [["A", "."], ["A", "."], ["E7", "."], ["E7", "."], ...SW_LO, ...SW_HI],
+    end: "A",
+  };
   DONAU.short = "Donauwalzer"; BARCA.short = "Barcarole";
-  const SCORES = { donau: DONAU, barca: BARCA, skaters: SKATERS, brahms: BRAHMS, wellen: WELLEN };
-  const KUER = ["donau", "skaters", "wellen", "brahms"]; // Stücke für die Kür: je 36 Takte im 3/4-Takt, Melodie ab Takt 4
+  const SCORES = { donau: DONAU, barca: BARCA, skaters: SKATERS, brahms: BRAHMS, wellen: WELLEN, rosen: ROSEN, blumen: FLOWER, schwan: SWAN };
+  const KUER = ["donau", "rosen", "skaters", "blumen", "wellen", "schwan", "brahms"]; // Stücke für die Kür: je 36 Takte im 3/4-Takt, Melodie ab Takt 4
 
   // Stück → Ereignisliste in Schlägen: { beat, m, dur, part: "mel"|"bass"|"chord", acc }
   function events(score) {
@@ -1010,8 +1069,11 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
     skaters: Object.assign({ peak: [2, 6] }, SEC0), // Aufschwung des Themas (A5)
     wellen: Object.assign({ peak: [5, 6] }, SEC0), // Thema eine Oktave höher, B5
     brahms: Object.assign({ peak: [4, 6] }, SEC0), // Mittelteil „Morgen früh …“ steigt zum D5
+    rosen: Object.assign({ peak: [5, 6] }, SEC0), // die Melodie steigt zum Cis5, Bogen über die Dominante
+    blumen: Object.assign({ peak: [3, 7] }, SEC0), // Läufe hinauf zum D6 und zum G6
+    schwan: Object.assign({ peak: [5, 6] }, SEC0), // verzierte Wiederholung, langes E5
   };
-  const MUSIC_NAME = { donau: "Donauwalzer", skaters: "Schlittschuhläufer", wellen: "Donauwellen", brahms: "Wiegenlied" };
+  const MUSIC_NAME = { donau: "Donauwalzer", skaters: "Schlittschuhläufer", wellen: "Donauwellen", brahms: "Wiegenlied", rosen: "Rosen aus dem Süden", blumen: "Blumenwalzer", schwan: "Schwanensee" };
   // Choreografie wie im Tanzsport durchplanen: jeder Abschnitt hat eine Stimmung, zu der manche Elemente besser passen
   const MOODS = {
     donau: [
@@ -1030,6 +1092,18 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
       ["sanftes Wiegen", ["choreo", "spin"]], ["Wiegen", ["spin", "choreo"]], ["noch einmal sanft", ["choreo", "jump"]], ["Ruhe", ["spin", "choreo"]],
       ["steigt auf", ["jump", "steps"]], ["sinkt zurück", ["steps", "spin"]], ["steigt noch einmal", ["jump", "steps"]], ["gute Nacht", ["steps", "spin", "choreo"]],
     ],
+    rosen: [
+      ["Thema, schwingend", ["jump", "choreo"]], ["Thema blüht auf", ["spin", "jump"]], ["Spannung", ["steps", "spin"]], ["Spannung hält", ["steps", "jump"]],
+      ["Thema kehrt zurück", ["jump", "choreo"]], ["Höhepunkt", ["jump", "steps"]], ["Höhepunkt", ["steps", "spin"]], ["Ausklang", ["spin", "choreo"]],
+    ],
+    blumen: [
+      ["Blüten öffnen sich", ["choreo", "jump"]], ["Thema tanzt", ["jump", "spin"]], ["Thema noch einmal", ["jump", "choreo"]], ["Lauf nach oben", ["steps", "jump"]],
+      ["Thema tanzt", ["spin", "choreo"]], ["schwingt", ["jump", "spin"]], ["Thema ein letztes Mal", ["jump", "choreo"]], ["Glanz am Schluss", ["steps", "jump"]],
+    ],
+    schwan: [
+      ["schlicht, das Thema", ["choreo", "spin"]], ["Sehnsucht", ["spin", "jump"]], ["Thema noch einmal", ["jump", "choreo"]], ["sinkt", ["spin", "choreo"]],
+      ["verziert", ["jump", "choreo"]], ["Höhepunkt", ["steps", "jump"]], ["Höhepunkt", ["jump", "steps"]], ["Ausklang", ["spin", "choreo"]],
+    ],
   };
   // Kostüm zur Musik (Index wie CMFigur.SUIT: Rot, Blau, Grün, Gold, Violett, Nachtblau): Wert 0 … 10 und ein Wort dazu
   const COSTUME = {
@@ -1037,6 +1111,9 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
     skaters: { fit: [7, 9, 5, 7, 6, 10], best: "Winterfarben: Nachtblau, Eisblau, dazu Rot oder Gold" },
     wellen: { fit: [10, 5, 4, 7, 8, 9], best: "leidenschaftlich: Rot oder Nachtblau, Violett" },
     brahms: { fit: [3, 9, 7, 6, 10, 8], best: "zart: Violett, Blau oder Nachtblau" },
+    rosen: { fit: [10, 5, 6, 9, 7, 6], best: "Rosenrot oder Gold, wie ein Strauß aus dem Süden" },
+    blumen: { fit: [7, 6, 10, 8, 9, 4], best: "Blütenfarben: Grün, Violett oder Gold" },
+    schwan: { fit: [4, 8, 5, 7, 9, 10], best: "Nachtblau oder Violett wie der Schwanensee bei Nacht" },
   };
   // Show-Effekte je Abschnitt (höchstens 3): Lasershow, Feuerwerk, Kostümwechsel (Farben von Kostüm und Streifen tauschen)
   const FX = { laser: "Lasershow", fire: "Feuerwerk", swap: "Kostümwechsel" }, FX_MAX = 3;
@@ -2411,7 +2488,7 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
 /* COLD MEDAL EISKUNSTLAUF – Ablauf, Bildschirme, Eingabe, Taktband, Ergebnis, Spielstand. */
 (function () {
   "use strict";
-  const VERSION = "0.19";
+  const VERSION = "0.20";
   // Seiten-Einstellungen aus dem Build (eigenes Hosting: Adresse, Hoster, Impressum); im claude.ai-Artefakt leer
   const SITE = Object.assign({ web: false, url: "", impressum: null }, {"web": true, "url": "https://matpeins-debug.github.io/cold-medal-eiskunstlauf/", "hoster": "GitHub Pages (GitHub Inc., USA)", "drittland": "GitHub ist nach dem EU-US Data Privacy Framework zertifiziert; die Übermittlung in die USA stützt sich auf den Angemessenheitsbeschluss der EU-Kommission dazu.", "impressum": {"name": "", "adresse": "", "mail": ""}} || {});
   const M = window.EKMusic, K = window.EKSkate, F = window.EKFig, SC = window.EKScene;
@@ -3612,6 +3689,7 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
   const MUSIC_INFO = {
     donau: "festlich · Wiener Ballsaal", skaters: "beschwingt · ein Wintertag auf dem Eis",
     wellen: "leidenschaftlich · in Moll", brahms: "zart und ruhig · zum Träumen",
+    rosen: "schwungvoll · Olympiasieg 1936", blumen: "verspielt · aus dem Nussknacker", schwan: "anmutig · Ballett-Walzer",
   };
   const KIND = { jump: ["●○", "Sprung"], spin: ["⟳", "Pirouette"], steps: ["➜", "Schritte"], choreo: ["✦", "Choreo"], glide: ["⌒", "Gleiten"] };
   let listenOn = false;
