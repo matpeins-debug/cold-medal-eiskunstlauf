@@ -1717,7 +1717,7 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
 /* COLD MEDAL EISKUNSTLAUF – Ablauf, Bildschirme, Eingabe, Taktband, Ergebnis, Spielstand. */
 (function () {
   "use strict";
-  const VERSION = "0.10";
+  const VERSION = "0.11";
   // Seiten-Einstellungen aus dem Build (eigenes Hosting: Adresse, Hoster, Impressum); im claude.ai-Artefakt leer
   const SITE = Object.assign({ web: false, url: "", impressum: null }, {"web": true, "url": "https://matpeins-debug.github.io/cold-medal-eiskunstlauf/", "hoster": "GitHub Pages (GitHub Inc., USA)", "drittland": "GitHub ist nach dem EU-US Data Privacy Framework zertifiziert; die Übermittlung in die USA stützt sich auf den Angemessenheitsbeschluss der EU-Kommission dazu.", "impressum": {"name": "", "adresse": "", "mail": ""}} || {});
   const M = window.EKMusic, K = window.EKSkate, F = window.EKFigure, SC = window.EKScene;
@@ -1986,10 +1986,24 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
     if (run && run.entry) { if (run.entry.t > 0.4 || run.entry.phase) run.entry.skip = true; return; }
     if (!run || run.finished) return;
     const t = songTime() - (run.fake ? 0 : S.lat / 1000);
+    if (run.down) { if (type === "down") riseTap(t); return; } // am Boden: Tippen hilft nur beim Aufstehen
     const inp = { t, type }; if (dir) inp.dir = dir;
     run.inputs.push(inp);
     feedback(inp);
   }
+  // Aufstehen nach einem Sturz: dreimal auf aufeinanderfolgende Schläge tippen (1 · 2 · 3), daneben fängt von vorn an.
+  // Wer liegen bleibt, verpasst die nächsten Elemente; nach 6 s steht sie von selbst auf.
+  const RISE_N = 3;
+  function nearBeat(t) { const bt = run.bt; let i = 0, best = 0; for (; i < bt.length; i++) if (Math.abs(bt[i] - t) < Math.abs(bt[best] - t)) best = i; return { i: best, d: t - bt[best] }; }
+  function riseTap(t) {
+    const D = run.down; if (t < D.t0 + 0.35) return;
+    const nbx = nearBeat(t), ok = Math.abs(nbx.d) <= 0.11 * run.k;
+    if (ok && (D.hits === 0 || nbx.i === D.last + 1)) { D.hits++; D.last = nbx.i; sfx("land"); }
+    else if (ok) { D.hits = 1; D.last = nbx.i; }
+    else { D.hits = 0; D.shake = t; }
+    if (D.hits >= RISE_N) standUp(t);
+  }
+  function standUp(t) { run.down = null; run.fallUntil = t + 0.6; run.riseT = t; pop("wieder auf den Beinen", "#F1E7D2"); }
   // sofortige Rückmeldung: nächste passende Marke suchen
   function feedback(inp) {
     const r = run, k = r.k;
@@ -2018,7 +2032,7 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
       const dl = inp.t - r.jump.land, kw = k * (r.jump.el.w || 1);
       if (Math.abs(dl) <= K.WIN.fall * kw && Math.abs(dl) > K.WIN.wobble * kw) r.wobble = { t: inp.t, hand: Math.abs(dl) > K.WIN.hand * kw };
       if (r.pos) r.paint.marks.push({ x: r.pos[0], y: r.pos[1], kind: Math.abs(dl) > K.WIN.fall * kw ? "fall" : "jump", ok: Math.abs(dl) <= K.WIN.wobble * kw });
-      if (Math.abs(dl) > K.WIN.fall * kw) { r.wobble = null; r.fallUntil = inp.t + 1.3; sfx("fall"); r.streak = 0; r.intensity = clamp(r.intensity - 0.35, 0, 1); r.burst = 0; } else { r.landUntil = inp.t + (r.wobble && r.wobble.t === inp.t ? 0.95 : 0.6); sfx("land"); }
+      if (Math.abs(dl) > K.WIN.fall * kw) { r.wobble = null; r.fallUntil = Infinity; r.down = { t0: inp.t, hits: 0, last: -9, shake: -9 }; sfx("fall"); r.streak = 0; r.intensity = clamp(r.intensity - 0.35, 0, 1); r.burst = 0; } else { r.landUntil = inp.t + (r.wobble && r.wobble.t === inp.t ? 0.95 : 0.6); sfx("land"); }
     }
     if (inp.type === "swipe") r.lastSwipe = { dir: inp.dir, t: inp.t };
     if (!best) return;
@@ -2171,7 +2185,9 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
         } else if (t < end + 0.01) pose = F.POSES.air;
       }
     }
-    if (t < r.fallUntil) { pose = F.POSES.fallen; tilt = -1.25 * smooth((r.fallUntil - t) > 1.0 ? (1.3 - (r.fallUntil - t)) / 0.3 : 1); lift = -4; }
+    if (r.down && t > r.down.t0 + 6) standUp(t);
+    if (r.down) { const u = clamp((t - r.down.t0) / 0.3, 0, 1), sh = t - r.down.shake < 0.4 ? Math.sin((t - r.down.shake) * 40) * 0.05 : 0; pose = F.mix(F.POSES.fallen, F.POSES.handDown, r.down.hits / RISE_N * 0.7); tilt = -1.25 * smooth(u) * (1 - r.down.hits * 0.12) + sh; lift = -4; }
+    else if (t < r.fallUntil) { const u = smooth(clamp((r.fallUntil - t) / 0.6, 0, 1)); pose = F.mix(F.POSES.glide, F.POSES.handDown, u); tilt = -0.9 * u; lift = -4 * u; }
     else if (t < r.landUntil) {
       pose = F.mix(F.POSES.land, pose, smooth(1 - (r.landUntil - t) / 0.6));
       // wackelige Landung: Rudern mit den Armen; Hand auf dem Eis: tief, Hand stützt ab
@@ -2221,7 +2237,11 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
     // Schläge
     for (let i = 0; i < bt.length; i++) {
       const x = px + (bt[i] - t) * pps; if (x < -10 || x > W + 10) continue;
-      ctx.fillStyle = i % 3 === 0 ? "rgba(241,231,210,0.55)" : "rgba(241,231,210,0.2)"; ctx.fillRect(x - (i % 3 === 0 ? 1 : 0.5), y0 + 4, i % 3 === 0 ? 2 : 1, h - 8);
+      // jeder Schlag als Punkt: die Eins groß, zwei und drei klein; leuchtet auf, wenn er die Linie überquert
+      const one = i % 3 === 0, fl = clamp(1 - Math.abs(x - px) / 14, 0, 1);
+      ctx.fillStyle = one ? "rgba(241,231,210,0.32)" : "rgba(241,231,210,0.12)"; ctx.fillRect(x - (one ? 1 : 0.5), y0 + 3, one ? 2 : 1, h - 6);
+      ctx.fillStyle = fl > 0 ? `rgba(255,236,170,${0.55 + 0.45 * fl})` : one ? "rgba(241,231,210,0.75)" : "rgba(241,231,210,0.45)";
+      ctx.beginPath(); ctx.arc(x, y0 + h - 6, (one ? 3.6 : 2.2) + fl * 2.5, 0, 7); ctx.fill();
     }
     ctx.textAlign = "center"; ctx.textBaseline = "middle";
     for (const m of run.marks) {
@@ -2242,7 +2262,7 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
     ctx.fillStyle = "#C23B2A"; ctx.fillRect(px - 1.5, y0 - 3, 3, h + 6);
     // Hinweis zum nächsten Element
     const nx = PROG.elements.find((e) => { const [a, b] = elWindow(e, bt); return b > t && a - 2.6 < t; });
-    if (nx && (S.help === "anf" || t < 8)) {
+    if (nx && !run.down && (S.help === "anf" || t < 8)) {
       const hint = { jump: canHover() ? "Leertaste drücken, halten, loslassen" : "drücken, halten, loslassen", spin: canHover() ? "kreisen oder Leertaste auf jedes ⟳" : "mit dem Finger kreisen, jede Runde auf ⟳",
         steps: canHover() ? "Pfeiltaste wie der Pfeil, wenn er die Linie erreicht" : "wisch in Pfeilrichtung, wenn er die Linie erreicht", pose: "tippen auf den Schlussakkord" }[nx.kind];
       ctx.font = "600 14px " + font();
@@ -2286,9 +2306,17 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
     label(fx, y + R + 22, t < bt[el.from] ? (canHover() ? "LEERTASTE, WENN DER PUNKT OBEN IST" : "MIT DEM FINGER MITKREISEN") : canHover() ? "PUNKT OBEN = LEERTASTE" : "MITKREISEN, OBEN = SCHLAG");
     return true;
   }
+  function riseCue(fx, y, t) {
+    const D = run.down, nbx = nearBeat(t), ph = clamp(1 - Math.abs(nbx.d) / 0.18, 0, 1);
+    ctx.fillStyle = "rgba(20,27,37,0.78)"; ctx.beginPath(); ctx.arc(fx, y, 24 + 6 * ph, 0, 7); ctx.fill();
+    ctx.strokeStyle = `rgba(232,160,122,${0.4 + 0.6 * ph})`; ctx.lineWidth = 3; ctx.stroke();
+    for (let i = 0; i < RISE_N; i++) { ctx.fillStyle = i < D.hits ? "#F3C969" : "rgba(241,231,210,0.3)"; ctx.beginPath(); ctx.arc(fx - 12 + i * 12, y, 4.5, 0, 7); ctx.fill(); }
+    label(fx, y + 38, canHover() ? "AUFSTEHEN: LEERTASTE IM TAKT 1 · 2 · 3" : "AUFSTEHEN: IM TAKT TIPPEN 1 · 2 · 3");
+  }
   function drawCue(fx, fy, s, t, lift) {
     const c = cueMark(t), m = c.m;
     const y = Math.max(46, fy - (132 + Math.max(0, lift || 0)) * s), R = 20;
+    if (run.down) { riseCue(fx, Math.max(56, fy - 70 * s), t); return; }
     if (spinCue(fx, Math.max(56, y - 6), t)) { /* Pirouette hat eigene Hilfe */ }
     else if (m) {
       ctx.textAlign = "center"; ctx.textBaseline = "middle";
