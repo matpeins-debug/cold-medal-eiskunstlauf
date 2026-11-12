@@ -917,6 +917,12 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
     CATALOG["1" + c] = { kind: "jump", fam: c, name: nm, short: nm, base: b1, hold: 1, w: r2(1.1 - 0.05 * (i + 1)), rot: 1 };
     CATALOG["2" + c] = { kind: "jump", fam: c, name: "Doppel-" + nm, short: "2" + nm, base: b2, hold: 2, w: r2((1.1 - 0.05 * (i + 1)) * 0.9), rot: 2 };
   });
+  // Einlauf und Auslauf der Pirouette (Gleitpassagen): belegen den Abschnitt davor bzw. danach. Kante halten (drücken auf der Eins
+  // des zweiten Takts, loslassen beim Eindrehen bzw. am Ende des Bogens). Sauberer Einlauf = schwieriger Einlauf, +1 Stufe;
+  // sauberer Auslauf = +1 GOE der Pirouette.
+  CATALOG.EinF = { kind: "glide", role: "entry", name: "Einlauf im Flieger", short: "Einlauf", pose: "spiral" };
+  CATALOG.EinM = { kind: "glide", role: "entry", name: "Einlauf im Mond", short: "Einlauf", pose: "moon" };
+  CATALOG.Aus = { kind: "glide", role: "exit", name: "Auslauf", short: "Auslauf", pose: "exitEdge" };
   // Sprungkombinationen: zweiter Sprung direkt aus der Landung, Toeloop oder Rittberger, höchstens so viele Drehungen wie der erste.
   // Grundwert = Summe beider Sprünge (wie bei der ISU)
   const SECOND = ["T", "Lo"];
@@ -987,10 +993,11 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
     const kindAt = (i) => { let id = ids[i]; if (id === "~") id = ids[i - 1]; return id && CATALOG[id] ? CATALOG[id].kind : null; };
     // 1 Musik: passt das Element zur Stimmung des Abschnitts? Gleiten zählt halb
     let fit = 0; const misfit = [];
-    for (let i = 0; i < slots.length; i++) { const k = kindAt(i); if (!k) fit += 0.4; else if (moods[i][1].includes(k)) fit += 1; else misfit.push(i); }
+    const fits = (k, m) => (k === "glide" ? m.includes("spin") || m.includes("choreo") : m.includes(k));
+    for (let i = 0; i < slots.length; i++) { const k = kindAt(i); if (!k) fit += 0.4; else if (fits(k, moods[i][1])) fit += 1; else misfit.push(i); }
     const music10 = (fit / slots.length) * 10;
     // 2 Aufbau: stärkstes Element in der zweiten Hälfte oder am Höhepunkt, ruhiger Anfang, kein leerer Schluss
-    const val = (id) => { const c = CATALOG[id]; return !c || c.kind === "choreo" ? 0 : c.kind === "jump" ? c.base : c.levels[c.levels.length - 1]; };
+    const val = (id) => { const c = CATALOG[id]; return !c || c.kind === "choreo" || c.kind === "glide" ? 0 : c.kind === "jump" ? c.base : c.levels[c.levels.length - 1]; };
     let best = -1, bv = 0; ids.forEach((id, i) => { if (id && id !== "~" && val(id) > bv) { bv = val(id); best = i; } });
     let arc = 4; const arcWhy = [];
     if (best >= 4 || (sec.peak || []).includes(best)) arc += 3; else if (best >= 0) arcWhy.push("das stärkste Element kommt früh");
@@ -1043,6 +1050,12 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
     if (new Set(spins).size < spins.length) msg.push("jede Pirouette nur einmal");
     if (ids.filter((x) => x === "StSq").length > RULES.steps) msg.push("nur eine Schrittfolge");
     slots.forEach((x, i) => { if (x === "StSq" && slots[i + 1] !== "~") msg.push("die Schrittfolge braucht zwei Abschnitte"); });
+    const isSpin = (x) => x && CATALOG[x] && CATALOG[x].kind === "spin";
+    slots.forEach((x, i) => {
+      const c = x && CATALOG[x]; if (!c || c.kind !== "glide") return;
+      if (c.role === "entry" && !isSpin(slots[i + 1])) msg.push("der Einlauf gehört direkt vor eine Pirouette");
+      if (c.role === "exit" && !isSpin(slots[i - 1])) msg.push("der Auslauf gehört direkt nach eine Pirouette");
+    });
     return [...new Set(msg)];
   }
   // Aussehen und Grenzen von gespeicherten Plänen säubern
@@ -1064,6 +1077,7 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
     slots.forEach((id, i) => {
       if (!id || id === "~") return;
       const c = CATALOG[id], bar = sec.first + sec.len * i;
+      if (c.kind === "glide") { els.push({ id, kind: "glide", role: c.role, name: c.name, short: c.short, slot: i, pose: c.pose, tk: (bar + 1) * 3, end: c.role === "entry" ? (bar + 4) * 3 : (bar + 3) * 3 }); return; }
       if (c.kind === "choreo") {
         // Ausdruck: die Figur wird auf der Eins des zweiten Takts getroffen (tippen) – zählt zur Präsentation
         choreo[i] = id; els.push({ id, kind: "expr", name: c.name, short: "✦", slot: i, at: (bar + 1) * 3 }); return;
@@ -1083,7 +1097,7 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
   }
   // Summe der höchsten Grundwerte (für den Editor)
   function maxBase(slots) {
-    return r2(slots.reduce((s, id) => { const c = CATALOG[id]; return s + (!c || c.kind === "choreo" ? 0 : c.kind === "jump" ? c.base : c.levels[c.levels.length - 1]); }, 0));
+    return r2(slots.reduce((s, id) => { const c = CATALOG[id]; return s + (!c || c.kind === "choreo" || c.kind === "glide" ? 0 : c.kind === "jump" ? c.base : c.levels[c.levels.length - 1]); }, 0));
   }
   const PROGRAMS = { wien: buildProgram(DEFAULT_SLOTS) };
   PROGRAMS.wien.id = "wien";
@@ -1173,17 +1187,41 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
     const dv = ms(d.t - tg);
     return { status: "ok", score: 0, goe: 0, devs: [dv], q: Math.abs(dv) <= 60 ? 1 : Math.abs(dv) <= 120 ? 0.7 : 0.4, note: "Ausdruck auf den Schlag" };
   }
-  const JUDGE = { jump: judgeJump, spin: judgeSpin, steps: judgeSteps, pose: judgePose, expr: judgeExpr };
+  // Gleitpassage: drücken auf tk, Kante halten, loslassen auf end
+  function judgeGlide(e, bt, inp, k) {
+    const a = bt[e.tk], b = bt[e.end], W1 = WIN.jump * k * 1.2;
+    let di = -1; inp.forEach((x, i) => { if (x.type === "down" && Math.abs(x.t - a) <= W1 && (di < 0 || Math.abs(x.t - a) < Math.abs(inp[di].t - a))) di = i; });
+    if (di < 0) return { status: "miss", score: 0, goe: 0, devs: [], note: "Kante nicht angesetzt" };
+    const up = inp.find((x, i) => i > di && x.type === "up");
+    const d1 = ms(inp[di].t - a), d2 = up ? ms(up.t - b) : 9999;
+    if (Math.abs(d2) > W1 * 1000 * 1.3) return { status: "under", score: 0, goe: 0, devs: [d1], note: up && up.t < b ? "zu früh losgelassen – Bogen verloren" : "zu spät eingedreht" };
+    return { status: "ok", score: 0, goe: 0, devs: [d1, d2], note: e.role === "entry" ? "Bogen gehalten, im Takt eingedreht" : "sauber ausgelaufen" };
+  }
+  const JUDGE = { jump: judgeJump, spin: judgeSpin, steps: judgeSteps, pose: judgePose, expr: judgeExpr, glide: judgeGlide };
 
   // ganze Kür werten. bt: Schlagzeiten ab Musikbeginn (EKMusic.grid), inputs zeitlich sortiert, opt.k: Großzügigkeit
   function judge(prog, bt, inputs, opt) {
     const k = (opt && opt.k) || 1, inp = inputs.slice().sort((a, b) => a.t - b.t);
-    const els = prog.elements.map((e) => Object.assign({ id: e.id, name: e.name, kind: e.kind, base: e.base || 0, part: e.part, slot: e.slot }, JUDGE[e.kind](e, bt, inp, k)));
+    const els = prog.elements.map((e) => Object.assign({ id: e.id, name: e.name, kind: e.kind, base: e.base || 0, part: e.part, slot: e.slot, role: e.role }, JUDGE[e.kind](e, bt, inp, k)));
     // Höhepunkt der Musik: sauberes Element dort +1 GOE
     const peak = (prog.sec && prog.sec.peak) || [];
     els.forEach((x) => {
-      if (x.kind === "pose" || x.kind === "expr" || x.status !== "ok" || !peak.includes(x.slot) || x.land === "hand" || x.land === "wobble") return;
+      if (x.kind === "pose" || x.kind === "expr" || x.kind === "glide" || x.status !== "ok" || !peak.includes(x.slot) || x.land === "hand" || x.land === "wobble") return;
       x.peak = true; x.goe = Math.min(5, x.goe + 1); x.score = r2((x.base || 0) * (1 + x.goe / 10)); x.note = (x.note ? x.note + " · " : "") + "auf dem Höhepunkt";
+    });
+    // Einlauf: +1 Stufe der folgenden Pirouette; Auslauf: +1 GOE der vorigen
+    const LV = ["B", "1", "2", "3"];
+    els.forEach((g, i) => {
+      if (g.kind !== "glide" || g.status !== "ok") return;
+      const sp = els[g.role === "entry" ? i + 1 : i - 1], e = prog.elements[g.role === "entry" ? i + 1 : i - 1];
+      if (!sp || sp.kind !== "spin" || sp.status !== "ok") return;
+      if (g.role === "entry") {
+        const i0 = LV.indexOf(sp.level), ix = Math.min(3, i0 + 1);
+        if (ix > i0) { sp.level = LV[ix]; sp.base = (e.levels || CATALOG.USp.levels)[ix]; } else sp.goe = Math.min(5, sp.goe + 1); // schon Stufe 3: dann +1 GOE
+        sp.note += " · schwieriger Einlauf";
+      }
+      else { sp.goe = Math.min(5, sp.goe + 1); sp.note += " · sauberer Auslauf"; }
+      sp.score = r2(sp.base * (1 + sp.goe / 10));
     });
     // Kombinationen: zweiter Teil zählt nur nach einem stehenden ersten; in der Liste als eine Zeile
     els.forEach((a, i) => {
@@ -1200,7 +1238,7 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
     const falls = els.filter((x) => x.status === "fall").length;
     const all = [].concat(...els.map((x) => x.devs));
     const tim = root.EKMusic ? root.EKMusic.timingStats(all) : null;
-    const scored = els.filter((x) => x.kind !== "pose" && x.kind !== "expr" && !x.inCombo), done = scored.filter((x) => x.status !== "miss").length / scored.length;
+    const scored = els.filter((x) => x.kind !== "pose" && x.kind !== "expr" && x.kind !== "glide" && !x.inCombo), done = scored.filter((x) => x.status !== "miss").length / scored.length;
     const meanDev = all.length ? mean(all) : 400, pose = els.find((x) => x.kind === "pose");
     // Komposition: die geplante Choreografie (Musik, Bogen, Abwechslung, Kostüm) zählt bis 1,5 Punkte, Höhepunkt genutzt 0,25
     const pl = plan(prog.slots || [], prog.look, prog.music, prog.fx), variety = pl.total * 0.15 + (els.some((x) => x.peak) ? 0.25 : 0);
@@ -1229,6 +1267,7 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
       if (e.kind === "jump") out.push({ t: bt[e.tk] + off, type: "down" }, { t: bt[e.land] + off, type: "up" });
       else if (e.kind === "spin") for (let i = 1; i <= e.turns; i++) out.push({ t: bt[e.from + 3 * i] + off, type: "circle" });
       else if (e.kind === "steps") for (const [b, dir] of e.arrows) out.push({ t: bt[b] + off, type: "swipe", dir });
+      else if (e.kind === "glide") out.push({ t: bt[e.tk] + off, type: "down" }, { t: bt[e.end] + off, type: "up" });
       else if (e.kind === "expr") out.push({ t: bt[e.at] + off, type: "down" }, { t: bt[e.at] + off + 0.15, type: "up" });
       else if (e.kind === "pose") out.push({ t: bt[e.at] + off, type: "down" }, { t: bt[e.at] + off + 0.2, type: "up" });
     }
@@ -1909,6 +1948,9 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
     // langes Gleiten auf einer Kante zwischen zwei Abstößen: Spielbein lang nach hinten, Arme weit, wiegend
     glideArc: { lean: 9, crouch: 2, sL: [2, 7], fL: [-76, 2], aF: [122, -8], aB: [-124, -8], hd: -4 },
     glideArc2: { lean: 6, crouch: 1, sL: [0, 3], fL: [-84, 0], aF: [96, -24], aB: [-146, -4], hd: -9 },
+    // Einlauf und Auslauf der Pirouette: Mond (Fersen zueinander, Beine weit, Arme offen) und Auslauf auf der Rückwärts-Auswärtskante
+    moon: { lean: -6, crouch: 2, sL: [-16, 4], fL: [38, 2], aF: [118, -10], aB: [-118, -10], hd: -10 },
+    exitEdge: { lean: 4, crouch: 3, sL: [4, 10], fL: [-88, 0], aF: [132, -6], aB: [-150, -6], hd: -8 },
     fallen: { lean: 10, crouch: 2, sL: [30, 60], fL: [-10, 50], aF: [60, 30], aB: [-30, 40] },
   };
 
@@ -2251,7 +2293,7 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
 /* COLD MEDAL EISKUNSTLAUF – Ablauf, Bildschirme, Eingabe, Taktband, Ergebnis, Spielstand. */
 (function () {
   "use strict";
-  const VERSION = "0.15";
+  const VERSION = "0.16";
   // Seiten-Einstellungen aus dem Build (eigenes Hosting: Adresse, Hoster, Impressum); im claude.ai-Artefakt leer
   const SITE = Object.assign({ web: false, url: "", impressum: null }, {"web": true, "url": "https://matpeins-debug.github.io/cold-medal-eiskunstlauf/", "hoster": "GitHub Pages (GitHub Inc., USA)", "drittland": "GitHub ist nach dem EU-US Data Privacy Framework zertifiziert; die Übermittlung in die USA stützt sich auf den Angemessenheitsbeschluss der EU-Kommission dazu.", "impressum": {"name": "", "adresse": "", "mail": ""}} || {});
   const M = window.EKMusic, K = window.EKSkate, F = window.EKFig, SC = window.EKScene;
@@ -2410,6 +2452,7 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
       else if (e.kind === "steps") for (const [b, d] of e.arrows) out.push({ t: bt[b], kind: "step", dir: d, el: e });
       else if (e.kind === "pose") out.push({ t: bt[e.at], kind: "pose", el: e });
       else if (e.kind === "expr") out.push({ t: bt[e.at], kind: "expr", el: e });
+      else if (e.kind === "glide") out.push({ t: bt[e.tk], t2: bt[e.end], kind: "glide", el: e });
     }
     return out;
   }
@@ -2417,6 +2460,7 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
     if (e.kind === "jump") return [bt[e.tk] - 1.2, bt[e.land] + (e.part === "a" ? 0.15 : 0.7)]; // Kombination: zweiter Teil übernimmt kurz nach der Landung
     if (e.kind === "spin") return [bt[e.from] - 0.3, bt[e.from + 3 * e.turns] + 0.6];
     if (e.kind === "steps") return [bt[e.arrows[0][0]] - 0.5, bt[e.arrows[e.arrows.length - 1][0]] + 0.5];
+    if (e.kind === "glide") return e.role === "entry" ? [bt[e.tk] - 1.0, bt[e.end] + 0.35] : [bt[e.tk] - 0.6, bt[e.end] + 0.6];
     return [bt[e.at] - 0.8, bt[e.at] + 0.6];
   }
   function startRun(mode, opt) {
@@ -2553,6 +2597,8 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
       if (inp.type === "down" && m.kind === "hold") consider(m.t, K.WIN.jump * k * (m.el.w || 1), true);
       if (inp.type === "up" && m.kind === "hold") consider(m.t2, K.WIN.fall * k * (m.el.w || 1), true);
       if (inp.type === "down" && (m.kind === "pose" || m.kind === "expr")) consider(m.t, K.WIN.pose * k, true);
+      if (inp.type === "down" && m.kind === "glide") consider(m.t, K.WIN.jump * k * 1.2, true);
+      if (inp.type === "up" && m.kind === "glide" && r.glideH && r.glideH.el === m.el) consider(m.t2, K.WIN.jump * k * 1.56, true);
       if (inp.type === "circle" && m.kind === "spin") consider(m.t, K.WIN.spin * k, true);
       if (inp.type === "swipe" && m.kind === "step") consider(m.t, K.WIN.step * k, m.dir === inp.dir);
     }
@@ -2567,6 +2613,9 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
       const xm = r.marks.find((m) => m.kind === "expr" && Math.abs(inp.t - m.t) <= K.WIN.pose * k && !m.hit);
       if (xm) { xm.hit = true; r.exprT = inp.t; const good = Math.abs(inp.t - xm.t) <= 0.06 * k; r.burstQ += good ? 26 : 12; sfx("cheer", good ? 0.6 : 0.3); r.burst = Math.max(r.burst, good ? 0.7 : 0.4); }
     }
+    // Gleitpassage: Kante gehalten, solange gedrückt
+    if (inp.type === "down") { const gm = r.marks.find((m) => m.kind === "glide" && Math.abs(inp.t - m.t) <= K.WIN.jump * k * 1.2); if (gm) r.glideH = { el: gm.el, t0: inp.t, t1: null, end: gm.t2 }; }
+    if (inp.type === "up" && r.glideH && r.glideH.t1 === null) { r.glideH.t1 = inp.t; r.glideH.lost = inp.t < r.glideH.end - K.WIN.jump * k * 1.56; if (r.glideH.lost) pop("Bogen verloren", "#E8A07A"); }
     if (inp.type === "up" && r.jump && r.jump.t1 === null) {
       r.jump.t1 = inp.t;
       const dl = inp.t - r.jump.land, kw = k * (r.jump.el.w || 1);
@@ -2660,11 +2709,12 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
           res = res || K.judge(PROG, run.bt, run.inputs, { k: run.k });
           const r = res.els[i]; run.done[i] = r;
           ch.className = "chip " + r.status;
-          ch.textContent = e.kind === "pose" ? (r.status === "ok" ? "Pose ✓" : "Pose –") : e.kind === "expr" ? (r.status === "ok" ? "✦ ✓" : "✦ –") : `${e.short} ${r.status === "miss" ? "–" : dec(r.score)}`;
-          if (r.status === "ok" && e.kind !== "pose" && e.kind !== "expr") { run.burst = Math.max(run.burst, r.goe >= 2 ? 1 : 0.55); sfx("cheer", r.goe >= 2 ? 1 : 0.5); }
+          ch.textContent = e.kind === "pose" ? (r.status === "ok" ? "Pose ✓" : "Pose –") : e.kind === "expr" ? (r.status === "ok" ? "✦ ✓" : "✦ –") : e.kind === "glide" ? `${e.short} ${r.status === "ok" ? "✓" : "–"}` : `${e.short} ${r.status === "miss" ? "–" : dec(r.score)}`;
+          if (r.status === "ok" && e.kind !== "pose" && e.kind !== "expr" && e.kind !== "glide") { run.burst = Math.max(run.burst, r.goe >= 2 ? 1 : 0.55); sfx("cheer", r.goe >= 2 ? 1 : 0.5); }
           const nm = e.part ? e.short.replace(/^\+/, "") : e.name;
           if (e.kind === "expr" && r.status === "ok") pop(`${e.name} · Ausdruck${r.q >= 1 ? " ★" : ""}`, "#E9C8EE");
-          if (e.kind !== "pose" && e.kind !== "expr" && !(e.part === "b" && r.status === "miss" && run.done[i - 1] && run.done[i - 1].status !== "ok")) pop(r.status === "miss" ? `${nm}: ausgelassen` : r.status === "fall" ? "Sturz −1" : `${nm} +${dec(r.score)}`, r.status === "ok" ? "#F3C969" : "#E8A07A");
+          if (e.kind === "glide") pop(r.status === "ok" ? (e.role === "entry" ? "Einlauf gehalten · Stufe +1" : "sauber ausgelaufen · GOE +1") : `${e.short}: ${r.note}`, r.status === "ok" ? "#CFE3FF" : "#E8A07A");
+          if (e.kind !== "pose" && e.kind !== "expr" && e.kind !== "glide" && !(e.part === "b" && r.status === "miss" && run.done[i - 1] && run.done[i - 1].status !== "ok")) pop(r.status === "miss" ? `${nm}: ausgelassen` : r.status === "fall" ? "Sturz −1" : `${nm} +${dec(r.score)}`, r.status === "ok" ? "#F3C969" : "#E8A07A");
           if (r.peak) { pop("Höhepunkt der Musik · +1 GOE", "#FFE7A0"); run.burst = 1; run.burstQ += 30; }
           if (e.part === "b" && r.status === "ok" && run.done[i - 1] && run.done[i - 1].status === "ok") pop("Kombination!", "#FFE7A0");
         }
@@ -2674,13 +2724,13 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
 
   // ------------------------------------------------------------------ Bewegung der Läuferin
   function phaseAt(t) {
-    for (const e of PROG.elements) { if (e.kind === "expr") continue; const [a, b] = elWindow(e, run.bt); if (t >= a && t <= b) return e; } // Ausdruck läuft in der Choreografie mit
+    for (const e of PROG.elements) { if (e.kind === "expr" || (e.kind === "glide" && e.role === "entry" && t > run.bt[e.end] - 0.25)) continue; const [a, b] = elWindow(e, run.bt); if (t >= a && t <= b) return e; } // Ausdruck läuft in der Choreografie mit
     return null;
   }
   function figureState(t, dt) {
     const r = run, bt = r.bt, el = phaseAt(t);
     const ended = t > bt[bt.length - 1];
-    const speed = ended ? 0 : el && el.kind === "spin" && t > bt[el.from] - 0.2 ? 0 : el && el.kind === "steps" ? 0.9 : el && el.kind === "pose" && t > bt[el.at] ? 0 : 1;
+    const speed = ended ? 0 : el && el.kind === "glide" ? 1.25 : el && el.kind === "spin" && t > bt[el.from] - 0.2 ? 0 : el && el.kind === "steps" ? 0.9 : el && el.kind === "pose" && t > bt[el.at] ? 0 : 1;
     // Takt: ein Laufschritt je Takt, Abstoß auf der Eins; Stand- und Spielbein wechseln jeden Takt
     const bi = Math.max(0, bt.findIndex((b) => b > t) - 1), ph = bi >= 0 && bt[bi + 1] ? (t - bt[bi]) / (bt[bi + 1] - bt[bi]) : 0;
     const bar = t < 0 ? Math.floor(t / (bt[3] - bt[0])) : Math.floor(bi / 3);
@@ -2742,6 +2792,15 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
         else pose = F.mix(pose, F.POSES.flick, Math.abs(Math.sin(u * 11)) * (1 - u));
       }
     }
+    if (el && el.kind === "glide") {
+      // langer Bogen: im Flieger, Mond oder auf der Auslaufkante; beim Einlauf wird der Bogen enger und sie dreht ein
+      const a = bt[el.tk], b = bt[el.end], held = r.glideH && r.glideH.el === el && !r.glideH.lost && t >= r.glideH.t0;
+      const u = clamp((t - a + 0.5) / 0.6, 0, 1), out = el.role === "exit" ? clamp((b - t) / 0.5, 0, 1) : 1;
+      const tgt = F.POSES[el.pose] || F.POSES.glideArc, w = smooth(u) * out * (held || t < a ? 1 : 0.55);
+      pose = F.mix(pose, tgt, w);
+      if (el.role === "entry" && held) { const v = clamp((t - (b - 1.4)) / 1.4, 0, 1); turn += v * v * Math.PI * 1.2; r.spinV = Math.max(r.spinV, 0.6 * v); }
+      tilt = 0.06 * Math.sin(Math.PI * clamp((t - a) / (b - a), 0, 1)) * (r.dir || 1);
+    }
     if (el && el.kind === "spin" && t > bt[el.from] - 0.2 && t < bt[el.from + 12] + 0.3) {
       pose = F.POSES[el.pose] || F.POSES.spin; r.spinV = Math.max(0.3, r.spinV - dt * 0.5); r.turn += dt * Math.PI * 2 * (1.4 + 2.8 * r.spinV); turn = r.turn;
     }
@@ -2792,7 +2851,11 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
       const x = px + (m.t - t) * pps, x2 = m.t2 !== undefined ? px + (m.t2 - t) * pps : x;
       if (x2 < -20 || x > W + 20) continue;
       const yc = y0 + h / 2;
-      if (m.kind === "hold") {
+      if (m.kind === "glide") {
+        ctx.fillStyle = "rgba(158,195,230,0.35)"; ctx.fillRect(x, yc - 4, x2 - x, 8);
+        ctx.fillStyle = "#9EC3E6"; ctx.beginPath(); ctx.arc(x, yc, 9, 0, 7); ctx.fill();
+        ctx.strokeStyle = "#9EC3E6"; ctx.lineWidth = 3; ctx.fillStyle = "#141B25"; ctx.beginPath(); ctx.arc(x2, yc, 8, 0, 7); ctx.fill(); ctx.stroke();
+      } else if (m.kind === "hold") {
         ctx.fillStyle = "rgba(221,164,59,0.35)"; ctx.fillRect(x, yc - 5, x2 - x, 10);
         ctx.fillStyle = "#DDA43B"; ctx.beginPath(); ctx.arc(x, yc, 9, 0, 7); ctx.fill();
         ctx.strokeStyle = "#DDA43B"; ctx.lineWidth = 3; ctx.fillStyle = "#141B25"; ctx.beginPath(); ctx.arc(x2, yc, 8, 0, 7); ctx.fill(); ctx.stroke();
@@ -2808,7 +2871,8 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
     const nx = PROG.elements.find((e) => { const [a, b] = elWindow(e, bt); return b > t && a - 2.6 < t; });
     if (nx && !run.down && (S.help === "anf" || t < 8)) {
       const hint = { jump: canHover() ? "Leertaste drücken, halten, loslassen" : "drücken, halten, loslassen", spin: canHover() ? "kreisen oder Leertaste auf jedes ⟳" : "mit dem Finger kreisen, jede Runde auf ⟳",
-        steps: canHover() ? "Pfeiltaste wie der Pfeil, wenn er die Linie erreicht" : "wisch in Pfeilrichtung, wenn er die Linie erreicht", pose: "tippen auf den Schlussakkord" }[nx.kind];
+        steps: canHover() ? "Pfeiltaste wie der Pfeil, wenn er die Linie erreicht" : "wisch in Pfeilrichtung, wenn er die Linie erreicht", pose: "tippen auf den Schlussakkord", expr: "tippen, wenn die Figur kommt",
+        glide: nx.role === "entry" ? (canHover() ? "Leertaste halten, beim Eindrehen loslassen" : "halten, beim Eindrehen loslassen") : (canHover() ? "Leertaste halten, am Ende des Bogens loslassen" : "halten, am Ende des Bogens loslassen") }[nx.kind];
       ctx.font = "600 14px " + font();
       const txt = nx.name.toUpperCase() + "  ·  " + hint, tw = ctx.measureText(txt).width + 22;
       ctx.fillStyle = "rgba(241,231,210,0.92)"; ctx.fillRect(W / 2 - tw / 2, y0 - 30, tw, 22);
@@ -2821,7 +2885,9 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
   function cueMark(t) {
     const j = run.jump;
     if (j && j.t1 === null && t >= j.t0 && t < j.land + 0.4) return { kind: "holding", m: run.marks.find((x) => x.kind === "hold" && x.el === j.el), j };
-    return { m: run.marks.find((x) => x.t > t - 0.12 && x.t - t < 1.25 && !(x.kind === "hold" && run.jump && run.jump.el === x.el)) };
+    const g = run.glideH;
+    if (g && g.t1 === null && t >= g.t0 && t < g.end + 0.4) return { kind: "holding", glide: true, m: run.marks.find((x) => x.kind === "glide" && x.el === g.el), j: g };
+    return { m: run.marks.find((x) => x.t > t - 0.12 && x.t - t < 1.25 && !(x.kind === "hold" && run.jump && run.jump.el === x.el) && !(x.kind === "glide" && run.glideH && run.glideH.el === x.el)) };
   }
   // Pirouette: ein Punkt läuft im Kreis und ist genau auf jedem Schlag ⟳ oben. Mit dem Finger mitkreisen
   // (am Rechner: Leertaste, wenn der Punkt oben ist). Der eigene Kreis wächst als heller Bogen mit.
@@ -2869,16 +2935,16 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
         ctx.fillStyle = "#141B25"; ctx.strokeStyle = "#DDA43B"; ctx.lineWidth = 4; ctx.beginPath(); ctx.arc(fx, y, R, 0, 7); ctx.fill(); ctx.stroke();
         ctx.strokeStyle = "#F3C969"; ctx.lineWidth = 6; ctx.beginPath(); ctx.arc(fx, y, R + 6, -Math.PI / 2, -Math.PI / 2 + u * Math.PI * 2); ctx.stroke();
         if (lead > 0) { ctx.strokeStyle = "rgba(243,201,105,0.8)"; ctx.lineWidth = 2.5; ctx.beginPath(); ctx.arc(fx, y, R + 3 + lead * 28, 0, 7); ctx.stroke(); }
-        label(fx, y + R + 12, "HALTEN … LOSLASSEN");
+        label(fx, y + R + 12, c.glide ? (m.el.role === "entry" ? "KANTE HALTEN … LOSLASSEN = EINDREHEN" : "AUSGLEITEN … LOSLASSEN") : "HALTEN … LOSLASSEN");
       } else {
         const lead = m.t - t, hit = run.inputs.some((i) => Math.abs(i.t - m.t) < 0.3 && (m.kind === "step" ? i.type === "swipe" : m.kind === "spin" ? i.type === "circle" : i.type === "down"));
         ctx.globalAlpha = hit ? 0.35 : 1;
-        ctx.fillStyle = m.kind === "hold" || m.kind === "pose" ? "#DDA43B" : m.kind === "expr" ? "#D8A9DE" : "#F1E7D2"; ctx.strokeStyle = "#141B25"; ctx.lineWidth = 2.5;
+        ctx.fillStyle = m.kind === "hold" || m.kind === "pose" ? "#DDA43B" : m.kind === "expr" ? "#D8A9DE" : m.kind === "glide" ? "#9EC3E6" : "#F1E7D2"; ctx.strokeStyle = "#141B25"; ctx.lineWidth = 2.5;
         ctx.beginPath(); ctx.arc(fx, y, R, 0, 7); ctx.fill(); ctx.stroke();
         if (lead > 0) { ctx.strokeStyle = "#F3C969"; ctx.lineWidth = 3.5; ctx.beginPath(); ctx.arc(fx, y, R + 3 + lead * 28, 0, 7); ctx.stroke(); }
         ctx.fillStyle = m.kind === "step" ? "#C23B2A" : "#141B25"; ctx.font = "bold 24px " + font();
         ctx.fillText(m.kind === "step" ? STEP[m.dir][0] : m.kind === "hold" ? "●" : SYM[m.kind], fx, y + 1);
-        label(fx, y + R + 12, m.kind === "step" ? STEP[m.dir][1].toUpperCase() : m.kind === "hold" ? (canHover() ? "LEERTASTE DRÜCKEN" : "DRÜCKEN") : m.kind === "spin" ? "RUNDE AUF DEN SCHLAG" : m.kind === "expr" ? `TIPPEN: ${m.el.name.toUpperCase()}` : "POSE");
+        label(fx, y + R + 12, m.kind === "step" ? STEP[m.dir][1].toUpperCase() : m.kind === "hold" ? (canHover() ? "LEERTASTE DRÜCKEN" : "DRÜCKEN") : m.kind === "spin" ? "RUNDE AUF DEN SCHLAG" : m.kind === "expr" ? `TIPPEN: ${m.el.name.toUpperCase()}` : m.kind === "glide" ? (canHover() ? "LEERTASTE: KANTE ANSETZEN" : "DRÜCKEN: KANTE ANSETZEN") : "POSE");
         ctx.globalAlpha = 1;
       }
     }
@@ -3198,7 +3264,7 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
     if (res.falls) return "Tipp: Ein Sturz kommt vom Loslassen weit neben dem ○. Halte, bis das ○ die Linie erreicht.";
     if (tm.bias > 40) return `Du liegst im Schnitt ${tm.bias} ms zu spät. Mit Bluetooth-Kopfhörern hilft „Verzögerung“ in den Einstellungen.`;
     if (tm.bias < -40) return `Du bist im Schnitt ${-tm.bias} ms zu früh: lass den Schlag kommen, dann erst tippen.`;
-    const weak = res.els.filter((e) => e.kind !== "pose" && e.kind !== "expr" && !e.inCombo && (e.row || e).status !== "ok");
+    const weak = res.els.filter((e) => e.kind !== "pose" && e.kind !== "expr" && e.kind !== "glide" && !e.inCombo && (e.row || e).status !== "ok");
     if (weak.length) return `Am meisten Punkte liegen noch in: ${weak.map((e) => e.name).join(", ")}.`;
     return tm.mean <= 60 ? "Stark im Takt. Probier „Experte“ in den Einstellungen: ohne Ring und mit engerem Fenster." : "Gut. Je näher an der Linie, desto mehr Ausführungspunkte (GOE).";
   }
@@ -3215,7 +3281,7 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
     const tm = res.timing;
     $("rTime").innerHTML = tm ? `<b>Ø ${tm.mean}&nbsp;ms</b><span>durchschnittliche Abweichung vom Takt: ${tm.word}<br>Tendenz ${sg(tm.bias)}&nbsp;ms (${tm.tend}) · ${tm.perfect} von ${tm.n} perfekt</span>`
       : `<b>–</b><span>keine Eingabe im Takt</span>`;
-    $("rEls").innerHTML = res.els.filter((e) => !e.inCombo && e.kind !== "expr" && (e.kind !== "pose" || e.status === "ok")).map((e0) => {
+    $("rEls").innerHTML = res.els.filter((e) => !e.inCombo && e.kind !== "expr" && e.kind !== "glide" && (e.kind !== "pose" || e.status === "ok")).map((e0) => {
       const e = e0.row ? Object.assign({}, e0, e0.row) : e0;
       const lv = e.level ? ` <small>Stufe ${e.level}</small>` : "";
       const goe = e.status === "miss" || e.kind === "pose" || e.kind === "expr" ? "" : sg(e.goe);
@@ -3308,7 +3374,7 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
     donau: "festlich · Wiener Ballsaal", skaters: "beschwingt · ein Wintertag auf dem Eis",
     wellen: "leidenschaftlich · in Moll", brahms: "zart und ruhig · zum Träumen",
   };
-  const KIND = { jump: ["●○", "Sprung"], spin: ["⟳", "Pirouette"], steps: ["➜", "Schritte"], choreo: ["✦", "Choreo"] };
+  const KIND = { jump: ["●○", "Sprung"], spin: ["⟳", "Pirouette"], steps: ["➜", "Schritte"], choreo: ["✦", "Choreo"], glide: ["⌒", "Gleiten"] };
   let listenOn = false;
   function drawBand() {
     const cv = $("pBand"), w = cv.offsetWidth, h = cv.offsetHeight; if (!w) return;
@@ -3346,6 +3412,7 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
   // Kürplan, so einfach wie möglich: oben das Stück, darunter die Melodie und die acht Abschnitte.
   // Unten links steht, was im gewählten Abschnitt in der Musik passiert, rechts wählt man: erst die Art, dann das Element.
   let pCat = null, pSheet = null;
+  const fitK = (k, m) => (k === "glide" ? m.includes("spin") || m.includes("choreo") : m.includes(k));
   const FXI = { laser: "✳", fire: "✺", swap: "⇄" };
   const CATS = [["jump", "●○", "Sprung"], ["spin", "⟳", "Pirouette"], ["steps", "➜", "Schritte"], ["choreo", "✦", "Choreo"], ["none", "～", "Gleiten"]];
   // kurze, lesbare Namen für die Abschnitte (höchstens zwei Zeilen)
@@ -3362,7 +3429,7 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
     if (sl[pSel] === "~") pSel--;
     const pl = K.plan(sl, S.look, SCORE.id, S.fx), cur = sl[pSel], curC = cur ? CAT[cur] : null, fit = moods[pSel][1], peak = (sec.peak || []).includes(pSel);
     if (!pCat) { // beim Wechsel des Abschnitts: Art und Sprung-Einstellungen vom gewählten Element übernehmen
-      pCat = curC ? curC.kind : fit[0];
+      pCat = curC ? (curC.kind === "glide" ? "none" : curC.kind) : fit[0];
       if (curC && curC.kind === "jump") { pRot = curC.rot; pCombo = curC.combo ? curC.combo[1].replace(/^\d/, "") : ""; }
     }
     $("pPiece").innerHTML = `<b>♪ ${esc(SCORE.short)}</b><i>▾</i>`;
@@ -3370,8 +3437,8 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
     // Abschnitte
     $("tl").innerHTML = sl.map((id, i) => {
       if (id === "~") return "";
-      const c = CAT[id], fits = c && moods[i][1].includes(c.kind);
-      const val = !c ? "" : c.kind === "choreo" ? "Ausdruck" : c.kind === "jump" ? dec(c.base) + " P." : `bis ${dec(c.levels[c.levels.length - 1])} P.`;
+      const c = CAT[id], fits = c && fitK(c.kind, moods[i][1]);
+      const val = !c ? "" : c.kind === "choreo" ? "Ausdruck" : c.kind === "glide" ? (c.role === "entry" ? "Stufe +1" : "GOE +1") : c.kind === "jump" ? dec(c.base) + " P." : `bis ${dec(c.levels[c.levels.length - 1])} P.`;
       return `<button class="slot ${c ? c.kind : "empty"}${i === pSel ? " sel" : ""}${c && !fits ? " off" : ""}" data-i="${i}">`
         + `<small>${i + 1}${(sec.peak || []).includes(i) ? " ♪" : ""}</small><span class="ic">${c ? KIND[c.kind][0] : ""}</span>`
         + `<b>${c ? slotName(c) : "+"}</b><i>${val}</i>${S.fx[i] ? `<em class="fxB" title="${K.FX[S.fx[i]]}">${FXI[S.fx[i]]}</em>` : ""}${id === "StSq" && S.fx[i + 1] ? `<em class="fxB r2">${FXI[S.fx[i + 1]]}</em>` : ""}</button>`;
@@ -3380,7 +3447,7 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
     // links: was die Musik hier macht
     $("pSec").innerHTML = `<small>ABSCHNITT ${pSel + 1} · AB ${mmss(bt[secBar(pSel) * 3])}</small><h3>${esc(moods[pSel][0])}</h3>`
       + `<p>passt: <b>${fit.map((k) => KIND[k][1]).join(" oder ")}</b></p>` + (peak ? `<p class="pk">♪ Höhepunkt der Musik – ein sauberes Element bekommt +1</p>` : "")
-      + `<p class="now">${curC ? `gewählt: <b>${slotName(curC).replace("<br>", " ")}</b>${fit.includes(curC.kind) ? " ✓" : " – passt kaum"}` : "noch frei"}</p>`
+      + `<p class="now">${curC ? `gewählt: <b>${slotName(curC).replace("<br>", " ")}</b>${fitK(curC.kind, fit) ? " ✓" : " – passt kaum"}` : "noch frei"}</p>`
       + `<p class="hint2">Art wählen, dann Element – weiter geht es von selbst. ★ passt zur Musik.</p>`;
     const nfx = S.fx.filter(Boolean).length;
     $("pShow").innerHTML = `<small>SHOW IN ABSCHNITT ${pSel + 1}</small>${Object.keys(K.FX).map((f) => { const on = S.fx[pSel] === f, full = !on && !S.fx[pSel] && nfx >= K.FX_MAX; return `<button class="tg${on ? " on" : ""}" data-fx="${f}"${full ? " disabled" : ""}>${FXI[f]} ${K.FX[f]}</button>`; }).join("")}<em>${nfx} von ${K.FX_MAX}</em>`;
@@ -3393,7 +3460,7 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
     $("pCats").innerHTML = CATS.map(([k, ic, nm]) => `<button class="cat${pCat === k ? " on" : ""}${fit.includes(k) ? " fit" : ""}" data-cat="${k}"><span>${ic}</span>${nm}</button>`).join("");
     $("pCats").querySelectorAll("[data-cat]").forEach((b) => (b.onclick = () => {
       pCat = b.dataset.cat;
-      if (pCat === "none") { const a = assign(S.prog, pSel, null); if (a) { S.prog = a; save(); } }
+
       fillProg();
     }));
     const opt = (id, label, small) => {
@@ -3408,13 +3475,16 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
     } else if (pCat === "spin") { o = ["USp", "SSp", "CSp"].map((id) => opt(id, CAT[id].name, `bis ${dec(CAT[id].levels[3])} P.`)).join(""); tw = `<span>Mit dem Finger kreisen, jede Runde auf den Schlag.</span>`; }
     else if (pCat === "steps") { o = opt("StSq", "Schrittfolge", "zwei Abschnitte"); tw = `<span>Wischen in Pfeilrichtung – braucht zwei Abschnitte.</span>`; }
     else if (pCat === "choreo") { o = ["ChSp", "ChIB", "ChPB", "ChTw"].map((id) => opt(id, CAT[id].name, "Ausdruck")).join(""); tw = `<span>Tippen, wenn die Figur kommt – zählt zur Präsentation.</span>`; }
-    else { o = ""; tw = `<span>Hier gleitet sie frei und tanzt zur Melodie.</span>`; }
+    else {
+      o = `<button class="el${!cur ? " on" : ""}" data-id=""><b>Frei gleiten</b><small>tanzt zur Melodie</small></button>` + ["EinF", "EinM", "Aus"].map((id) => opt(id, CAT[id].name, CAT[id].role === "entry" ? "vor Pirouette" : "nach Pirouette")).join("");
+      tw = `<span>Einlauf: Kante halten und auf den Schlag in die Pirouette eindrehen (+1 Stufe). Auslauf: danach ausgleiten (+1 GOE).</span>`;
+    }
     const ids = sl.filter((x) => x && x !== "~");
     const cnt = { jump: ids.filter((x) => CAT[x].kind === "jump").length, spin: ids.filter((x) => CAT[x].kind === "spin").length };
     if (pCat === "jump") tw += `<em>${cnt.jump} von ${K.RULES.jumps} Sprüngen</em>`; else if (pCat === "spin") tw += `<em>${cnt.spin} von ${K.RULES.spins}</em>`;
     $("pOpts").innerHTML = o; $("pTweak").innerHTML = tw;
     $("pOpts").querySelectorAll(".el").forEach((b) => (b.onclick = () => {
-      const a = assign(S.prog, pSel, b.dataset.id); if (!a) return;
+      const a = assign(S.prog, pSel, b.dataset.id || null); if (!a) return;
       S.prog = a; save();
       const step = a[pSel] === "StSq" ? 2 : 1; if (pSel + step < a.length) { pSel += step; pCat = null; }
       fillProg();
