@@ -1,6 +1,6 @@
 // Cold Medal Eiskunstlauf: Offline-Speicher. Beim ersten Besuch wird alles geladen, danach startet das Spiel auch ohne Netz.
 // Die Seite selbst kommt zuerst aus dem Netz (neue Version), ohne Netz aus dem Speicher.
-const CACHE = "eiskunstlauf-0.11";
+const CACHE = "eiskunstlauf-0.12";
 const FILES = ["./", "index.html", "manifest.webmanifest", "icons/icon-192.png", "icons/icon-512.png", "icons/apple-touch-icon.png"];
 self.addEventListener("install", (e) => {
   e.waitUntil(caches.open(CACHE).then((c) => c.addAll(FILES)).then(() => self.skipWaiting()));

@@ -131,74 +131,92 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
 .ifBody h3 { font-family: var(--font-display); font-size: 12px; letter-spacing: 0.08em; text-transform: uppercase; margin: 6px 0 2px; break-after: avoid; }
 .ifBody p { font-size: 12.5px; line-height: 1.35; margin-bottom: 4px; }
 
-/* Meine Kür: Choreografie-Studio (dunkel wie die Abendbühne, Gold für Musik und Höhepunkte) */
+/* Meine Kür: Abendbühne, Gold für Musik und Auswahl. Alles einzeilig, nichts bricht um */
 #scrProg { justify-content: center; background: rgba(8,12,26,0.55); }
-.card.prog { display: flex; flex-direction: column; gap: 6px; padding: 9px 13px; }
+.card.prog { position: relative; display: flex; flex-direction: column; gap: 7px; padding: 10px 14px 12px; }
 .card.studio { background: radial-gradient(ellipse at 50% -10%, #34467A 0%, #1A2544 50%, #0F1730 100%); color: var(--paper); border-color: #0A0F1E; }
-.studio .kicker { color: #F3C969; }
-.sHead { display: flex; justify-content: space-between; align-items: flex-end; }
-.sTitle h2 { font-family: var(--font-display); font-size: 21px; letter-spacing: 0.02em; line-height: 1.05; margin-top: 1px; }
-.sTitle small { font-size: 11px; color: rgba(241,231,210,0.7); font-style: italic; }
-.sNote { display: flex; flex-direction: column; align-items: flex-end; line-height: 1; }
-.sNote small { font-family: var(--font-display); font-size: 9.5px; letter-spacing: 0.12em; color: rgba(241,231,210,0.7); }
-.sNote b { font-family: var(--font-display); font-size: 28px; color: #F3C969; text-shadow: 0 0 12px rgba(243,201,105,0.45); }
-.band { height: 56px; border: 1px solid rgba(243,201,105,0.25); background: linear-gradient(180deg, rgba(10,16,34,0.6), rgba(10,16,34,0.2)); }
+.studio .kicker { color: #F3C969; letter-spacing: 0.16em; }
+.studio button { white-space: nowrap; }
+.sHead { display: flex; justify-content: space-between; align-items: center; gap: 10px; }
+.sTitle { display: flex; align-items: center; gap: 12px; min-width: 0; }
+.piece { display: flex; align-items: baseline; gap: 8px; background: none; border: 0; border-bottom: 1px solid rgba(243,201,105,0.45); color: var(--paper); padding: 2px 0; min-width: 0; }
+.piece b { font-family: var(--font-display); font-size: 19px; letter-spacing: 0.01em; }
+.piece small { font-size: 11px; color: rgba(241,231,210,0.6); font-style: italic; overflow: hidden; text-overflow: ellipsis; }
+.piece i { font-style: normal; font-family: var(--font-display); font-size: 10px; letter-spacing: 0.08em; color: #F3C969; text-transform: uppercase; }
+.sActs { display: flex; align-items: center; gap: 7px; }
+.sActs .mid { padding: 6px 12px; font-size: 12px; }
+.noteBtn { display: flex; align-items: baseline; gap: 6px; background: rgba(243,201,105,0.1); border: 1px solid rgba(243,201,105,0.55); color: var(--paper); padding: 3px 9px; }
+.noteBtn small { font-family: var(--font-display); font-size: 9.5px; letter-spacing: 0.12em; color: rgba(241,231,210,0.75); }
+.noteBtn b { font-family: var(--font-display); font-size: 19px; color: #F3C969; }
+.band { height: 48px; border: 1px solid rgba(243,201,105,0.22); background: linear-gradient(180deg, rgba(10,16,34,0.6), rgba(10,16,34,0.15)); }
 .band canvas { width: 100%; height: 100%; display: block; }
-.tl { display: grid; grid-template-columns: repeat(8, 1fr); gap: 4px; }
-.slot { position: relative; height: 60px; border: 1.5px solid rgba(241,231,210,0.35); background: rgba(255,255,255,0.06); color: var(--paper); display: flex; flex-direction: column; justify-content: space-between; padding: 3px 5px 3px; text-align: left; border-top: 4px solid rgba(241,231,210,0.35); }
-.slot small { font-size: 9.5px; color: rgba(241,231,210,0.6); font-family: var(--font-display); letter-spacing: 0.04em; }
-.slot .ic { position: absolute; right: 5px; top: 3px; font-size: 12px; color: rgba(241,231,210,0.7); }
-.slot b { font-family: var(--font-display); font-size: 12.5px; line-height: 1.05; letter-spacing: 0.02em; }
-.slot i { font-style: normal; font-size: 10.5px; font-family: var(--font-display); color: rgba(241,231,210,0.65); }
-.slot.empty { border-style: dashed; background: transparent; }
-.slot.empty b { color: rgba(241,231,210,0.5); font-weight: 600; }
-.slot.jump { border-top-color: #F3C969; background: rgba(243,201,105,0.13); }
-.slot.spin { border-top-color: #9EC3E6; background: rgba(158,195,230,0.13); }
-.slot.steps { border-top-color: #9FD0A6; background: rgba(159,208,166,0.12); grid-column: span 2; }
-.slot.choreo { border-top-color: #D8A9DE; background: rgba(216,169,222,0.13); }
-.slot.off::after { content: "passt kaum"; position: absolute; right: 4px; bottom: 3px; font-size: 8.5px; color: #E8A07A; font-family: var(--font-display); letter-spacing: 0.04em; }
-.slot.sel { outline: 2.5px solid #F3C969; outline-offset: 1px; box-shadow: 0 0 14px rgba(243,201,105,0.35); }
+.tl { display: grid; grid-template-columns: repeat(8, 1fr); gap: 5px; }
+.slot { position: relative; height: 56px; border: 1px solid rgba(241,231,210,0.3); background: rgba(255,255,255,0.05); color: var(--paper); display: flex; flex-direction: column; justify-content: space-between; padding: 3px 6px 4px; text-align: left; border-top: 3px solid rgba(241,231,210,0.3); overflow: hidden; }
+.slot small { font-size: 10px; color: rgba(241,231,210,0.55); font-family: var(--font-display); }
+.slot .ic { position: absolute; right: 6px; top: 3px; font-size: 11px; color: rgba(241,231,210,0.6); }
+.slot b { font-family: var(--font-display); font-size: 12.5px; line-height: 1.1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.slot i { font-style: normal; font-size: 10px; font-family: var(--font-display); color: rgba(241,231,210,0.6); white-space: nowrap; }
+.slot.empty { border-style: dashed; background: transparent; align-items: flex-start; }
+.slot.empty b { color: rgba(241,231,210,0.45); font-size: 18px; font-weight: 400; }
+.slot.jump { border-top-color: #F3C969; background: rgba(243,201,105,0.12); }
+.slot.spin { border-top-color: #9EC3E6; background: rgba(158,195,230,0.12); }
+.slot.steps { border-top-color: #9FD0A6; background: rgba(159,208,166,0.11); grid-column: span 2; }
+.slot.choreo { border-top-color: #D8A9DE; background: rgba(216,169,222,0.12); }
+.slot.off { opacity: 0.75; }
+.slot.off .ic::after { content: " !"; color: #E8A07A; }
+.slot.sel { outline: 2px solid #F3C969; outline-offset: 1px; box-shadow: 0 0 16px rgba(243,201,105,0.35); opacity: 1; }
 .slot.play { background: rgba(255,255,255,0.2); }
-.slot .peak { position: absolute; left: 50%; top: -9px; transform: translateX(-50%); font-style: normal; font-size: 10px; color: #141B25; background: #F3C969; border-radius: 8px; padding: 0 5px; }
-.sBody { flex: 1; display: flex; gap: 10px; min-height: 0; }
-.sMain { flex: 1; display: flex; flex-direction: column; min-height: 0; }
-.sSide { display: flex; flex-direction: column; justify-content: flex-end; gap: 6px; width: 118px; }
-.sSide .mid { padding: 7px 8px; font-size: 12.5px; }
-.tabs { display: flex; gap: 2px; align-items: flex-end; border-bottom: 1.5px solid rgba(243,201,105,0.4); }
-.tabs button { font-family: var(--font-display); font-weight: 700; font-size: 11.5px; letter-spacing: 0.08em; text-transform: uppercase; color: rgba(241,231,210,0.65); padding: 4px 10px; border: 1.5px solid transparent; border-bottom: 0; background: transparent; }
-.tabs button.on { color: #141B25; background: #F3C969; }
-.tabHint { margin-left: auto; font-size: 10.5px; color: rgba(241,231,210,0.65); padding-bottom: 3px; text-align: right; }
-.tabC { flex: 1; min-height: 0; overflow-y: auto; padding-top: 5px; display: flex; flex-direction: column; gap: 4px; }
-.secInfo { font-size: 11.5px; color: rgba(241,231,210,0.85); }
-.secInfo b { font-family: var(--font-display); color: #F3C969; letter-spacing: 0.04em; }
-.secInfo em { font-style: normal; color: #F3C969; }
-.fitDot::before, .el.fit::after { content: ""; display: inline-block; width: 6px; height: 6px; border-radius: 50%; background: #F3C969; vertical-align: middle; }
-.el.fit { position: relative; } .el.fit::after { position: absolute; top: 2px; right: 2px; }
-.prow { display: flex; align-items: center; gap: 4px; flex-wrap: wrap; }
-.prow > b { font-family: var(--font-display); font-size: 11px; letter-spacing: 0.08em; text-transform: uppercase; min-width: 70px; color: rgba(241,231,210,0.8); }
-.prow > b.sub { min-width: 0; margin-left: 10px; }
-.prow .opts { margin-left: 4px; gap: 2px; }
-.el { font-family: var(--font-display); font-weight: 600; font-size: 12px; padding: 3px 6px; border: 1.5px solid var(--ink-deep); background: var(--paper); color: var(--ink); line-height: 1.1; text-align: center; }
-.el small { display: block; font-weight: 400; font-size: 10px; color: var(--muted); }
-.el.on { background: #F3C969; } .el.on small { color: var(--ink); }
-.el:disabled { opacity: 0.3; cursor: default; }
-.studio .pill { font-size: 10.5px; padding: 3px 7px; }
-.mus { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; }
-.muC { display: flex; flex-direction: column; align-items: flex-start; gap: 2px; text-align: left; padding: 7px 8px; border: 1.5px solid rgba(241,231,210,0.35); background: rgba(255,255,255,0.05); color: var(--paper); }
-.muC b { font-family: var(--font-display); font-size: 14px; line-height: 1.05; }
-.muC small { font-size: 10.5px; color: rgba(241,231,210,0.7); }
-.muC i { font-size: 11px; color: #F3C969; }
-.muC span { font-family: var(--font-display); font-size: 10.5px; color: rgba(241,231,210,0.6); }
-.muC.on { border-color: #F3C969; background: rgba(243,201,105,0.16); box-shadow: 0 0 12px rgba(243,201,105,0.3); }
-.noteTab { display: flex; gap: 12px; }
-.lookBox { display: flex; flex-direction: column; align-items: center; gap: 3px; }
-.lookBox canvas { width: 72px; height: 88px; background: radial-gradient(ellipse at 50% 85%, rgba(255,240,200,0.5), rgba(255,240,200,0) 70%); }
-.plList { flex: 1; display: grid; grid-template-columns: 1fr 1fr; gap: 4px 14px; }
-.plRow { display: grid; grid-template-columns: 1fr 60px 26px; gap: 1px 6px; align-items: center; font-size: 11px; }
-.plRow span { font-family: var(--font-display); font-weight: 600; }
+.sBody { flex: 1; display: flex; gap: 14px; min-height: 0; }
+.secCol { width: 210px; flex: none; border-right: 1px solid rgba(243,201,105,0.25); padding-right: 12px; display: flex; flex-direction: column; gap: 3px; }
+.secCol small { font-family: var(--font-display); font-size: 10px; letter-spacing: 0.12em; color: #F3C969; }
+.secCol h3 { font-family: var(--font-display); font-size: 21px; font-weight: 700; font-style: italic; line-height: 1.05; }
+.secCol p { font-size: 12px; color: rgba(241,231,210,0.8); line-height: 1.25; }
+.secCol p b { color: var(--paper); }
+.secCol .pk { color: #F3C969; }
+.secCol .now { margin-top: auto; font-size: 11.5px; color: rgba(241,231,210,0.65); }
+.choose { flex: 1; display: flex; flex-direction: column; gap: 7px; min-width: 0; }
+.cats { display: grid; grid-template-columns: repeat(5, 1fr); gap: 5px; }
+.cat { position: relative; display: flex; align-items: center; justify-content: center; gap: 6px; height: 32px; font-family: var(--font-display); font-weight: 700; font-size: 12.5px; letter-spacing: 0.04em; color: rgba(241,231,210,0.8); background: rgba(255,255,255,0.05); border: 1px solid rgba(241,231,210,0.28); }
+.cat span { font-size: 13px; color: rgba(241,231,210,0.6); }
+.cat.fit::after { content: "★"; position: absolute; top: -7px; right: -4px; font-size: 11px; color: #141B25; background: #F3C969; border-radius: 8px; width: 15px; height: 15px; line-height: 15px; text-align: center; }
+.cat.on { background: #F3C969; color: #141B25; border-color: #F3C969; }
+.cat.on span { color: #141B25; }
+.opts2 { display: grid; grid-template-columns: repeat(6, 1fr); gap: 5px; min-height: 42px; }
+.el { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 1px; height: 42px; padding: 2px 4px; border: 1px solid rgba(241,231,210,0.5); background: var(--paper); color: var(--ink); }
+.el b { font-family: var(--font-display); font-weight: 700; font-size: 12px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 100%; }
+.el small { font-size: 10px; color: var(--muted); font-family: var(--font-display); }
+.el.on { background: #F3C969; border-color: #F3C969; box-shadow: 0 0 12px rgba(243,201,105,0.4); }
+.el.on small { color: var(--ink); }
+.el:disabled { opacity: 0.28; cursor: default; }
+.tweak { display: flex; align-items: center; gap: 5px; font-size: 11.5px; color: rgba(241,231,210,0.7); white-space: nowrap; }
+.tweak span { margin-right: 2px; }
+.tweak span + .tg, .tweak .tg + span { margin-left: 6px; }
+.tweak em { margin-left: auto; font-style: normal; font-family: var(--font-display); font-size: 11px; color: #F3C969; }
+.tg { font-family: var(--font-display); font-size: 11px; font-weight: 600; padding: 3px 8px; border: 1px solid rgba(241,231,210,0.35); background: transparent; color: rgba(241,231,210,0.85); border-radius: 12px; }
+.tg.on { background: var(--paper); color: var(--ink); border-color: var(--paper); }
+.sheet { position: absolute; inset: 0; background: linear-gradient(180deg, rgba(16,24,48,0.98), rgba(12,18,38,0.98)); padding: 14px 18px; display: flex; flex-direction: column; z-index: 3; }
+.sheet .x { position: absolute; right: 12px; top: 10px; background: none; border: 0; color: var(--paper); font-size: 20px; }
+#pSheetC { display: flex; flex-direction: column; gap: 10px; height: 100%; }
+.shFoot { margin-top: auto; display: flex; align-items: center; gap: 12px; font-size: 11.5px; color: rgba(241,231,210,0.65); }
+.mus { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; }
+.muC { display: flex; flex-direction: column; align-items: flex-start; gap: 3px; text-align: left; padding: 10px; border: 1px solid rgba(241,231,210,0.3); background: rgba(255,255,255,0.05); color: var(--paper); white-space: normal; min-height: 120px; }
+.muC b { font-family: var(--font-display); font-size: 16px; line-height: 1.1; }
+.muC small { font-size: 11px; color: rgba(241,231,210,0.65); }
+.muC i { font-size: 12px; color: #F3C969; margin-top: 4px; }
+.muC span { margin-top: auto; font-family: var(--font-display); font-size: 11px; color: rgba(241,231,210,0.55); }
+.muC.on { border-color: #F3C969; background: rgba(243,201,105,0.14); box-shadow: 0 0 14px rgba(243,201,105,0.3); }
+.noteTab { display: flex; gap: 18px; }
+.lookBox { display: flex; flex-direction: column; align-items: center; gap: 6px; }
+.lookBox canvas { width: 108px; height: 132px; background: radial-gradient(ellipse at 50% 85%, rgba(255,240,200,0.5), rgba(255,240,200,0) 70%); }
+.lookBox .mid { font-size: 11.5px; padding: 5px 10px; }
+.plList { flex: 1; display: grid; grid-template-columns: 1fr 1fr; gap: 10px 22px; align-content: start; }
+.plRow { display: grid; grid-template-columns: 1fr 80px 30px; gap: 3px 8px; align-items: center; font-size: 12px; }
+.plRow span { font-family: var(--font-display); font-weight: 700; }
 .plRow i { height: 6px; background: linear-gradient(90deg, #F3C969 var(--v), rgba(241,231,210,0.18) var(--v)); }
 .plRow b { font-family: var(--font-display); text-align: right; color: #F3C969; }
-.plRow em { grid-column: 1 / -1; font-style: normal; color: rgba(241,231,210,0.65); font-size: 10px; line-height: 1.15; }
+.plRow em { grid-column: 1 / -1; font-style: normal; color: rgba(241,231,210,0.65); font-size: 11px; line-height: 1.25; }
+.studio .mid { color: var(--ink); }
+.studio .mid.red { color: var(--paper); }
 
 /* Kür-Bild und Album */
 #scrPaint, #scrAlbum { justify-content: center; background: rgba(14,22,38,0.35); }
@@ -211,11 +229,18 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
 .agrid img { width: 100%; aspect-ratio: 3 / 2; border: 2px solid var(--ink-deep); background: var(--paper); display: block; }
 .agrid small { font-size: 11px; color: var(--muted); font-family: var(--font-display); }
 .agrid .empty { grid-column: 1 / -1; font-size: 13px; color: var(--muted); }
-.studio .pill, .studio .mid { color: var(--ink); }
-.studio .pill.on { color: var(--paper); }
-.studio .mid.red { color: var(--paper); }
-.tabs button { white-space: nowrap; }
-.tabHint { font-size: 10px; line-height: 1.15; max-width: 52%; }
+.sheet[hidden] { display: none; }
+.sTitle { flex: 1; } .sTitle .kicker { white-space: nowrap; }
+.piece { overflow: hidden; }
+.piece b { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.piece i { white-space: nowrap; }
+.slot { height: 62px; }
+.slot b { white-space: normal; font-size: 12px; line-height: 1.08; hyphens: manual; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; }
+.secCol .now { margin-top: 4px; }
+.secCol .hint2 { margin-top: auto; font-size: 10.5px; color: rgba(241,231,210,0.5); }
+.studio .muC { white-space: normal; }
+.mus { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+.secCol p { max-width: none; }
 </style>
 </head>
 <body>
@@ -269,18 +294,16 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
   <section class="scr" id="scrProg" hidden>
     <div class="card wide prog studio">
       <div class="sHead">
-        <div class="sTitle"><div class="kicker">CHOREOGRAFIE · MEINE KÜR</div><h2 id="pTitle"></h2><small id="pComp"></small></div>
-        <div class="sNote"><small>CHOREO-NOTE</small><b id="pNote"></b><small id="pBase"></small></div>
+        <div class="sTitle"><div class="kicker">MEINE KÜR</div><button class="piece" id="pPiece"></button></div>
+        <div class="sActs"><button class="noteBtn" id="pNoteBtn"><small>CHOREO-NOTE</small><b id="pNote"></b></button><button class="mid" id="pDef">Vorschlag</button><button class="mid red" id="pDone">Fertig</button></div>
       </div>
       <div class="band"><canvas id="pBand"></canvas></div>
       <div class="tl" id="tl"></div>
       <div class="sBody">
-        <div class="sMain">
-          <div class="tabs" id="pTabs"><button data-t="musik">Musik</button><button data-t="el">Elemente</button><button data-t="note">Kostüm &amp; Note</button><span class="tabHint" id="pMsg"></span></div>
-          <div class="tabC" id="pTab"></div>
-        </div>
-        <div class="sSide"><button class="mid" id="pListen"></button><button class="mid" id="pDef">Vorschlag</button><button class="mid red" id="pDone">Fertig</button></div>
+        <div class="secCol" id="pSec"></div>
+        <div class="choose"><div class="cats" id="pCats"></div><div class="opts2" id="pOpts"></div><div class="tweak" id="pTweak"></div></div>
       </div>
+      <div class="sheet" id="pSheet" hidden><button class="x" id="pSheetX">✕</button><div id="pSheetC"></div></div>
     </div>
   </section>
 
@@ -1717,7 +1740,7 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
 /* COLD MEDAL EISKUNSTLAUF – Ablauf, Bildschirme, Eingabe, Taktband, Ergebnis, Spielstand. */
 (function () {
   "use strict";
-  const VERSION = "0.11";
+  const VERSION = "0.12";
   // Seiten-Einstellungen aus dem Build (eigenes Hosting: Adresse, Hoster, Impressum); im claude.ai-Artefakt leer
   const SITE = Object.assign({ web: false, url: "", impressum: null }, {"web": true, "url": "https://matpeins-debug.github.io/cold-medal-eiskunstlauf/", "hoster": "GitHub Pages (GitHub Inc., USA)", "drittland": "GitHub ist nach dem EU-US Data Privacy Framework zertifiziert; die Übermittlung in die USA stützt sich auf den Angemessenheitsbeschluss der EU-Kommission dazu.", "impressum": {"name": "", "adresse": "", "mail": ""}} || {});
   const M = window.EKMusic, K = window.EKSkate, F = window.EKFigure, SC = window.EKScene;
@@ -2708,7 +2731,7 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
     wellen: "leidenschaftlich · in Moll", brahms: "zart und ruhig · zum Träumen",
   };
   const KIND = { jump: ["●○", "Sprung"], spin: ["⟳", "Pirouette"], steps: ["➜", "Schritte"], choreo: ["✦", "Choreo"] };
-  let pTab = "el", listenOn = false;
+  let listenOn = false;
   function drawBand() {
     const cv = $("pBand"), w = cv.offsetWidth, h = cv.offsetHeight; if (!w) return;
     const d = dpr;
@@ -2741,62 +2764,100 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
     }
   }
   (function bandLoop() { requestAnimationFrame(bandLoop); if (listenOn && !$("scrProg").hidden) drawBand(); })();
+  // Kürplan, so einfach wie möglich: oben das Stück, darunter die Melodie und die acht Abschnitte.
+  // Unten links steht, was im gewählten Abschnitt in der Musik passiert, rechts wählt man: erst die Art, dann das Element.
+  let pCat = null, pSheet = null;
+  const CATS = [["jump", "●○", "Sprung"], ["spin", "⟳", "Pirouette"], ["steps", "➜", "Schritte"], ["choreo", "✦", "Choreo"], ["none", "～", "Gleiten"]];
+  // kurze, lesbare Namen für die Abschnitte (höchstens zwei Zeilen)
+  const JN = { T: "Toeloop", S: "Salchow", Lo: "Rittberger", F: "Flip", Lz: "Lutz", A: "Axel" };
+  function slotName(c) {
+    const jn = (id) => `${id[0]}× ${JN[id.slice(1)]}`;
+    if (c.kind === "jump") return c.combo ? `${jn(c.combo[0])}<br>+ ${jn(c.combo[1])}` : jn(c.combo ? c.combo[0] : Object.keys(CAT).find((k) => CAT[k] === c));
+    if (c.kind === "spin") return esc(c.name).replace("pirouette", "&shy;pirouette");
+    return esc(c.name);
+  }
   function fillProg() {
     useMusic();
     const bt = M.grid(SCORE, SCORE.bpm, true), sl = S.prog, sec = K.SECTIONS[SCORE.id], moods = K.MOODS[SCORE.id];
     if (sl[pSel] === "~") pSel--;
-    const pl = K.plan(sl, S.look, SCORE.id);
-    $("pTitle").textContent = SCORE.title; $("pComp").textContent = `${SCORE.composer} · ${MUSIC_INFO[SCORE.id] || ""}`;
+    const pl = K.plan(sl, S.look, SCORE.id), cur = sl[pSel], curC = cur ? CAT[cur] : null, fit = moods[pSel][1], peak = (sec.peak || []).includes(pSel);
+    if (!pCat) { // beim Wechsel des Abschnitts: Art und Sprung-Einstellungen vom gewählten Element übernehmen
+      pCat = curC ? curC.kind : fit[0];
+      if (curC && curC.kind === "jump") { pRot = curC.rot; pCombo = curC.combo ? curC.combo[1].replace(/^\d/, "") : ""; }
+    }
+    $("pPiece").innerHTML = `<b>♪ ${esc(SCORE.short)}</b><small>${esc(SCORE.composer.replace(/,.*$/, ""))}</small><i>wechseln ▾</i>`;
     $("pNote").textContent = dec(pl.total);
-    const ids = sl.filter((x) => x && x !== "~" && CAT[x].kind !== "choreo"), nj = ids.filter((x) => CAT[x].kind === "jump").length, ns = ids.filter((x) => CAT[x].kind === "spin").length, nc = ids.filter((x) => CAT[x].combo).length;
-    $("pBase").textContent = nb(`Grundwert bis ${dec(K.maxBase(sl))}`);
-    $("pListen").textContent = listenOn ? "■ Stopp" : "▶ Anhören";
     // Abschnitte
     $("tl").innerHTML = sl.map((id, i) => {
       if (id === "~") return "";
       const c = CAT[id], fits = c && moods[i][1].includes(c.kind);
-      const val = !c ? "frei" : c.kind === "choreo" ? "Ausdruck" : c.kind === "jump" ? dec(c.base) : `bis ${dec(c.levels[c.levels.length - 1])}`;
-      const pk = (sec.peak || []).includes(i) ? `<em class="peak">♪</em>` : "";
-      return `<button class="slot ${c ? c.kind : "empty"}${i === pSel ? " sel" : ""}${c && !fits ? " off" : ""}" data-i="${i}"><small>${mmss(bt[secBar(i) * 3])}</small>${pk}<span class="ic">${c ? KIND[c.kind][0] : "～"}</span><b>${c ? esc(c.combo ? c.short : c.name) : "Gleiten"}</b><i>${val}</i></button>`;
+      const val = !c ? "" : c.kind === "choreo" ? "Ausdruck" : c.kind === "jump" ? dec(c.base) + " P." : `bis ${dec(c.levels[c.levels.length - 1])} P.`;
+      return `<button class="slot ${c ? c.kind : "empty"}${i === pSel ? " sel" : ""}${c && !fits ? " off" : ""}" data-i="${i}">`
+        + `<small>${i + 1}${(sec.peak || []).includes(i) ? " ♪" : ""}</small><span class="ic">${c ? KIND[c.kind][0] : ""}</span>`
+        + `<b>${c ? slotName(c) : "+"}</b><i>${val}</i></button>`;
     }).join("");
-    $("tl").querySelectorAll(".slot").forEach((b) => (b.onclick = () => { pSel = +b.dataset.i; if (pTab !== "el") pTab = "el"; fillProg(); }));
-    $("pTabs").querySelectorAll("[data-t]").forEach((b) => { b.classList.toggle("on", b.dataset.t === pTab); b.onclick = () => { pTab = b.dataset.t; fillProg(); }; });
-    const T = $("pTab");
-    if (pTab === "musik") {
-      T.innerHTML = `<div class="mus">` + M.KUER.map((id) => { const sc = M.SCORES[id]; return `<button class="muC${S.music === id ? " on" : ""}" data-mu="${id}"><b>${esc(sc.title)}</b><small>${esc(sc.composer)}</small><i>${esc(MUSIC_INFO[id] || "")}</i><span>♩ ${sc.bpm} · ${mmss(M.grid(sc, sc.bpm, true)[108])}</span></button>`; }).join("") + `</div>`;
-      T.querySelectorAll("[data-mu]").forEach((b) => (b.onclick = () => { S.music = b.dataset.mu; save(); if (listenOn) listen(true); fillProg(); }));
-      $("pMsg").textContent = "Jedes Stück hat eigene Stimmungen und Höhepunkte – die Linie oben zeigt die Melodie.";
-    } else if (pTab === "el") {
-      const cur = sl[pSel], fit = moods[pSel][1], btn = (id, label, small) => {
-        const ok = assign(sl, pSel, id) !== null || cur === id, k = id ? CAT[id].kind : null;
-        return `<button class="el${cur === id ? " on" : ""}${k && fit.includes(k) ? " fit" : ""}" data-id="${id === null ? "" : id}"${ok ? "" : " disabled"}>${label}<small>${small}</small></button>`;
-      };
-      const fam = ["T", "S", "Lo", "F", "Lz", "A"];
-      T.innerHTML = `<div class="secInfo"><b>Abschnitt ${pSel + 1}</b> · ab ${mmss(bt[secBar(pSel) * 3])} · <i>${esc(moods[pSel][0])}</i>${(sec.peak || []).includes(pSel) ? " · <em>♪ Höhepunkt: sauber +1 GOE</em>" : ""} · passt: ${fit.map((k) => KIND[k][1]).join(", ")} <span class="fitDot"></span></div>`
-        + `<div class="prow"><b>Sprung</b>` + fam.map((f) => { const id = pRot + f + (pCombo ? "+" + pRot + pCombo : ""), c = CAT[id]; return btn(id, CAT["1" + f].name, dec(c.base)); }).join("")
-        + `<span class="opts"><button class="pill${pRot === 1 ? " on" : ""}" data-rot="1">1×</button><button class="pill${pRot === 2 ? " on" : ""}" data-rot="2">2×</button></span>`
-        + `<span class="opts"><button class="pill${!pCombo ? " on" : ""}" data-combo="">allein</button><button class="pill${pCombo === "T" ? " on" : ""}" data-combo="T">+T</button><button class="pill${pCombo === "Lo" ? " on" : ""}" data-combo="Lo">+Lo</button></span></div>`
-        + `<div class="prow"><b>Pirouette</b>${["USp", "SSp", "CSp"].map((id) => btn(id, CAT[id].short, `bis ${dec(CAT[id].levels[3])}`)).join("")}<b class="sub">Schritte</b>${btn("StSq", "Schrittfolge", `2 Abschnitte`)}</div>`
-        + `<div class="prow"><b>Choreo</b>${btn(null, "Gleiten", "frei")}${["ChSp", "ChIB", "ChPB", "ChTw"].map((id) => btn(id, CAT[id].name, "Ausdruck")).join("")}</div>`;
-      T.querySelectorAll("[data-rot]").forEach((b) => (b.onclick = () => { pRot = +b.dataset.rot; fillProg(); }));
-      T.querySelectorAll("[data-combo]").forEach((b) => (b.onclick = () => { pCombo = b.dataset.combo; fillProg(); }));
-      T.querySelectorAll(".el").forEach((b) => (b.onclick = () => {
-        const a = assign(S.prog, pSel, b.dataset.id || null); if (!a) return;
-        S.prog = a; save();
-        // weiter zum nächsten Abschnitt, wie beim Durchplanen einer Choreografie
-        const step = a[pSel] === "StSq" ? 2 : 1; if (pSel + step < a.length) pSel += step;
-        fillProg();
-      }));
-      $("pMsg").textContent = nb(`${nj}/${K.RULES.jumps} Sprünge · ${nc}/${K.RULES.combos} Kombis · ${ns}/${K.RULES.spins} Pirouetten · grau = nicht erlaubt`);
-    } else {
-      T.innerHTML = `<div class="noteTab"><div class="lookBox"><canvas id="pFig" width="180" height="220"></canvas><button class="pill" id="pLook">Kostüm ändern</button></div><div class="plList">`
-        + pl.parts.map((x) => `<div class="plRow"><span>${esc(x.name)}</span><i style="--v:${x.v * 10}%"></i><b>${dec(x.v)}</b><em>${esc(x.why)}</em></div>`).join("") + `</div></div>`;
-      const fc = $("pFig").getContext("2d"); fc.clearRect(0, 0, 180, 220); F.draw(fc, { x: 90, y: 200, s: 1.9, dir: 1, pose: F.POSES.final, turn: 0.5, look: S.look });
-      $("pLook").onclick = () => openLook(() => { fillProg(); show("scrProg"); });
-      $("pMsg").textContent = "Wie im Tanzsport: Musik, Aufbau, Abwechslung und Kostüm zählen zur Komposition (bis 1,5 Punkte).";
-    }
+    $("tl").querySelectorAll(".slot").forEach((b) => (b.onclick = () => { pSel = +b.dataset.i; pCat = null; fillProg(); }));
+    // links: was die Musik hier macht
+    $("pSec").innerHTML = `<small>ABSCHNITT ${pSel + 1} · AB ${mmss(bt[secBar(pSel) * 3])}</small><h3>${esc(moods[pSel][0])}</h3>`
+      + `<p>passt: <b>${fit.map((k) => KIND[k][1]).join(" oder ")}</b></p>` + (peak ? `<p class="pk">♪ Höhepunkt der Musik – ein sauberes Element bekommt +1</p>` : "")
+      + `<p class="now">${curC ? `gewählt: <b>${slotName(curC).replace("<br>", " ")}</b>${fit.includes(curC.kind) ? " ✓" : " – passt kaum"}` : "noch frei"}</p>`
+      + `<p class="hint2">Art wählen, dann Element – weiter geht es von selbst. ★ passt zur Musik.</p>`;
+    // rechts: Art wählen
+    $("pCats").innerHTML = CATS.map(([k, ic, nm]) => `<button class="cat${pCat === k ? " on" : ""}${fit.includes(k) ? " fit" : ""}" data-cat="${k}"><span>${ic}</span>${nm}</button>`).join("");
+    $("pCats").querySelectorAll("[data-cat]").forEach((b) => (b.onclick = () => {
+      pCat = b.dataset.cat;
+      if (pCat === "none") { const a = assign(S.prog, pSel, null); if (a) { S.prog = a; save(); } }
+      fillProg();
+    }));
+    const opt = (id, label, small) => {
+      const ok = cur === id || assign(sl, pSel, id) !== null;
+      return `<button class="el${cur === id ? " on" : ""}" data-id="${id}"${ok ? "" : " disabled"}><b>${label}</b><small>${small}</small></button>`;
+    };
+    let o = "", tw = "";
+    if (pCat === "jump") {
+      o = ["T", "S", "Lo", "F", "Lz", "A"].map((f) => { const id = pRot + f + (pCombo ? "+" + pRot + pCombo : ""); return opt(id, CAT["1" + f].name, dec(CAT[id].base) + " P."); }).join("");
+      tw = `<span>Drehungen</span><button class="tg${pRot === 1 ? " on" : ""}" data-rot="1">einfach</button><button class="tg${pRot === 2 ? " on" : ""}" data-rot="2">doppelt</button>`
+        + `<span>danach</span><button class="tg${!pCombo ? " on" : ""}" data-combo="">nichts</button><button class="tg${pCombo === "T" ? " on" : ""}" data-combo="T">+ Toeloop</button><button class="tg${pCombo === "Lo" ? " on" : ""}" data-combo="Lo">+ Rittberger</button>`;
+    } else if (pCat === "spin") { o = ["USp", "SSp", "CSp"].map((id) => opt(id, CAT[id].name, `bis ${dec(CAT[id].levels[3])} P.`)).join(""); tw = `<span>Mit dem Finger kreisen, jede Runde auf den Schlag.</span>`; }
+    else if (pCat === "steps") { o = opt("StSq", "Schrittfolge", "zwei Abschnitte"); tw = `<span>Wischen in Pfeilrichtung – braucht zwei Abschnitte.</span>`; }
+    else if (pCat === "choreo") { o = ["ChSp", "ChIB", "ChPB", "ChTw"].map((id) => opt(id, CAT[id].name, "Ausdruck")).join(""); tw = `<span>Tippen, wenn die Figur kommt – zählt zur Präsentation.</span>`; }
+    else { o = ""; tw = `<span>Hier gleitet sie frei und tanzt zur Melodie.</span>`; }
+    const ids = sl.filter((x) => x && x !== "~");
+    const cnt = { jump: ids.filter((x) => CAT[x].kind === "jump").length, spin: ids.filter((x) => CAT[x].kind === "spin").length };
+    if (pCat === "jump") tw += `<em>${cnt.jump} von ${K.RULES.jumps} Sprüngen</em>`; else if (pCat === "spin") tw += `<em>${cnt.spin} von ${K.RULES.spins}</em>`;
+    $("pOpts").innerHTML = o; $("pTweak").innerHTML = tw;
+    $("pOpts").querySelectorAll(".el").forEach((b) => (b.onclick = () => {
+      const a = assign(S.prog, pSel, b.dataset.id); if (!a) return;
+      S.prog = a; save();
+      const step = a[pSel] === "StSq" ? 2 : 1; if (pSel + step < a.length) { pSel += step; pCat = null; }
+      fillProg();
+    }));
+    $("pTweak").querySelectorAll("[data-rot]").forEach((b) => (b.onclick = () => { pRot = +b.dataset.rot; fillProg(); }));
+    $("pTweak").querySelectorAll("[data-combo]").forEach((b) => (b.onclick = () => { pCombo = b.dataset.combo; fillProg(); }));
+    fillSheet(pl);
     requestAnimationFrame(drawBand);
   }
+  // Blätter über dem Kürplan: Musik wählen, Choreo-Note mit Kostüm
+  function fillSheet(pl) {
+    $("pSheet").hidden = !pSheet;
+    if (!pSheet) return;
+    const C = $("pSheetC");
+    if (pSheet === "musik") {
+      C.innerHTML = `<div class="kicker">MUSIK FÜR DIE KÜR</div><div class="mus">` + M.KUER.map((id) => { const sc = M.SCORES[id]; return `<button class="muC${S.music === id ? " on" : ""}" data-mu="${id}"><b>${esc(sc.title)}</b><small>${esc(sc.composer)}</small><i>${esc(MUSIC_INFO[id] || "")}</i><span>${mmss(M.grid(sc, sc.bpm, true)[108])} · ♩ ${sc.bpm}</span></button>`; }).join("") + `</div>`
+        + `<div class="shFoot"><button class="mid" id="pListen">${listenOn ? "■ Stopp" : "▶ Anhören"}</button><span>Jedes Stück hat eigene Stimmungen und Höhepunkte.</span></div>`;
+      C.querySelectorAll("[data-mu]").forEach((b) => (b.onclick = () => { S.music = b.dataset.mu; save(); if (listenOn) listen(true); pCat = null; fillProg(); }));
+      $("pListen").onclick = () => listen(!listenOn);
+    } else {
+      C.innerHTML = `<div class="kicker">CHOREO-NOTE ${dec(pl.total)} VON 10</div><div class="noteTab"><div class="lookBox"><canvas id="pFig" width="180" height="220"></canvas><button class="mid" id="pLook">Kostüm ändern</button></div><div class="plList">`
+        + pl.parts.map((x) => `<div class="plRow"><span>${esc(x.name)}</span><i style="--v:${x.v * 10}%"></i><b>${dec(x.v)}</b><em>${esc(x.why)}</em></div>`).join("") + `</div></div>`
+        + `<div class="shFoot"><span>Wie im Tanzsport: Musik, Aufbau, Abwechslung und Kostüm zählen zur Komposition.</span></div>`;
+      const fc = $("pFig").getContext("2d"); fc.clearRect(0, 0, 180, 220); F.draw(fc, { x: 90, y: 200, s: 1.9, dir: 1, pose: F.POSES.final, turn: 0.5, look: S.look });
+      $("pLook").onclick = () => openLook(() => { fillProg(); show("scrProg"); });
+    }
+  }
+  $("pPiece").onclick = () => { pSheet = "musik"; fillProg(); };
+  $("pNoteBtn").onclick = () => { pSheet = "note"; fillProg(); };
+  $("pSheetX").onclick = () => { pSheet = null; fillProg(); };
   // Musik im Editor anhören
   function listen(on) {
     unlock();
@@ -2805,8 +2866,7 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
     if (listenOn) { player.start(SCORE.id, { preset: S.preset, swing: true }); player.onEnd = () => { listenOn = false; if (!$("scrProg").hidden) fillProg(); }; }
     if (!$("scrProg").hidden) fillProg();
   }
-  $("pListen").onclick = () => listen(!listenOn);
-  $("bProg").onclick = () => { pSel = 0; const c = CAT[S.prog[0]]; if (c && c.kind === "jump") { pRot = c.rot; pCombo = c.combo ? c.combo[1].slice(1) : ""; } fillProg(); show("scrProg"); };
+  $("bProg").onclick = () => { pSel = 0; pCat = null; pSheet = null; const c = CAT[S.prog[0]]; if (c && c.kind === "jump") { pRot = c.rot; pCombo = c.combo ? c.combo[1].slice(1) : ""; } fillProg(); show("scrProg"); };
   $("pDef").onclick = () => { S.prog = K.DEFAULT_SLOTS.slice(); save(); fillProg(); };
   $("pDone").onclick = () => { if (listenOn) listen(false); show("scrMenu"); };
 
