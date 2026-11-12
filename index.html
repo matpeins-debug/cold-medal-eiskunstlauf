@@ -131,30 +131,74 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
 .ifBody h3 { font-family: var(--font-display); font-size: 12px; letter-spacing: 0.08em; text-transform: uppercase; margin: 6px 0 2px; break-after: avoid; }
 .ifBody p { font-size: 12.5px; line-height: 1.35; margin-bottom: 4px; }
 
-/* Meine Kür */
-#scrProg { justify-content: center; background: rgba(14,22,38,0.35); }
-.card.prog { display: flex; flex-direction: column; gap: 8px; padding: 10px 14px; }
-.pHead { display: flex; justify-content: space-between; align-items: baseline; }
-.pSum { font-family: var(--font-display); font-size: 13px; font-weight: 600; letter-spacing: 0.04em; }
-.tl { display: grid; grid-template-columns: repeat(8, 1fr); gap: 4px; position: relative; }
-.tl::before { content: ""; position: absolute; left: 0; right: 0; top: 50%; height: 2px; background: var(--paper-2); z-index: 0; }
-.slot { position: relative; z-index: 1; height: 74px; border: 2px solid var(--ink-deep); background: #FBF6EA; display: flex; flex-direction: column; justify-content: space-between; padding: 4px 5px; text-align: left; }
-.slot small { font-size: 10px; color: var(--muted); font-family: var(--font-display); letter-spacing: 0.04em; }
-.slot b { font-family: var(--font-display); font-size: 13px; line-height: 1.05; letter-spacing: 0.02em; }
-.slot i { font-style: normal; font-size: 11px; font-family: var(--font-display); color: var(--muted); }
-.slot.empty { background: rgba(251,246,234,0.55); border-style: dashed; }
-.slot.empty b { color: var(--muted); font-weight: 600; }
-.slot.jump { background: #F6E3B4; } .slot.choreo { background: #EADCEB; } .slot.spin { background: #D9E6F0; } .slot.steps { background: #E4EEDC; grid-column: span 2; }
-.slot.sel { outline: 3px solid var(--red); outline-offset: 1px; }
-.pick { flex: 1; display: flex; flex-direction: column; gap: 5px; min-height: 0; }
-.prow { display: flex; align-items: center; gap: 5px; flex-wrap: wrap; }
-.prow > b { font-family: var(--font-display); font-size: 12px; letter-spacing: 0.06em; text-transform: uppercase; min-width: 84px; }
-.el { font-family: var(--font-display); font-weight: 600; font-size: 12.5px; padding: 4px 7px; border: 2px solid var(--ink-deep); background: var(--paper); line-height: 1.1; text-align: center; }
-.el small { display: block; font-weight: 400; font-size: 10.5px; color: var(--muted); }
-.el.on { background: var(--ink); color: var(--paper); } .el.on small { color: var(--paper-2); }
-.el:disabled { opacity: 0.35; cursor: default; }
-.pFoot { display: flex; align-items: center; gap: 8px; }
-.pFoot .note { flex: 1; }
+/* Meine Kür: Choreografie-Studio (dunkel wie die Abendbühne, Gold für Musik und Höhepunkte) */
+#scrProg { justify-content: center; background: rgba(8,12,26,0.55); }
+.card.prog { display: flex; flex-direction: column; gap: 6px; padding: 9px 13px; }
+.card.studio { background: radial-gradient(ellipse at 50% -10%, #34467A 0%, #1A2544 50%, #0F1730 100%); color: var(--paper); border-color: #0A0F1E; }
+.studio .kicker { color: #F3C969; }
+.sHead { display: flex; justify-content: space-between; align-items: flex-end; }
+.sTitle h2 { font-family: var(--font-display); font-size: 21px; letter-spacing: 0.02em; line-height: 1.05; margin-top: 1px; }
+.sTitle small { font-size: 11px; color: rgba(241,231,210,0.7); font-style: italic; }
+.sNote { display: flex; flex-direction: column; align-items: flex-end; line-height: 1; }
+.sNote small { font-family: var(--font-display); font-size: 9.5px; letter-spacing: 0.12em; color: rgba(241,231,210,0.7); }
+.sNote b { font-family: var(--font-display); font-size: 28px; color: #F3C969; text-shadow: 0 0 12px rgba(243,201,105,0.45); }
+.band { height: 56px; border: 1px solid rgba(243,201,105,0.25); background: linear-gradient(180deg, rgba(10,16,34,0.6), rgba(10,16,34,0.2)); }
+.band canvas { width: 100%; height: 100%; display: block; }
+.tl { display: grid; grid-template-columns: repeat(8, 1fr); gap: 4px; }
+.slot { position: relative; height: 60px; border: 1.5px solid rgba(241,231,210,0.35); background: rgba(255,255,255,0.06); color: var(--paper); display: flex; flex-direction: column; justify-content: space-between; padding: 3px 5px 3px; text-align: left; border-top: 4px solid rgba(241,231,210,0.35); }
+.slot small { font-size: 9.5px; color: rgba(241,231,210,0.6); font-family: var(--font-display); letter-spacing: 0.04em; }
+.slot .ic { position: absolute; right: 5px; top: 3px; font-size: 12px; color: rgba(241,231,210,0.7); }
+.slot b { font-family: var(--font-display); font-size: 12.5px; line-height: 1.05; letter-spacing: 0.02em; }
+.slot i { font-style: normal; font-size: 10.5px; font-family: var(--font-display); color: rgba(241,231,210,0.65); }
+.slot.empty { border-style: dashed; background: transparent; }
+.slot.empty b { color: rgba(241,231,210,0.5); font-weight: 600; }
+.slot.jump { border-top-color: #F3C969; background: rgba(243,201,105,0.13); }
+.slot.spin { border-top-color: #9EC3E6; background: rgba(158,195,230,0.13); }
+.slot.steps { border-top-color: #9FD0A6; background: rgba(159,208,166,0.12); grid-column: span 2; }
+.slot.choreo { border-top-color: #D8A9DE; background: rgba(216,169,222,0.13); }
+.slot.off::after { content: "passt kaum"; position: absolute; right: 4px; bottom: 3px; font-size: 8.5px; color: #E8A07A; font-family: var(--font-display); letter-spacing: 0.04em; }
+.slot.sel { outline: 2.5px solid #F3C969; outline-offset: 1px; box-shadow: 0 0 14px rgba(243,201,105,0.35); }
+.slot.play { background: rgba(255,255,255,0.2); }
+.slot .peak { position: absolute; left: 50%; top: -9px; transform: translateX(-50%); font-style: normal; font-size: 10px; color: #141B25; background: #F3C969; border-radius: 8px; padding: 0 5px; }
+.sBody { flex: 1; display: flex; gap: 10px; min-height: 0; }
+.sMain { flex: 1; display: flex; flex-direction: column; min-height: 0; }
+.sSide { display: flex; flex-direction: column; justify-content: flex-end; gap: 6px; width: 118px; }
+.sSide .mid { padding: 7px 8px; font-size: 12.5px; }
+.tabs { display: flex; gap: 2px; align-items: flex-end; border-bottom: 1.5px solid rgba(243,201,105,0.4); }
+.tabs button { font-family: var(--font-display); font-weight: 700; font-size: 11.5px; letter-spacing: 0.08em; text-transform: uppercase; color: rgba(241,231,210,0.65); padding: 4px 10px; border: 1.5px solid transparent; border-bottom: 0; background: transparent; }
+.tabs button.on { color: #141B25; background: #F3C969; }
+.tabHint { margin-left: auto; font-size: 10.5px; color: rgba(241,231,210,0.65); padding-bottom: 3px; text-align: right; }
+.tabC { flex: 1; min-height: 0; overflow-y: auto; padding-top: 5px; display: flex; flex-direction: column; gap: 4px; }
+.secInfo { font-size: 11.5px; color: rgba(241,231,210,0.85); }
+.secInfo b { font-family: var(--font-display); color: #F3C969; letter-spacing: 0.04em; }
+.secInfo em { font-style: normal; color: #F3C969; }
+.fitDot::before, .el.fit::after { content: ""; display: inline-block; width: 6px; height: 6px; border-radius: 50%; background: #F3C969; vertical-align: middle; }
+.el.fit { position: relative; } .el.fit::after { position: absolute; top: 2px; right: 2px; }
+.prow { display: flex; align-items: center; gap: 4px; flex-wrap: wrap; }
+.prow > b { font-family: var(--font-display); font-size: 11px; letter-spacing: 0.08em; text-transform: uppercase; min-width: 70px; color: rgba(241,231,210,0.8); }
+.prow > b.sub { min-width: 0; margin-left: 10px; }
+.prow .opts { margin-left: 4px; gap: 2px; }
+.el { font-family: var(--font-display); font-weight: 600; font-size: 12px; padding: 3px 6px; border: 1.5px solid var(--ink-deep); background: var(--paper); color: var(--ink); line-height: 1.1; text-align: center; }
+.el small { display: block; font-weight: 400; font-size: 10px; color: var(--muted); }
+.el.on { background: #F3C969; } .el.on small { color: var(--ink); }
+.el:disabled { opacity: 0.3; cursor: default; }
+.studio .pill { font-size: 10.5px; padding: 3px 7px; }
+.mus { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; }
+.muC { display: flex; flex-direction: column; align-items: flex-start; gap: 2px; text-align: left; padding: 7px 8px; border: 1.5px solid rgba(241,231,210,0.35); background: rgba(255,255,255,0.05); color: var(--paper); }
+.muC b { font-family: var(--font-display); font-size: 14px; line-height: 1.05; }
+.muC small { font-size: 10.5px; color: rgba(241,231,210,0.7); }
+.muC i { font-size: 11px; color: #F3C969; }
+.muC span { font-family: var(--font-display); font-size: 10.5px; color: rgba(241,231,210,0.6); }
+.muC.on { border-color: #F3C969; background: rgba(243,201,105,0.16); box-shadow: 0 0 12px rgba(243,201,105,0.3); }
+.noteTab { display: flex; gap: 12px; }
+.lookBox { display: flex; flex-direction: column; align-items: center; gap: 3px; }
+.lookBox canvas { width: 72px; height: 88px; background: radial-gradient(ellipse at 50% 85%, rgba(255,240,200,0.5), rgba(255,240,200,0) 70%); }
+.plList { flex: 1; display: grid; grid-template-columns: 1fr 1fr; gap: 4px 14px; }
+.plRow { display: grid; grid-template-columns: 1fr 60px 26px; gap: 1px 6px; align-items: center; font-size: 11px; }
+.plRow span { font-family: var(--font-display); font-weight: 600; }
+.plRow i { height: 6px; background: linear-gradient(90deg, #F3C969 var(--v), rgba(241,231,210,0.18) var(--v)); }
+.plRow b { font-family: var(--font-display); text-align: right; color: #F3C969; }
+.plRow em { grid-column: 1 / -1; font-style: normal; color: rgba(241,231,210,0.65); font-size: 10px; line-height: 1.15; }
 
 /* Kür-Bild und Album */
 #scrPaint, #scrAlbum { justify-content: center; background: rgba(14,22,38,0.35); }
@@ -167,34 +211,11 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
 .agrid img { width: 100%; aspect-ratio: 3 / 2; border: 2px solid var(--ink-deep); background: var(--paper); display: block; }
 .agrid small { font-size: 11px; color: var(--muted); font-family: var(--font-display); }
 .agrid .empty { grid-column: 1 / -1; font-size: 13px; color: var(--muted); }
-.slot .peak { position: absolute; top: -9px; right: 3px; font-style: normal; font-size: 9.5px; font-family: var(--font-display); letter-spacing: 0.04em; background: #F3C969; color: var(--ink-deep); border: 1.5px solid var(--ink-deep); padding: 0 4px; }
-.pick { overflow-y: auto; }
-.prow .hint { font-size: 11px; color: var(--muted); }
-.prow > b.sub { min-width: 0; margin-left: 14px; }
-.pBody { flex: 1; display: flex; gap: 10px; min-height: 0; }
-.pBody .pick { flex: 1; }
-.pPlan { width: 215px; flex: none; display: flex; flex-direction: column; gap: 3px; border-left: 2px solid var(--ink-deep); padding-left: 9px; overflow-y: auto; }
-.plTot { display: flex; align-items: baseline; gap: 6px; }
-.plTot b { font-family: var(--font-display); font-size: 24px; }
-.plTot small { font-family: var(--font-display); font-size: 10px; letter-spacing: 0.08em; color: var(--muted); }
-.plRow { display: grid; grid-template-columns: 1fr 52px 26px; gap: 2px 6px; align-items: center; font-size: 11px; }
-.plRow span { font-family: var(--font-display); font-weight: 600; }
-.plRow i { height: 6px; background: linear-gradient(90deg, var(--ink) var(--v), #E4DACB var(--v)); }
-.plRow b { font-family: var(--font-display); text-align: right; }
-.plRow em { grid-column: 1 / -1; font-style: normal; color: var(--muted); font-size: 9.5px; line-height: 1.15; }
-#pLook { align-self: flex-start; margin-top: 3px; font-size: 11px; padding: 3px 8px; }
-.prog .slot { height: 60px; }
-.pick .pill { font-size: 10.5px; padding: 3px 7px; }
-.pick .el { padding: 3px 6px; font-size: 12px; }
-.pick { gap: 4px; }
-.plTot #pLook { margin: 0 0 0 auto; }
-.plTot { white-space: nowrap; }
-.plTot b { font-size: 21px; }
-.plTot #pLook { font-size: 10px; padding: 2px 6px; min-width: 0; }
-.pHead { align-items: center; gap: 8px; }
-#pMusic .pill { font-size: 10.5px; padding: 3px 7px; }
-.pHead .pSum { font-size: 11px; text-align: right; }
-.pHead .kicker { white-space: nowrap; }
+.studio .pill, .studio .mid { color: var(--ink); }
+.studio .pill.on { color: var(--paper); }
+.studio .mid.red { color: var(--paper); }
+.tabs button { white-space: nowrap; }
+.tabHint { font-size: 10px; line-height: 1.15; max-width: 52%; }
 </style>
 </head>
 <body>
@@ -246,12 +267,20 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
   </section>
 
   <section class="scr" id="scrProg" hidden>
-    <div class="card wide prog">
-      <div class="pHead"><div class="kicker" id="pKick">MEINE KÜR</div><div class="opts" id="pMusic"></div><div class="pSum" id="pSum"></div></div>
+    <div class="card wide prog studio">
+      <div class="sHead">
+        <div class="sTitle"><div class="kicker">CHOREOGRAFIE · MEINE KÜR</div><h2 id="pTitle"></h2><small id="pComp"></small></div>
+        <div class="sNote"><small>CHOREO-NOTE</small><b id="pNote"></b><small id="pBase"></small></div>
+      </div>
+      <div class="band"><canvas id="pBand"></canvas></div>
       <div class="tl" id="tl"></div>
-      <div class="pBody"><div class="pick" id="pick"></div><div class="pPlan" id="pPlan"></div></div>
-      <div class="pFoot"><span class="note" id="pMsg"></span>
-        <button class="mid" id="pDef">Vorschlag</button><button class="mid red" id="pDone">Fertig</button></div>
+      <div class="sBody">
+        <div class="sMain">
+          <div class="tabs" id="pTabs"><button data-t="musik">Musik</button><button data-t="el">Elemente</button><button data-t="note">Kostüm &amp; Note</button><span class="tabHint" id="pMsg"></span></div>
+          <div class="tabC" id="pTab"></div>
+        </div>
+        <div class="sSide"><button class="mid" id="pListen"></button><button class="mid" id="pDef">Vorschlag</button><button class="mid red" id="pDone">Fertig</button></div>
+      </div>
     </div>
   </section>
 
@@ -1668,7 +1697,7 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
 /* COLD MEDAL EISKUNSTLAUF – Ablauf, Bildschirme, Eingabe, Taktband, Ergebnis, Spielstand. */
 (function () {
   "use strict";
-  const VERSION = "0.8";
+  const VERSION = "0.9";
   // Seiten-Einstellungen aus dem Build (eigenes Hosting: Adresse, Hoster, Impressum); im claude.ai-Artefakt leer
   const SITE = Object.assign({ web: false, url: "", impressum: null }, {"web": true, "url": "https://matpeins-debug.github.io/cold-medal-eiskunstlauf/", "hoster": "GitHub Pages (GitHub Inc., USA)", "drittland": "GitHub ist nach dem EU-US Data Privacy Framework zertifiziert; die Übermittlung in die USA stützt sich auf den Angemessenheitsbeschluss der EU-Kommission dazu.", "impressum": {"name": "", "adresse": "", "mail": ""}} || {});
   const M = window.EKMusic, K = window.EKSkate, F = window.EKFigure, SC = window.EKScene;
@@ -2618,53 +2647,103 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
     if (id === "StSq") { if (i + 1 >= a.length) return null; if (a[i + 1] === "StSq" && a[i + 2] === "~") a[i + 2] = null; a[i + 1] = "~"; }
     return K.check(a).length ? null : a;
   }
+  // Choreografie-Studio: oben die Musik als Linie (Melodie) mit den Stimmungen der Abschnitte, darunter die acht Abschnitte,
+  // unten drei Reiter: Musik wählen, Elemente setzen, Kostüm & Note
+  const MUSIC_INFO = {
+    donau: "festlich · Wiener Ballsaal", skaters: "beschwingt · ein Wintertag auf dem Eis",
+    wellen: "leidenschaftlich · in Moll", brahms: "zart und ruhig · zum Träumen",
+  };
+  const KIND = { jump: ["●○", "Sprung"], spin: ["⟳", "Pirouette"], steps: ["➜", "Schritte"], choreo: ["✦", "Choreo"] };
+  let pTab = "el", listenOn = false;
+  function drawBand() {
+    const cv = $("pBand"), w = cv.offsetWidth, h = cv.offsetHeight; if (!w) return;
+    const d = dpr;
+    if (cv.width !== Math.round(w * d)) { cv.width = Math.round(w * d); cv.height = Math.round(h * d); }
+    const g = cv.getContext("2d"); g.setTransform(d, 0, 0, d, 0, 0); g.clearRect(0, 0, w, h);
+    const sec = K.SECTIONS[SCORE.id], moods = K.MOODS[SCORE.id], b0 = sec.first * 3, nb = sec.n * sec.len * 3, X = (beat) => ((beat - b0) / nb) * w;
+    // Höhepunkte leuchten
+    for (const i of sec.peak || []) { const x0 = X(b0 + i * 12), x1 = X(b0 + (i + 1) * 12), gr = g.createLinearGradient(0, 0, 0, h); gr.addColorStop(0, "rgba(243,201,105,0.28)"); gr.addColorStop(1, "rgba(243,201,105,0.02)"); g.fillStyle = gr; g.fillRect(x0, 0, x1 - x0, h); }
+    g.strokeStyle = "rgba(241,231,210,0.14)"; g.lineWidth = 1;
+    for (let i = 1; i < sec.n; i++) { g.beginPath(); g.moveTo(X(b0 + i * 12) + 0.5, 0); g.lineTo(X(b0 + i * 12) + 0.5, h); g.stroke(); }
+    // Melodie als Linie: Höhe = Tonhöhe, Länge = Dauer
+    const mel = M.events(SCORE).filter((e) => e.part === "mel" && !e.fin && e.beat >= b0 - 1 && e.beat < b0 + nb);
+    const lo = Math.min(...mel.map((e) => e.m)), hi = Math.max(...mel.map((e) => e.m)), Y = (m) => 8 + (1 - (m - lo) / Math.max(1, hi - lo)) * (h - 26);
+    g.lineJoin = "round"; g.lineCap = "round";
+    for (const [lw, col] of [[6, "rgba(243,201,105,0.18)"], [2, "#F3C969"]]) {
+      g.strokeStyle = col; g.lineWidth = lw; g.beginPath(); let first = true;
+      for (const e of mel) { const x = X(e.beat), y = Y(e.m); if (first) { g.moveTo(x, y); first = false; } else g.lineTo(x, y); g.lineTo(X(e.beat + Math.min(e.dur, 2.6)), y); }
+      g.stroke();
+    }
+    g.fillStyle = "#FFF4D6"; for (const e of mel) { g.beginPath(); g.arc(X(e.beat), Y(e.m), 1.6, 0, 7); g.fill(); }
+    // Stimmungen
+    g.font = "italic 10px " + font(); g.textAlign = "center"; g.textBaseline = "alphabetic";
+    moods.forEach((m, i) => { g.fillStyle = (sec.peak || []).includes(i) ? "#F3C969" : "rgba(241,231,210,0.75)"; g.fillText(((sec.peak || []).includes(i) ? "♪ " : "") + m[0], X(b0 + i * 12 + 6), h - 4); });
+    // Abspielkopf
+    if (listenOn && player && player.playing) {
+      const now = player.heardNow(), bt = player.beatTimes; let k = bt.findIndex((t) => t > now); if (k < 0) k = bt.length;
+      const beat = k > 0 ? k - 1 + clamp((now - bt[k - 1]) / ((bt[k] || bt[k - 1] + 0.4) - bt[k - 1]), 0, 1) : 0, x = X(beat);
+      if (x >= 0 && x <= w) { g.fillStyle = "rgba(255,255,255,0.85)"; g.fillRect(x - 1, 0, 2, h - 14); }
+      const si = Math.floor((beat - b0) / 12); $("tl").querySelectorAll(".slot").forEach((el) => el.classList.toggle("play", +el.dataset.i === si || (+el.dataset.i === si - 1 && el.classList.contains("steps"))));
+    }
+  }
+  (function bandLoop() { requestAnimationFrame(bandLoop); if (listenOn && !$("scrProg").hidden) drawBand(); })();
   function fillProg() {
     useMusic();
-    const bt = M.grid(SCORE, SCORE.bpm, true), sl = S.prog;
-    $("pKick").textContent = "MEINE KÜR";
-    $("pMusic").innerHTML = M.KUER.map((id) => `<button class="pill${S.music === id ? " on" : ""}" data-mu="${id}" title="${esc(M.SCORES[id].composer)}">${esc(M.SCORES[id].short)}</button>`).join("")
-      + `<button class="pill" id="pListen">${listenOn ? "■ Stopp" : "▶ Anhören"}</button>`;
-    $("pMusic").querySelectorAll("[data-mu]").forEach((b) => (b.onclick = () => { S.music = b.dataset.mu; save(); if (listenOn) listen(true); fillProg(); }));
-    $("pListen").onclick = () => listen(!listenOn);
+    const bt = M.grid(SCORE, SCORE.bpm, true), sl = S.prog, sec = K.SECTIONS[SCORE.id], moods = K.MOODS[SCORE.id];
     if (sl[pSel] === "~") pSel--;
+    const pl = K.plan(sl, S.look, SCORE.id);
+    $("pTitle").textContent = SCORE.title; $("pComp").textContent = `${SCORE.composer} · ${MUSIC_INFO[SCORE.id] || ""}`;
+    $("pNote").textContent = dec(pl.total);
+    const ids = sl.filter((x) => x && x !== "~" && CAT[x].kind !== "choreo"), nj = ids.filter((x) => CAT[x].kind === "jump").length, ns = ids.filter((x) => CAT[x].kind === "spin").length, nc = ids.filter((x) => CAT[x].combo).length;
+    $("pBase").textContent = nb(`Grundwert bis ${dec(K.maxBase(sl))}`);
+    $("pListen").textContent = listenOn ? "■ Stopp" : "▶ Anhören";
+    // Abschnitte
     $("tl").innerHTML = sl.map((id, i) => {
       if (id === "~") return "";
-      const c = CAT[id], b0 = secBar(i), b1 = b0 + SEC.len * (c && c.slots ? c.slots : 1);
-      const val = !c ? "" : c.kind === "choreo" ? "Choreo" : c.kind === "jump" ? dec(c.base) : `bis ${dec(c.levels[c.levels.length - 1])}`;
-      const pk = (K.SECTIONS[SCORE.id].peak || []).includes(i) ? `<em class="peak">♪ Höhepunkt</em>` : "";
-      return `<button class="slot ${c ? c.kind : "empty"}${i === pSel ? " sel" : ""}" data-i="${i}"><small>ab ${mmss(bt[b0 * 3])}</small>${pk}<b>${c ? esc(c.combo ? c.short : c.name) : "Gleiten"}</b><i>${val}</i></button>`;
+      const c = CAT[id], fits = c && moods[i][1].includes(c.kind);
+      const val = !c ? "frei" : c.kind === "choreo" ? "Ausdruck" : c.kind === "jump" ? dec(c.base) : `bis ${dec(c.levels[c.levels.length - 1])}`;
+      const pk = (sec.peak || []).includes(i) ? `<em class="peak">♪</em>` : "";
+      return `<button class="slot ${c ? c.kind : "empty"}${i === pSel ? " sel" : ""}${c && !fits ? " off" : ""}" data-i="${i}"><small>${mmss(bt[secBar(i) * 3])}</small>${pk}<span class="ic">${c ? KIND[c.kind][0] : "～"}</span><b>${c ? esc(c.combo ? c.short : c.name) : "Gleiten"}</b><i>${val}</i></button>`;
     }).join("");
-    $("tl").querySelectorAll(".slot").forEach((b) => (b.onclick = () => { pSel = +b.dataset.i; fillProg(); }));
-    const cur = sl[pSel], btn = (id, label, small) => {
-      const ok = assign(sl, pSel, id) !== null || cur === id;
-      return `<button class="el${cur === id ? " on" : ""}" data-id="${id === null ? "" : id}"${ok ? "" : " disabled"}>${label}<small>${small}</small></button>`;
-    };
-    const fam = ["T", "S", "Lo", "F", "Lz", "A"];
-    $("pick").innerHTML =
-      `<div class="prow"><b>Sprung</b>` + fam.map((f) => { const id = pRot + f + (pCombo ? "+" + pRot + pCombo : ""), c = CAT[id]; return btn(id, CAT["1" + f].name, dec(c.base)); }).join("") + `</div>`
-      + `<div class="prow"><b></b><span class="opts"><button class="pill${pRot === 1 ? " on" : ""}" data-rot="1">einfach</button><button class="pill${pRot === 2 ? " on" : ""}" data-rot="2">doppelt</button></span><b class="sub">Kombi</b><span class="opts"><button class="pill${!pCombo ? " on" : ""}" data-combo="">ohne</button><button class="pill${pCombo === "T" ? " on" : ""}" data-combo="T">+ Toeloop</button><button class="pill${pCombo === "Lo" ? " on" : ""}" data-combo="Lo">+ Rittberger</button></span></div>`
-      + `<div class="prow"><b>Pirouette</b>${["USp", "SSp", "CSp"].map((id) => btn(id, CAT[id].short, `bis ${dec(CAT[id].levels[3])}`)).join("")}<b class="sub">Schritte</b>${btn("StSq", "Schrittfolge", `2 Abschnitte · bis ${dec(CAT.StSq.levels[3])}`)}</div>`
-      + `<div class="prow"><b>Choreo</b>${btn(null, "Gleiten", "frei")}${["ChSp", "ChIB", "ChPB", "ChTw"].map((id) => btn(id, CAT[id].name, "Ausdruck")).join("")}</div>`;
-    $("pick").querySelectorAll("[data-rot]").forEach((b) => (b.onclick = () => { pRot = +b.dataset.rot; fillProg(); }));
-    $("pick").querySelectorAll("[data-combo]").forEach((b) => (b.onclick = () => { pCombo = b.dataset.combo; fillProg(); }));
-    $("pick").querySelectorAll(".el").forEach((b) => (b.onclick = () => {
-      const a = assign(S.prog, pSel, b.dataset.id || null); if (!a) return;
-      S.prog = a; save(); fillProg();
-    }));
-    const ids = sl.filter((x) => x && x !== "~" && CAT[x].kind !== "choreo"), nj = ids.filter((x) => CAT[x].kind === "jump").length, ns = ids.filter((x) => CAT[x].kind === "spin").length;
-    $("pSum").innerHTML = nb(`Grundwert bis ${dec(K.maxBase(sl))} · ${nj} von ${K.RULES.jumps} Sprüngen · ${ns} von ${K.RULES.spins} Pirouetten`);
-    const nc = ids.filter((x) => CAT[x].combo).length;
-    $("pSum").innerHTML += nb(` · ${nc} von ${K.RULES.combos} Kombinationen`);
-    const pl = K.plan(sl, S.look, SCORE.id);
-    $("pPlan").innerHTML = `<div class="plTot"><small>CHOREO</small><b>${dec(pl.total)}</b><small>/ 10</small><button class="pill" id="pLook">Kostüm</button></div>`
-      + pl.parts.map((x) => `<div class="plRow"><span>${esc(x.name)}</span><i style="--v:${x.v * 10}%"></i><b>${dec(x.v)}</b><em>${esc(x.why)}</em></div>`).join("")
-;
-    $("pLook").onclick = () => openLook(() => { fillProg(); show("scrProg"); });
-    $("tl").querySelectorAll(".slot").forEach((b) => { const m = pl.moods[+b.dataset.i]; if (m) b.title = `${m[0]}: passt ${m[1].map((k) => ({ jump: "Sprung", spin: "Pirouette", steps: "Schritte", choreo: "Choreo" })[k]).join(" oder ")}`; });
-    $("pMsg").textContent = "♪ Höhepunkt: sauberes Element +1 GOE · Kombi: nach der Landung gleich wieder ● · grau = nicht erlaubt";
+    $("tl").querySelectorAll(".slot").forEach((b) => (b.onclick = () => { pSel = +b.dataset.i; if (pTab !== "el") pTab = "el"; fillProg(); }));
+    $("pTabs").querySelectorAll("[data-t]").forEach((b) => { b.classList.toggle("on", b.dataset.t === pTab); b.onclick = () => { pTab = b.dataset.t; fillProg(); }; });
+    const T = $("pTab");
+    if (pTab === "musik") {
+      T.innerHTML = `<div class="mus">` + M.KUER.map((id) => { const sc = M.SCORES[id]; return `<button class="muC${S.music === id ? " on" : ""}" data-mu="${id}"><b>${esc(sc.title)}</b><small>${esc(sc.composer)}</small><i>${esc(MUSIC_INFO[id] || "")}</i><span>♩ ${sc.bpm} · ${mmss(M.grid(sc, sc.bpm, true)[108])}</span></button>`; }).join("") + `</div>`;
+      T.querySelectorAll("[data-mu]").forEach((b) => (b.onclick = () => { S.music = b.dataset.mu; save(); if (listenOn) listen(true); fillProg(); }));
+      $("pMsg").textContent = "Jedes Stück hat eigene Stimmungen und Höhepunkte – die Linie oben zeigt die Melodie.";
+    } else if (pTab === "el") {
+      const cur = sl[pSel], fit = moods[pSel][1], btn = (id, label, small) => {
+        const ok = assign(sl, pSel, id) !== null || cur === id, k = id ? CAT[id].kind : null;
+        return `<button class="el${cur === id ? " on" : ""}${k && fit.includes(k) ? " fit" : ""}" data-id="${id === null ? "" : id}"${ok ? "" : " disabled"}>${label}<small>${small}</small></button>`;
+      };
+      const fam = ["T", "S", "Lo", "F", "Lz", "A"];
+      T.innerHTML = `<div class="secInfo"><b>Abschnitt ${pSel + 1}</b> · ab ${mmss(bt[secBar(pSel) * 3])} · <i>${esc(moods[pSel][0])}</i>${(sec.peak || []).includes(pSel) ? " · <em>♪ Höhepunkt: sauber +1 GOE</em>" : ""} · passt: ${fit.map((k) => KIND[k][1]).join(", ")} <span class="fitDot"></span></div>`
+        + `<div class="prow"><b>Sprung</b>` + fam.map((f) => { const id = pRot + f + (pCombo ? "+" + pRot + pCombo : ""), c = CAT[id]; return btn(id, CAT["1" + f].name, dec(c.base)); }).join("")
+        + `<span class="opts"><button class="pill${pRot === 1 ? " on" : ""}" data-rot="1">1×</button><button class="pill${pRot === 2 ? " on" : ""}" data-rot="2">2×</button></span>`
+        + `<span class="opts"><button class="pill${!pCombo ? " on" : ""}" data-combo="">allein</button><button class="pill${pCombo === "T" ? " on" : ""}" data-combo="T">+T</button><button class="pill${pCombo === "Lo" ? " on" : ""}" data-combo="Lo">+Lo</button></span></div>`
+        + `<div class="prow"><b>Pirouette</b>${["USp", "SSp", "CSp"].map((id) => btn(id, CAT[id].short, `bis ${dec(CAT[id].levels[3])}`)).join("")}<b class="sub">Schritte</b>${btn("StSq", "Schrittfolge", `2 Abschnitte`)}</div>`
+        + `<div class="prow"><b>Choreo</b>${btn(null, "Gleiten", "frei")}${["ChSp", "ChIB", "ChPB", "ChTw"].map((id) => btn(id, CAT[id].name, "Ausdruck")).join("")}</div>`;
+      T.querySelectorAll("[data-rot]").forEach((b) => (b.onclick = () => { pRot = +b.dataset.rot; fillProg(); }));
+      T.querySelectorAll("[data-combo]").forEach((b) => (b.onclick = () => { pCombo = b.dataset.combo; fillProg(); }));
+      T.querySelectorAll(".el").forEach((b) => (b.onclick = () => {
+        const a = assign(S.prog, pSel, b.dataset.id || null); if (!a) return;
+        S.prog = a; save();
+        // weiter zum nächsten Abschnitt, wie beim Durchplanen einer Choreografie
+        const step = a[pSel] === "StSq" ? 2 : 1; if (pSel + step < a.length) pSel += step;
+        fillProg();
+      }));
+      $("pMsg").textContent = nb(`${nj}/${K.RULES.jumps} Sprünge · ${nc}/${K.RULES.combos} Kombis · ${ns}/${K.RULES.spins} Pirouetten · grau = nicht erlaubt`);
+    } else {
+      T.innerHTML = `<div class="noteTab"><div class="lookBox"><canvas id="pFig" width="180" height="220"></canvas><button class="pill" id="pLook">Kostüm ändern</button></div><div class="plList">`
+        + pl.parts.map((x) => `<div class="plRow"><span>${esc(x.name)}</span><i style="--v:${x.v * 10}%"></i><b>${dec(x.v)}</b><em>${esc(x.why)}</em></div>`).join("") + `</div></div>`;
+      const fc = $("pFig").getContext("2d"); fc.clearRect(0, 0, 180, 220); F.draw(fc, { x: 90, y: 200, s: 1.9, dir: 1, pose: F.POSES.final, turn: 0.5, look: S.look });
+      $("pLook").onclick = () => openLook(() => { fillProg(); show("scrProg"); });
+      $("pMsg").textContent = "Wie im Tanzsport: Musik, Aufbau, Abwechslung und Kostüm zählen zur Komposition (bis 1,5 Punkte).";
+    }
+    requestAnimationFrame(drawBand);
   }
   // Musik im Editor anhören
-  let listenOn = false;
   function listen(on) {
     unlock();
     if (player && player.playing) player.stop();
@@ -2672,6 +2751,7 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
     if (listenOn) { player.start(SCORE.id, { preset: S.preset, swing: true }); player.onEnd = () => { listenOn = false; if (!$("scrProg").hidden) fillProg(); }; }
     if (!$("scrProg").hidden) fillProg();
   }
+  $("pListen").onclick = () => listen(!listenOn);
   $("bProg").onclick = () => { pSel = 0; const c = CAT[S.prog[0]]; if (c && c.kind === "jump") { pRot = c.rot; pCombo = c.combo ? c.combo[1].slice(1) : ""; } fillProg(); show("scrProg"); };
   $("pDef").onclick = () => { S.prog = K.DEFAULT_SLOTS.slice(); save(); fillProg(); };
   $("pDone").onclick = () => { if (listenOn) listen(false); show("scrMenu"); };
