@@ -1204,6 +1204,44 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
     }
     return check(out).length ? DEFAULT_SLOTS.slice() : out;
   }
+  // Vorschlag passend zur Musik: viele zufällige gültige Pläne bauen (Stimmung je Abschnitt bevorzugt), nach Choreo-Note und
+  // Punktwert bewerten und aus den besten einen nehmen. rnd = Zufallszahlen (0…1), damit jeder Klick etwas anderes bringt;
+  // not = aktueller Plan, der nicht wieder vorgeschlagen wird.
+  const SUG = {
+    jump: ["2T", "2S", "2Lo", "2F", "2Lz", "1A", "2T+2T", "2S+2T", "2F+2T", "2Lz+2T", "2Lo+2Lo", "2T+1Lo"],
+    spin: ["USp", "SSp", "CSp"], choreo: ["ChSp", "ChIB", "ChPB", "ChTw"],
+  };
+  function suggest(music, look, rnd, not) {
+    music = SECTIONS[music] ? music : "donau";
+    rnd = rnd || Math.random;
+    const moods = MOODS[music], n = SECTIONS[music].n, pick = (a) => a[Math.floor(rnd() * a.length)];
+    const val = (sl) => sl.reduce((a, id) => { const c = id && id !== "~" && CATALOG[id]; return a + (!c ? 0 : c.kind === "jump" ? c.base : c.levels ? c.levels[c.levels.length - 1] : 0); }, 0);
+    const cands = [];
+    for (let tries = 0; tries < 600 && cands.length < 140; tries++) {
+      const sl = new Array(n).fill(null);
+      const st = 1 + Math.floor(rnd() * (n - 2)); sl[st] = "StSq"; sl[st + 1] = "~";
+      for (let i = 0; i < n; i++) {
+        if (sl[i]) continue;
+        const pref = moods[i][1].filter((k) => k !== "steps");
+        let kind = rnd() < 0.75 && pref.length ? pick(pref) : pick(["jump", "spin", "choreo"]);
+        for (let k = 0; k < 6; k++) {
+          const id = pick(SUG[kind]); sl[i] = id;
+          if (!check(sl).length) break;
+          sl[i] = null; kind = pick(["jump", "spin", "choreo"]);
+        }
+        if (!sl[i]) sl[i] = pick(SUG.choreo);
+      }
+      // ab und zu ein Einlauf vor einer Pirouette
+      for (let i = 0; i < n - 1; i++) if (CATALOG[sl[i]] && CATALOG[sl[i]].kind === "choreo" && CATALOG[sl[i + 1]] && CATALOG[sl[i + 1]].kind === "spin" && rnd() < 0.5) sl[i] = pick(["EinF", "EinM"]);
+      if (check(sl).length) continue;
+      if (not && sl.join() === not.join()) continue;
+      const jumps = sl.filter((x) => x && CATALOG[x] && CATALOG[x].kind === "jump").length;
+      cands.push({ sl, sc: plan(sl, look, music).total * 2 + val(sl) * 0.25 + Math.min(jumps, 4) * 0.6 });
+    }
+    cands.sort((x, y) => y.sc - x.sc);
+    const top = cands.slice(0, 8);
+    return top.length ? pick(top).sl : DEFAULT_SLOTS.slice();
+  }
   // aus dem Plan die Kür mit Schlägen bauen
   function buildProgram(slots, music) {
     music = music || "donau";
@@ -1454,7 +1492,7 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
     return list;
   }
 
-  root.EKSkate = { jury, JUDGES, PROGRAMS, CATALOG, RULES, SECTIONS, DEFAULT_SLOTS, check, cleanSlots, buildProgram, plan, MOODS, COSTUME, MUSIC_NAME, FX, FX_MAX, cleanFx, maxBase, WIN, judge, goeFrom, perfectInputs, field, PCS_FACTOR };
+  root.EKSkate = { suggest, jury, JUDGES, PROGRAMS, CATALOG, RULES, SECTIONS, DEFAULT_SLOTS, check, cleanSlots, buildProgram, plan, MOODS, COSTUME, MUSIC_NAME, FX, FX_MAX, cleanFx, maxBase, WIN, judge, goeFrom, perfectInputs, field, PCS_FACTOR };
 })(typeof window !== "undefined" ? window : globalThis);
 
 /* Cold Medal Games · gemeinsame Figur (figur/figur.js, global CMFigur)
@@ -1541,7 +1579,7 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
     jubel: [[0, POSES.stand], [0.35, POSES.cheer], [0.6, { lean: -2, crouch: 0, sL: [6, 14], fL: [0, 14], aF: [150, 26], aB: [-150, -26], hd: -14 }], [1, POSES.cheer]],
     winken: [[0, POSES.wave], [0.5, Object.assign({}, POSES.wave, { aF: [112, 66] })], [1, POSES.wave]],
   };
-  const KEYS = ["lean", "crouch", "hd"], PAIRS = ["sL", "fL", "aF", "aB"];
+  const KEYS = ["lean", "crouch", "hd", "ao"], PAIRS = ["sL", "fL", "aF", "aB"];
   const val = (o, k) => (o[k] == null ? 0 : o[k]);
   function mix(a, b, t) {
     const o = {};
@@ -1551,8 +1589,8 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
   }
   // Posen als Zahlenreihe (für weiche Kurven durch Schlüsselbilder); lift = Höhe über dem Boden (Sprung)
   const CH = 12;
-  const toVec = (p, lift) => [val(p, "lean"), val(p, "crouch"), val(p, "hd"), p.sL[0], p.sL[1], p.fL[0], p.fL[1], p.aF[0], p.aF[1], p.aB[0], p.aB[1], lift || 0];
-  const toPose = (v) => ({ lean: v[0], crouch: v[1], hd: v[2], sL: [v[3], v[4]], fL: [v[5], v[6]], aF: [v[7], v[8]], aB: [v[9], v[10]] });
+  const toVec = (p, lift) => [val(p, "lean"), val(p, "crouch"), val(p, "hd"), p.sL[0], p.sL[1], p.fL[0], p.fL[1], p.aF[0], p.aF[1], p.aB[0], p.aB[1], lift || 0, val(p, "ao")];
+  const toPose = (v) => ({ lean: v[0], crouch: v[1], hd: v[2], sL: [v[3], v[4]], fL: [v[5], v[6]], aF: [v[7], v[8]], aB: [v[9], v[10]], ao: v[12] || 0 });
   // Weiche Kurve durch Schlüsselbilder K = [[t, Zahlenreihe], …]: Geschwindigkeit ohne Sprung (Hermite-Kurve), aber kein
   // Überschwingen: an Umkehrpunkten und Haltepunkten steht die Bewegung kurz (Steigung 0). loop: zyklisch, letztes = erstes Bild.
   function spline(K, t, loop) {
@@ -1666,7 +1704,7 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
     return o;
   }
   // weich nachführen: Rumpf und Beine zügig, Arme etwas später (fließender Armzug); fast = Sprung, Sturz
-  const RATE = { lean: 9, crouch: 9, hd: 8, sL: 13, fL: 11, aF: 6.5, aB: 6 };
+  const RATE = { lean: 9, crouch: 9, hd: 8, ao: 6.5, sL: 13, fL: 11, aF: 6.5, aB: 6 };
   function ease(cur, tgt, dt, fast) {
     if (!cur) return tgt;
     const o = {}, m = fast ? 2.4 : 1, a = (k) => 1 - Math.exp(-RATE[k] * m * dt);
@@ -1853,8 +1891,15 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
     leg([hip, knee, ank], Z.hip * zs, Z.hip * 0.6 * zs, 6.2, zs > 0 ? legN : legF, J.sKn, zs > 0 ? sk.n : sk.f, zs > 0);
     // Arme mit Hand (Haut oder Handschuh) und Stock
     const hand = K.glove === "suit" ? suit : K.glove ? GLOVE : skin;
+    // ao (Grad, frei, Standard 0): Arme seitlich vom Körper weg, um die senkrechte Achse durch die Schulter gedreht
+    const ao = rad(p.ao || 0), aoC = Math.cos(ao), aoS = Math.sin(ao);
     const arm = (pts, z0, z1, col, near) => {
-      const q = pts.map((pt, i) => P(pt, z0 + (z1 - z0) * i / (pts.length - 1)));
+      const q = pts.map((pt, i) => {
+        const z = z0 + (z1 - z0) * i / (pts.length - 1);
+        if (!ao || !i) return P(pt, z);
+        const dx = pt[0] - pts[0][0];
+        return P([pts[0][0] + dx * aoC, pt[1]], z + Math.sign(z0) * Math.abs(dx) * aoS);
+      });
       parts.push({ d: depth(q), f: () => {
         const h = q[q.length - 1], e = q[q.length - 2], an = Math.atan2(h[1] - e[1], h[0] - e[0]);
         if (K.hands === "poles") {
@@ -2101,30 +2146,30 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
     spin: { lean: -2, crouch: 2, sL: [0, 2], fL: [30, 80], aF: [-18, 135], aB: [-18, 135] },
     sitspin: { lean: 26, crouch: 0, sL: [86, 100], fL: [84, 0], aF: [86, -4], aB: [80, -2] },
     camel: { lean: 84, crouch: 0, sL: [1, 1], fL: [-98, 0], aF: [96, -8], aB: [-118, -8] },
-    stepA: { lean: 6, crouch: 3, sL: [8, 14], fL: [-58, 4], aF: [112, -14], aB: [-96, -12] },
-    stepB: { lean: 6, crouch: 3, sL: [-6, 14], fL: [44, 4], aF: [-90, -12], aB: [118, -14] },
+    stepA: { lean: 6, crouch: 3, sL: [8, 14], fL: [-58, 4], aF: [100, -10], aB: [-100, -10] },
+    stepB: { lean: 6, crouch: 3, sL: [-6, 14], fL: [44, 4], aF: [-96, -10], aB: [104, -10] },
     stepU: { lean: -2, crouch: 0, sL: [24, 2], fL: [-48, 0], aF: [164, -6], aB: [-160, -6] },
     stepD: { lean: 26, crouch: 9, sL: [44, 82], fL: [-84, 0], aF: [100, -16], aB: [-118, -16] },
-    edge: { lean: 12, crouch: 4, sL: [8, 18], fL: [-74, 0], aF: [128, -18], aB: [-126, -18] },
+    edge: { lean: 12, crouch: 4, sL: [8, 18], fL: [-74, 0], aF: [106, -12], aB: [-110, -12] },
     final: { lean: -8, crouch: 0, sL: [0, 0], fL: [-26, 0], aF: [168, 6], aB: [-102, -16] },
     // Choreografie zwischen den Elementen
     spiral: { lean: 72, crouch: 0, sL: [1, 1], fL: [-118, 0], aF: [112, -12], aB: [-96, -14] },
     portUp: { lean: 2, crouch: 1, sL: [0, 0], fL: [-48, 2], aF: [150, -14], aB: [-150, -14] },
     inaBauer: { lean: -22, crouch: 4, sL: [-8, 10], fL: [26, 4], aF: [150, -20], aB: [-120, -20] },
-    flick: { lean: 4, crouch: 2, sL: [2, 6], fL: [-50, 4], aF: [128, -24], aB: [-132, -24] },
+    flick: { lean: 4, crouch: 2, sL: [2, 6], fL: [-50, 4], aF: [112, -14], aB: [-114, -14] },
     twizzle: { lean: 0, crouch: 2, sL: [0, 2], fL: [18, 60], aF: [150, 8], aB: [150, 8] },
     handDown: { lean: 30, crouch: 8, sL: [30, 70], fL: [-70, 10], aF: [20, 0], aB: [-120, -10] },
     bow: { lean: 48, crouch: 3, sL: [4, 10], fL: [-24, 6], aF: [40, 10], aB: [-150, -10] },
     // langes Gleiten auf einer Kante zwischen zwei Abstößen: Spielbein lang nach hinten, Arme weit, wiegend
-    glideArc: { lean: 9, crouch: 2, sL: [2, 7], fL: [-76, 2], aF: [122, -8], aB: [-124, -8], hd: -4 },
-    glideArc2: { lean: 6, crouch: 1, sL: [0, 3], fL: [-84, 0], aF: [96, -24], aB: [-146, -4], hd: -9 },
+    glideArc: { lean: 9, crouch: 2, sL: [2, 7], fL: [-76, 2], aF: [104, -8], aB: [-108, -8], hd: -4 },
+    glideArc2: { lean: 6, crouch: 1, sL: [0, 3], fL: [-84, 0], aF: [96, -18], aB: [-118, -6], hd: -9 },
     // Einlauf und Auslauf der Pirouette: Mond (Fersen zueinander, Beine weit, Arme offen) und Auslauf auf der Rückwärts-Auswärtskante
     moon: { lean: -6, crouch: 2, sL: [-16, 4], fL: [38, 2], aF: [118, -10], aB: [-118, -10], hd: -10 },
-    exitEdge: { lean: 4, crouch: 3, sL: [4, 10], fL: [-88, 0], aF: [132, -6], aB: [-150, -6], hd: -8 },
+    exitEdge: { lean: 4, crouch: 3, sL: [4, 10], fL: [-88, 0], aF: [110, -8], aB: [-120, -8], hd: -8 },
     // Kiss & Cry: sitzen auf der Bank, winken
     kcSit: { lean: -6, crouch: 0, sL: [88, 90], fL: [84, 92], aF: [30, 60], aB: [14, 60], hd: -4 },
-    kcWave: { lean: -6, crouch: 0, sL: [88, 88], fL: [80, 84], aF: [150, 40], aB: [14, 60], hd: -8 },
-    kcCheer: { lean: -8, crouch: 0, sL: [88, 88], fL: [80, 84], aF: [168, 10], aB: [-168, -10], hd: -12 },
+    kcWave: { lean: -6, crouch: 0, sL: [88, 88], fL: [80, 84], aF: [126, 54], aB: [14, 60], hd: -8 },
+    kcCheer: { lean: -8, crouch: 0, sL: [88, 88], fL: [80, 84], aF: [150, 24], aB: [-150, -24], hd: -12 },
     fallen: { lean: 10, crouch: 2, sL: [30, 60], fL: [-10, 50], aF: [60, 30], aB: [-30, 40] },
   };
 
@@ -2180,22 +2225,71 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
     // Dächer der Stadt in der Ferne
     g.fillStyle = "#3B3F5C";
     for (let x = 0; x < w; x += 28 + R() * 30) { const hh = 22 + R() * 30; g.fillRect(x, ICE_TOP - 46 - hh, 26 + R() * 30, hh + 50); }
-    // Konzerthaus: langer Bau, Mittelteil höher, beleuchtete Fenster
+    // Palais im Stil der Ringstraße: Flügel mit Pilastern und Balustrade, Mittelrisalit mit Giebel und Kuppel,
+    // hohe Bogenfenster im Festsaal, in jedem ein Kristallluster. Alle Fenster sitzen genau in den Achsen zwischen den Pilastern.
     const kx = w * 0.42, kw = 420, ky = 70;
-    { const hg = g.createRadialGradient(kx + kw / 2, ICE_TOP, 20, kx + kw / 2, ICE_TOP, kw * 0.75); hg.addColorStop(0, "rgba(255,200,120,0.5)"); hg.addColorStop(1, "rgba(255,200,120,0)"); g.fillStyle = hg; g.fillRect(kx - kw * 0.3, 0, kw * 1.6, ICE_TOP); }
-    g.fillStyle = "#D9C49A"; g.fillRect(kx, ky + 30, kw, ICE_TOP - ky - 30);
-    g.fillStyle = "#E8D6AE"; g.fillRect(kx + kw * 0.36, ky, kw * 0.28, ICE_TOP - ky);
-    g.fillStyle = "#B59F76"; g.fillRect(kx + kw * 0.64, ky + 30, kw * 0.36, ICE_TOP - ky - 30); // Schattenseite
-    { const up = g.createLinearGradient(0, ICE_TOP, 0, ky); up.addColorStop(0, "rgba(255,190,110,0.45)"); up.addColorStop(1, "rgba(80,90,150,0.25)"); g.fillStyle = up; g.fillRect(kx, ky + 30, kw, ICE_TOP - ky - 30); g.fillRect(kx + kw * 0.36, ky, kw * 0.28, 30); }
-    g.strokeStyle = "#141B25"; g.lineWidth = 2; g.strokeRect(kx, ky + 30, kw, ICE_TOP - ky - 30); g.strokeRect(kx + kw * 0.36, ky, kw * 0.28, ICE_TOP - ky);
-    g.fillStyle = "#7E6A4C"; g.fillRect(kx - 6, ky + 26, kw + 12, 6); g.fillRect(kx + kw * 0.36 - 5, ky - 4, kw * 0.28 + 10, 6);
-    for (let row = 0; row < 3; row++) for (let i = 0; i < 14; i++) {
-      const x = kx + 14 + i * (kw - 28) / 14, y = ky + 48 + row * 32;
-      const lit = R() < 0.75;
-      if (lit) { const wg = g.createRadialGradient(x + 6, y + 10, 2, x + 6, y + 10, 16); wg.addColorStop(0, "rgba(255,210,120,0.5)"); wg.addColorStop(1, "rgba(255,210,120,0)"); g.fillStyle = wg; g.fillRect(x - 10, y - 6, 32, 32); }
-      g.fillStyle = lit ? "#F7D27A" : "#5E5440";
-      g.beginPath(); g.moveTo(x, y + 18); g.lineTo(x, y + 6); g.arc(x + 6, y + 6, 6, Math.PI, 0); g.lineTo(x + 12, y + 18); g.closePath(); g.fill();
+    { const hg = g.createRadialGradient(kx + kw / 2, ICE_TOP, 20, kx + kw / 2, ICE_TOP, kw * 0.8); hg.addColorStop(0, "rgba(255,200,120,0.55)"); hg.addColorStop(1, "rgba(255,200,120,0)"); g.fillStyle = hg; g.fillRect(kx - kw * 0.3, 0, kw * 1.6, ICE_TOP); }
+    const cx0 = kx + kw * 0.34, cw = kw * 0.32, wy = ky + 34; // Mittelrisalit, Oberkante der Flügel
+    const STONE = "#E2CFA4", STONE2 = "#CDB485", SHADE = "#B49A6E", GOLD = "#E3B860";
+    // Flügel
+    g.fillStyle = STONE; g.fillRect(kx, wy, kw, ICE_TOP - wy);
+    g.fillStyle = SHADE; g.fillRect(cx0 + cw, wy, kx + kw - cx0 - cw, ICE_TOP - wy); g.globalAlpha = 0.55; g.fillStyle = STONE; g.fillRect(cx0 + cw, wy, kx + kw - cx0 - cw, ICE_TOP - wy); g.globalAlpha = 1;
+    // Mittelrisalit mit Kuppel und Giebel
+    { const dx = cx0 + cw / 2, dy = ky - 18;
+      g.fillStyle = "#5E7C86"; g.beginPath(); g.ellipse(dx, dy + 2, 30, 26, 0, Math.PI, 0); g.fill(); g.strokeStyle = "#141B25"; g.lineWidth = 1.5; g.stroke(); // Kupferkuppel
+      g.strokeStyle = "rgba(20,27,37,0.45)"; g.lineWidth = 1; for (let k = -2; k <= 2; k++) { g.beginPath(); g.moveTo(dx + k * 10, dy + 2); g.quadraticCurveTo(dx + k * 6, dy - 16, dx, dy - 24); g.stroke(); }
+      g.fillStyle = GOLD; g.fillRect(dx - 1.5, dy - 36, 3, 12); g.beginPath(); g.arc(dx, dy - 38, 3, 0, 7); g.fill(); }
+    g.fillStyle = STONE2; g.fillRect(cx0, ky, cw, ICE_TOP - ky);
+    g.fillStyle = STONE; g.beginPath(); g.moveTo(cx0 - 4, ky + 2); g.lineTo(cx0 + cw / 2, ky - 20); g.lineTo(cx0 + cw + 4, ky + 2); g.closePath(); g.fill();
+    g.strokeStyle = "#141B25"; g.lineWidth = 1.6; g.stroke();
+    g.fillStyle = GOLD; g.beginPath(); g.arc(cx0 + cw / 2, ky - 7, 4.5, 0, 7); g.fill(); g.strokeStyle = "#7E6A4C"; g.lineWidth = 1; g.stroke(); // Wappen im Giebel
+    // Licht von unten (Scheinwerfer) über der ganzen Front
+    { const up = g.createLinearGradient(0, ICE_TOP, 0, ky - 20); up.addColorStop(0, "rgba(255,190,110,0.42)"); up.addColorStop(1, "rgba(80,90,150,0.22)"); g.fillStyle = up; g.fillRect(kx, wy, kw, ICE_TOP - wy); g.fillRect(cx0, ky, cw, wy - ky); }
+    g.strokeStyle = "#141B25"; g.lineWidth = 2; g.strokeRect(kx, wy, kw, ICE_TOP - wy); g.strokeRect(cx0, ky, cw, ICE_TOP - ky);
+    // Gesimse und Balustrade mit Vasen
+    const cornice = (x0, x1, y) => { g.fillStyle = "#8C7552"; g.fillRect(x0 - 5, y - 3, x1 - x0 + 10, 5); g.fillStyle = "#EAD9B2"; g.fillRect(x0 - 5, y - 3, x1 - x0 + 10, 1.5); };
+    for (const [x0, x1] of [[kx, cx0], [cx0 + cw, kx + kw]]) {
+      g.fillStyle = STONE2; g.fillRect(x0, wy - 9, x1 - x0, 9); g.fillStyle = "rgba(20,27,37,0.35)";
+      for (let x = x0 + 4; x < x1 - 4; x += 5) g.fillRect(x, wy - 7, 2, 6);
+      for (let x = x0 + 8; x < x1; x += (x1 - x0 - 16) / 4) { g.fillStyle = STONE; g.beginPath(); g.ellipse(x, wy - 13, 3, 4, 0, 0, 7); g.fill(); g.fillRect(x - 1, wy - 11, 2, 3); }
+      cornice(x0, x1, wy);
     }
+    cornice(cx0, cx0 + cw, ky + 2); cornice(kx, kx + kw, 112);
+    // Fensterachsen: Pilaster dazwischen, Fenster mittig. Flügel: oben kleine Rechteckfenster, darunter hohe Bogenfenster
+    const lit = (x, y, ww, hh, arch, big) => {
+      const on = R() < 0.85;
+      if (on) { const wg = g.createRadialGradient(x + ww / 2, y + hh * 0.45, 2, x + ww / 2, y + hh * 0.45, ww * 1.6); wg.addColorStop(0, "rgba(255,210,120,0.55)"); wg.addColorStop(1, "rgba(255,210,120,0)"); g.fillStyle = wg; g.fillRect(x - ww, y - ww * 0.6, ww * 3, hh + ww * 1.2); }
+      // Rahmen mit Schlussstein
+      g.fillStyle = "#F0E2C0"; g.beginPath();
+      if (arch) { g.moveTo(x - 2, y + hh + 1); g.lineTo(x - 2, y + ww / 2); g.arc(x + ww / 2, y + ww / 2, ww / 2 + 2, Math.PI, 0); g.lineTo(x + ww + 2, y + hh + 1); } else g.rect(x - 2, y - 2, ww + 4, hh + 3);
+      g.fill();
+      const ig = g.createLinearGradient(0, y, 0, y + hh); ig.addColorStop(0, on ? "#FFE9A8" : "#4F4A44"); ig.addColorStop(1, on ? "#E9A94E" : "#3A3632");
+      g.fillStyle = ig; g.beginPath();
+      if (arch) { g.moveTo(x, y + hh); g.lineTo(x, y + ww / 2); g.arc(x + ww / 2, y + ww / 2, ww / 2, Math.PI, 0); g.lineTo(x + ww, y + hh); g.closePath(); } else g.rect(x, y, ww, hh);
+      g.fill();
+      if (arch) { g.fillStyle = "#C9AE7A"; g.fillRect(x + ww / 2 - 2, y - 3, 4, 5); }
+      // Sprossen
+      g.strokeStyle = on ? "rgba(140,90,40,0.55)" : "rgba(20,20,20,0.5)"; g.lineWidth = 0.8; g.beginPath(); g.moveTo(x + ww / 2, y + (arch ? ww / 2 : 0)); g.lineTo(x + ww / 2, y + hh);
+      g.moveTo(x, y + hh * 0.6); g.lineTo(x + ww, y + hh * 0.6); g.stroke();
+      // Kristallluster im Festsaal
+      if (on && big) {
+        const lx = x + ww / 2, ly = y + ww * 0.55;
+        g.strokeStyle = "rgba(120,80,30,0.8)"; g.lineWidth = 0.7; g.beginPath(); g.moveTo(lx, y + 1); g.lineTo(lx, ly - 2); g.stroke();
+        const cg = g.createRadialGradient(lx, ly + 3, 0, lx, ly + 3, ww * 0.75); cg.addColorStop(0, "rgba(255,255,235,0.95)"); cg.addColorStop(0.35, "rgba(255,230,160,0.6)"); cg.addColorStop(1, "rgba(255,230,160,0)");
+        g.fillStyle = cg; g.beginPath(); g.arc(lx, ly + 3, ww * 0.75, 0, 7); g.fill();
+        g.fillStyle = "#B88A3A"; g.beginPath(); g.ellipse(lx, ly + 4, ww * 0.34, 1.6, 0, 0, 7); g.fill();
+        for (let k = -2; k <= 2; k++) { g.fillStyle = "#FFFDF0"; g.beginPath(); g.arc(lx + k * ww * 0.15, ly + 2 - Math.abs(k) * 0.6, 1.1, 0, 7); g.fill(); g.fillStyle = "rgba(255,255,255,0.8)"; g.fillRect(lx + k * ww * 0.15 - 0.4, ly + 5, 0.8, 2.5 + (2 - Math.abs(k))); }
+        g.fillStyle = "#FFF6D8"; g.beginPath(); g.moveTo(lx - 2, ly + 6); g.lineTo(lx, ly + 11); g.lineTo(lx + 2, ly + 6); g.closePath(); g.fill();
+      }
+    };
+    const pil = (x, y0, y1) => { g.fillStyle = "rgba(255,240,205,0.5)"; g.fillRect(x - 2.5, y0, 5, y1 - y0); g.fillStyle = "rgba(120,95,60,0.45)"; g.fillRect(x + 1.5, y0, 1, y1 - y0); g.fillStyle = "#EAD9B2"; g.fillRect(x - 4, y0, 8, 3); };
+    for (const [x0, x1] of [[kx, cx0], [cx0 + cw, kx + kw]]) {
+      const n = 5, bw = (x1 - x0) / n;
+      for (let i = 0; i <= n; i++) pil(x0 + i * bw, wy + 2, ICE_TOP);
+      for (let i = 0; i < n; i++) { const xc = x0 + (i + 0.5) * bw; lit(xc - 6, wy + 10, 12, 14, false, false); lit(xc - 7, 124, 14, 36, true, true); }
+    }
+    { const n = 3, bw = cw / n; for (let i = 0; i <= n; i++) pil(cx0 + i * bw, ky + 6, ICE_TOP);
+      for (let i = 0; i < n; i++) { const xc = cx0 + (i + 0.5) * bw; lit(xc - 8, ky + 16, 16, 18, true, false); lit(xc - 10, 120, 20, 46, true, true); } }
     // Stadtpark im Winter: verschneite Tannen und Laubbäume, in die warme Lichterketten gewickelt (wie beim Wiener Eistraum)
     g.lineCap = "round";
     const glow = (x, y, r, a) => { const gl = g.createRadialGradient(x, y, 0, x, y, r); gl.addColorStop(0, `rgba(255,214,140,${a})`); gl.addColorStop(1, "rgba(255,214,140,0)"); g.fillStyle = gl; g.fillRect(x - r, y - r, 2 * r, 2 * r); };
@@ -2258,16 +2352,33 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
         g.fillStyle = k % 3 ? "#FFD98A" : "#FFF1C8"; g.beginPath(); g.arc(x, y, 2.2, 0, 7); g.fill(); bulbs.push([x, y]);
       }
     }
-    // Publikum hinter der Bande: Köpfe und Schultern, gedeckte Farben
-    const COATS = ["#5B3A2E", "#2F3E55", "#4C5A3E", "#6E2F2A", "#3C3240", "#7A6A50"], SK = ["#E6C2A0", "#C9966C", "#9C6644", "#F0D5BC"];
+    // Publikum hinter der Bande im Stil der 1920er: Damen mit Glockenhut (Cloche) und Pelzkragen, Herren mit Melone, Zylinder
+    // oder Hut mit Band, Schals; kräftige, warme Mantelfarben, vom Licht der Lichterketten angestrahlt
+    const COATS = ["#6B1E2E", "#2F3E55", "#1F4A3E", "#7A5A36", "#3C2A44", "#1C1F26", "#8C3B2A", "#5A6470"], SK = ["#E6C2A0", "#C9966C", "#9C6644", "#F0D5BC"];
+    const HATS = ["#1C1F26", "#1C1F26", "#5B3A2E", "#4A4E57", "#6B1E2E", "#2F3E55", "#8A7B62"], FUR = ["#EDE3D1", "#B38A5E", "#6E4A32"];
     const JX = w / 2, JW = 150; // Preisgericht in der Mitte der Längsseite
+    const lightAt = (x) => 0.5 + 0.5 * Math.abs(Math.sin((x - 120) / 330 * Math.PI)); // unter den Lichterketten etwas heller
     for (let row = 0; row < 3; row++) for (let x = -10; x < w; x += 15 + R() * 8) {
       const y = 186 + row * 7 + R() * 3, s = 0.85 + row * 0.12, coat = COATS[Math.floor(R() * COATS.length)];
       if (Math.abs(x - JX) < JW + 12) { R(); R(); continue; }
+      const lady = R() < 0.5, style = R(), skin = SK[Math.floor(R() * SK.length)], hatC = HATS[Math.floor(R() * HATS.length)];
       people.push([x, y, s, coat, R()]);
+      // Mantel mit Licht von oben
       g.fillStyle = coat; g.beginPath(); g.ellipse(x, y + 12 * s, 8 * s, 9 * s, 0, Math.PI, 0); g.fill();
-      g.fillStyle = SK[Math.floor(R() * SK.length)]; g.beginPath(); g.arc(x, y, 4.2 * s, 0, 7); g.fill();
-      if (R() < 0.5) { g.fillStyle = COATS[Math.floor(R() * COATS.length)]; g.beginPath(); g.arc(x, y - 2 * s, 4.4 * s, Math.PI, 0); g.fill(); } // Mütze
+      g.fillStyle = `rgba(255,214,150,${0.18 * lightAt(x)})`; g.beginPath(); g.ellipse(x - 2 * s, y + 6 * s, 5 * s, 3 * s, 0, Math.PI, 0); g.fill();
+      if (lady && style < 0.6) { g.fillStyle = FUR[Math.floor(R() * FUR.length)]; for (let k = -2; k <= 2; k++) { g.beginPath(); g.arc(x + k * 2.6 * s, y + 4.6 * s + Math.abs(k) * 0.5 * s, 2.2 * s, 0, 7); g.fill(); } } // Pelzkragen
+      else if (!lady && style < 0.5) { g.fillStyle = ["#C23B2A", "#E8DCC0", "#DDA43B", "#23466B"][Math.floor(R() * 4)]; g.fillRect(x - 4.5 * s, y + 4 * s, 9 * s, 2.2 * s); g.fillRect(x + 1 * s, y + 4 * s, 2.2 * s, 5 * s); } // Schal
+      else if (!lady) { g.fillStyle = "#F1E7D2"; g.beginPath(); g.moveTo(x - 2 * s, y + 4 * s); g.lineTo(x, y + 8 * s); g.lineTo(x + 2 * s, y + 4 * s); g.fill(); } // weißer Kragen
+      g.fillStyle = skin; g.beginPath(); g.arc(x, y, 4.2 * s, 0, 7); g.fill();
+      g.fillStyle = hatC;
+      if (lady) {
+        // Glockenhut tief in der Stirn, mit Band und manchmal einer Feder
+        g.beginPath(); g.ellipse(x, y - 1.2 * s, 5 * s, 4.6 * s, 0, Math.PI, 0); g.fill(); g.fillRect(x - 5.4 * s, y - 1.6 * s, 10.8 * s, 1.8 * s);
+        g.fillStyle = ["#DDA43B", "#C23B2A", "#E8DCC0"][Math.floor(R() * 3)]; g.fillRect(x - 5 * s, y - 2.6 * s, 10 * s, 1 * s);
+        if (R() < 0.3) { g.strokeStyle = "#E8DCC0"; g.lineWidth = 1; g.beginPath(); g.moveTo(x + 3 * s, y - 3 * s); g.quadraticCurveTo(x + 7 * s, y - 8 * s, x + 4 * s, y - 10 * s); g.stroke(); }
+      } else if (style < 0.2) { g.fillRect(x - 3.4 * s, y - 10 * s, 6.8 * s, 7.5 * s); g.fillRect(x - 5.6 * s, y - 3 * s, 11.2 * s, 1.6 * s); g.fillStyle = "rgba(255,255,255,0.12)"; g.fillRect(x - 3.4 * s, y - 10 * s, 1.5 * s, 7.5 * s); } // Zylinder
+      else if (style < 0.6) { g.beginPath(); g.arc(x, y - 2.2 * s, 4 * s, Math.PI, 0); g.fill(); g.fillRect(x - 5.6 * s, y - 2.4 * s, 11.2 * s, 1.5 * s); } // Melone
+      else { g.beginPath(); g.moveTo(x - 3.6 * s, y - 2.2 * s); g.lineTo(x - 3 * s, y - 7 * s); g.quadraticCurveTo(x, y - 5.6 * s, x + 3 * s, y - 7 * s); g.lineTo(x + 3.6 * s, y - 2.2 * s); g.fill(); g.fillRect(x - 6 * s, y - 2.6 * s, 12 * s, 1.6 * s); g.fillStyle = "#1C1F26"; g.fillRect(x - 3.6 * s, y - 3.6 * s, 7.2 * s, 1.2 * s); } // Hut mit Band
     }
     // Preisgericht: erhöhter Tisch an der Bande, neun Richterinnen und Richter mit leuchtenden Bildschirmen, darüber ein Schild
     {
@@ -2520,7 +2631,7 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
 /* COLD MEDAL EISKUNSTLAUF – Ablauf, Bildschirme, Eingabe, Taktband, Ergebnis, Spielstand. */
 (function () {
   "use strict";
-  const VERSION = "0.21";
+  const VERSION = "0.22";
   // Seiten-Einstellungen aus dem Build (eigenes Hosting: Adresse, Hoster, Impressum); im claude.ai-Artefakt leer
   const SITE = Object.assign({ web: false, url: "", impressum: null }, {"web": true, "url": "https://matpeins-debug.github.io/cold-medal-eiskunstlauf/", "hoster": "GitHub Pages (GitHub Inc., USA)", "drittland": "GitHub ist nach dem EU-US Data Privacy Framework zertifiziert; die Übermittlung in die USA stützt sich auf den Angemessenheitsbeschluss der EU-Kommission dazu.", "impressum": {"name": "", "adresse": "", "mail": ""}} || {});
   const M = window.EKMusic, K = window.EKSkate, F = window.EKFig, SC = window.EKScene;
@@ -2758,7 +2869,7 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
     if (E.trailT > 0.03 && E.phase === 0) { E.trailT = 0; run.trail.push([E.x, fy + 3.5, performance.now()]); if (run.trail.length > 80) run.trail.shift(); }
     drawTrail(run.trail, run.camX);
     E.sp = F.ease(E.sp, pose, dt);
-    const fo = { x: fx, y: fy, s: sc, dir: 1, pose: E.sp, lift, turn: E.face, swap: false, look: S.look };
+    const fo = { x: fx, y: fy, s: sc, dir: 1, pose: openArms(E.sp, E.face), lift, turn: E.face, swap: false, look: S.look };
     drawReflection(fo); F.draw(ctx, fo);
     scene.snow(ctx, run.camX, now, [2], 0.6); scene.vignette(ctx);
     if (E.banner) {
@@ -3070,6 +3181,12 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
   }
 
   // ------------------------------------------------------------------ Zeichnen
+  // Arme öffnen sich immer zur Seite, so wie das Bild die Läuferin zeigt: die Armlinie dreht gegen die Blickrichtung
+  // (ao der gemeinsamen Figur); sonst zeigen die Arme bei halber Drehung auf den Betrachter und wirken kurz und eckig
+  function openArms(p, turn) {
+    const tw = (((turn || 0) % Math.PI) + Math.PI) % Math.PI, tq = tw > Math.PI / 2 ? tw - Math.PI : tw;
+    return Object.assign({}, p, { ao: clamp(-tq * 180 / Math.PI * 0.85, -72, 72) });
+  }
   let FONT = null;
   const font = () => FONT || (FONT = getComputedStyle(document.body).getPropertyValue("--font-display").trim() || "sans-serif");
   const LANE_X = W / 2; // Trefferpunkt: alles Wichtige sitzt hier unten in der Mitte
@@ -3081,10 +3198,9 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
     for (let i = 0; i < bt.length; i++) {
       const x = px + (bt[i] - t) * pps; if (x < -10 || x > W + 10) continue;
       // jeder Schlag als Punkt: die Eins groß, zwei und drei klein; leuchtet auf, wenn er die Linie überquert
-      const one = i % 3 === 0, fl = clamp(1 - Math.abs(x - px) / 14, 0, 1);
-      ctx.fillStyle = one ? "rgba(241,231,210,0.32)" : "rgba(241,231,210,0.12)"; ctx.fillRect(x - (one ? 1 : 0.5), y0 + 3, one ? 2 : 1, h - 6);
-      ctx.fillStyle = fl > 0 ? `rgba(255,236,170,${0.55 + 0.45 * fl})` : one ? "rgba(241,231,210,0.75)" : "rgba(241,231,210,0.45)";
-      ctx.beginPath(); ctx.arc(x, y0 + h - 6, (one ? 3.6 : 2.2) + fl * 2.5, 0, 7); ctx.fill();
+      // nur zum Mitzählen: feine Striche am unteren Rand, keine Knöpfe (gedrückt wird nur bei den farbigen Zeichen)
+      const one = i % 3 === 0;
+      ctx.fillStyle = one ? "rgba(241,231,210,0.38)" : "rgba(241,231,210,0.16)"; ctx.fillRect(x - 0.75, y0 + h - (one ? 9 : 5), 1.5, one ? 7 : 3);
     }
     ctx.textAlign = "center"; ctx.textBaseline = "middle";
     for (const m of run.marks) {
@@ -3116,7 +3232,7 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
     // Hinweis zum nächsten Element
     const nx = PROG.elements.find((e) => { const [a, b] = elWindow(e, bt); return b > t && a - 2.6 < t; });
     if (nx && !run.down && (S.help === "anf" || t < 8) && !(run.rate && performance.now() - run.rate.t < 1100)) {
-      const hint = { jump: canHover() ? "Leertaste drücken, halten, loslassen" : "drücken, halten, loslassen", spin: canHover() ? "kreisen oder Leertaste auf jedes ⟳" : "mit dem Finger kreisen, jede Runde auf ⟳",
+      const hint = { jump: canHover() ? "Leertaste bei ● drücken, halten, bei ○ loslassen" : "bei ● drücken, halten, bei ○ loslassen", spin: canHover() ? "kreisen oder Leertaste auf jedes ⟳" : "mit dem Finger kreisen, jede Runde auf ⟳",
         steps: canHover() ? "Pfeiltaste wie der Pfeil, wenn er die Linie erreicht" : "wisch in Pfeilrichtung, wenn er die Linie erreicht", pose: "tippen auf den Schlussakkord", expr: "tippen, wenn die Figur kommt",
         glide: nx.role === "entry" ? (canHover() ? "Leertaste halten, beim Eindrehen loslassen" : "halten, beim Eindrehen loslassen") : (canHover() ? "Leertaste halten, am Ende des Bogens loslassen" : "halten, am Ende des Bogens loslassen") }[nx.kind];
       ctx.font = "600 14px " + font();
@@ -3233,7 +3349,7 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
   function drawCard() {
     const C = run.card; if (!C) return;
     const age = (performance.now() - C.t) / 1000; if (age > 2.2) return;
-    const al = age < 0.15 ? age / 0.15 : age > 1.8 ? 1 - (age - 1.8) / 0.4 : 1, w = 220, h = 50, x = LANE_X + 150, y = 288 - (age < 0.15 ? (0.15 - age) * 60 : 0);
+    const al = age < 0.15 ? age / 0.15 : age > 1.8 ? 1 - (age - 1.8) / 0.4 : 1, w = 220, h = 50, x = LANE_X + 150, y = 262 - (age < 0.15 ? (0.15 - age) * 60 : 0);
     ctx.save(); ctx.globalAlpha = al;
     ctx.fillStyle = "rgba(15,23,48,0.88)"; ctx.fillRect(x, y, w, h); ctx.strokeStyle = C.bad ? "#E8705A" : "#F3C969"; ctx.lineWidth = 1.5; ctx.strokeRect(x + 0.5, y + 0.5, w - 1, h - 1);
     ctx.textBaseline = "alphabetic"; ctx.textAlign = "left"; ctx.fillStyle = "#F1E7D2"; ctx.font = "700 13px " + font(); ctx.fillText(C.name, x + 10, y + 19);
@@ -3458,7 +3574,7 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
     run.sp = F.ease(run.sp, st.pose, dt, st.lift > 1 || st.tilt < -0.3);
     drawLaser(SH, fx, fy);
     const swT = run.swapT !== undefined ? t - run.swapT : 9, look = run.swapped ? Object.assign({}, S.look, { suit: S.look.accent, accent: S.look.suit }) : S.look;
-    const fo = { x: fx, y: fy, s, dir: 1, pose: run.sp, lift: st.lift, turn: st.turn + (swT < 0.6 ? smooth(swT / 0.6) * Math.PI * 2 : 0), tilt: st.tilt, swap: st.swap, look };
+    const fo = { x: fx, y: fy, s, dir: 1, pose: openArms(run.sp, st.turn), lift: st.lift, turn: st.turn + (swT < 0.6 ? smooth(swT / 0.6) * Math.PI * 2 : 0), tilt: st.tilt, swap: st.swap, look };
     drawReflection(fo);
     F.draw(ctx, fo);
     // Glitzer: bei Treffern, Eisstaub in Pirouetten und bei Landungen
@@ -3489,7 +3605,7 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
     IDLE.tt += dt; if (IDLE.tt > 0.03) { IDLE.tt = 0; IDLE.trail.push([x, fy + 3.5, performance.now()]); if (IDLE.trail.length > 80) IDLE.trail.shift(); }
     drawTrail(IDLE.trail, camX);
     IDLE.sp = F.ease(IDLE.sp, F.strokePose(u % 1), dt);
-    const io = { x: x - camX, y: fy, s: SC.scaleAt(d), dir: 1, turn: IDLE.face, swap: Math.floor(u) % 2 === 1, pose: IDLE.sp, look: S.look };
+    const io = { x: x - camX, y: fy, s: SC.scaleAt(d), dir: 1, turn: IDLE.face, swap: Math.floor(u) % 2 === 1, pose: openArms(IDLE.sp, IDLE.face), look: S.look };
     scene.spot(ctx, io.x, fy, io.s, 0.7);
     F.draw(ctx, io);
     scene.snow(ctx, camX, now, [2], 0.5); scene.vignette(ctx);
@@ -3591,9 +3707,11 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
     let pose = sit; if (st >= 2) pose = kc.rank === 1 ? F.mix(sit, cheer, smooth(clamp((T - kc.t2) / 0.5, 0, 1))) : F.mix(sit, wave, 0.5 + 0.5 * Math.sin(T * 5));
     else pose = F.mix(sit, F.POSES.kcSit, 1);
     const breath = Math.sin(T * 2.2) * 1.2;
-    F.draw(g, { x: w * 0.42, y: h * 0.82 - 2, s: 1.15, dir: 1, pose: Object.assign({}, pose, { lean: pose.lean + breath }), turn: 0.7, look: kc.look, kit: "eiskunstlauf" });
-    const coachP = st >= 2 ? F.mix(F.POSES.stand, F.POSES.cheer, kc.rank <= 3 ? 0.6 + 0.4 * Math.sin(T * 4) : 0.15) : F.POSES.stand;
-    CMFigur.draw(g, { x: w * 0.8, y: h * 0.82 + 4, s: 1.05, dir: -1, pose: coachP, turn: 0.6, look: { hair: 6, hairC: 4, skin: 0, suit: 5, accent: 3 }, kit: "plain" });
+    F.draw(g, { x: w * 0.42, y: h * 0.82 - 2, s: 1.15, dir: 1, pose: openArms(Object.assign({}, pose, { lean: pose.lean + breath }), 0.7), turn: 0.7, look: kc.look, kit: "eiskunstlauf" });
+    // Trainerin im Stil der 1920er (Bubikopf, dunkles Kostüm): wartet ruhig, klatscht bei der Wertung, bei einem Podestplatz begeistert
+    const clap = st >= 2 ? CMFigur.gesture("applaus", T * (kc.rank <= 3 ? 1 : 0.6)) : null;
+    const coachP = clap ? clap.pose : CMFigur.idle(F.POSES.stand, T, 0.8);
+    CMFigur.draw(g, { x: w * 0.8, y: h * 0.82 + 4, s: 1.05, dir: -1, pose: coachP, mood: clap ? clap.mood : "ruhig", turn: 0.35, look: { hair: 4, hairC: 0, skin: 0, suit: 5, accent: 3 }, kit: "plain" });
   }
   function showResult(res, board, rank) {
     $("rKick").textContent = `WIEN · ${run.mode === "comp" ? "KÜR · WETTKAMPF" : "TRAINING"} · ${useMusic().short.toUpperCase()}`;
@@ -3851,8 +3969,8 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
     const C = $("pSheetC");
     if (pSheet === "musik") {
       C.innerHTML = `<div class="kicker">MUSIK FÜR DIE KÜR</div><div class="mus">` + M.KUER.map((id) => { const sc = M.SCORES[id]; const pl2 = listenOn && SCORE.id === id; return `<div class="muC${S.music === id ? " on" : ""}" data-mu="${id}"><b>${esc(sc.title)}</b><small>${esc(sc.composer)}</small><i>${esc(MUSIC_INFO[id] || "")}</i><span class="muF"><button class="muPlay${pl2 ? " on" : ""}" data-mu="${id}" aria-label="anhören"><svg viewBox="0 0 24 24"><path d="${pl2 ? "M7 5h3.5v14H7z M13.5 5H17v14h-3.5z" : "M8 5l11 7-11 7z"}"/></svg></button>${mmss(M.grid(sc, sc.bpm, true)[108])} · ♩ ${sc.bpm}${S.music === id ? `<em>gewählt ✓</em>` : ""}</span></div>`; }).join("") + `</div>`
-        + `<div class="shFoot"><span>Karte antippen = für die Kür wählen · ▶ = anhören. Jedes Stück hat eigene Stimmungen und Höhepunkte.</span></div>`;
-      C.querySelectorAll(".muC").forEach((b) => (b.onclick = () => { const was = SCORE.id; S.music = b.dataset.mu; save(); if (listenOn && was !== S.music) listen(true); pCat = null; fillProg(); }));
+        + `<div class="shFoot"><span>Karte antippen = wählen und zurück · ▶ = anhören. Jedes Stück hat eigene Stimmungen und Höhepunkte.</span></div>`;
+      C.querySelectorAll(".muC").forEach((b) => (b.onclick = () => { const was = SCORE.id; S.music = b.dataset.mu; save(); if (listenOn && was !== S.music) listen(true); pCat = null; pSheet = null; fillProg(); }));
       C.querySelectorAll(".muPlay").forEach((b) => (b.onclick = (ev) => { ev.stopPropagation(); const same = listenOn && SCORE.id === b.dataset.mu; S.music = b.dataset.mu; save(); pCat = null; listen(!same); }));
     } else {
       C.innerHTML = `<div class="kicker">CHOREO-NOTE ${dec(pl.total)} VON 10</div><div class="noteTab"><div class="lookBox"><canvas id="pFig" width="180" height="220"></canvas><button class="mid" id="pLook">Kostüm ändern</button></div><div class="plList">`
@@ -3868,7 +3986,8 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
   // Musik im Editor anhören
   function listen(on) {
     unlock();
-    if (player && player.playing) player.stop();
+    // erst den alten Abschluss lösen: player.start() stoppt intern und hätte sonst listenOn gleich wieder auf false gesetzt
+    if (player) { player.onEnd = null; if (player.playing) player.stop(); }
     listenOn = !!on && !!player;
     if (listenOn) { useMusic(); player.start(SCORE.id, { preset: S.preset, swing: true }); player.onEnd = () => { listenOn = false; hideHead(); playUI(); if (!$("scrProg").hidden) fillProg(); }; }
     else hideHead();
@@ -3895,7 +4014,7 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
     $("mStrip").innerHTML = sl.map((id) => { if (id === "~") return ""; const c = CAT[id]; return `<span class="ms ${c ? c.kind : "empty"}">${c ? KIND[c.kind][0] : ""}</span>`; }).join("");
   }
   $("bProg").onclick = () => { if (listenOn) listen(false); pSel = 0; pCat = null; pSheet = null; const c = CAT[S.prog[0]]; if (c && c.kind === "jump") { pRot = c.rot; pCombo = c.combo ? c.combo[1].slice(1) : ""; } fillProg(); show("scrProg"); };
-  $("pDef").onclick = () => { S.prog = K.DEFAULT_SLOTS.slice(); save(); fillProg(); };
+  $("pDef").onclick = () => { useMusic(); S.prog = K.suggest(SCORE.id, S.look, Math.random, S.prog); save(); fillProg(); }; // jedes Mal ein anderer Plan, passend zum Stück
   $("pDone").onclick = () => { if (listenOn) listen(false); fillPlanCard(); show("scrMenu"); };
 
   // Einstellungen
