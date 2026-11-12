@@ -470,7 +470,7 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
         <div><i class="mk">➜</i><b>Schritte</b><span id="hStep"></span></div>
         <div><i class="mk">★</i><b>Pose</b><span id="hPose"></span></div>
       </div>
-      <p class="note">Unten läuft das Taktband: Jedes Zeichen gehört auf den Schlag, wenn es die Linie erreicht.</p>
+      <p class="note">Unten läuft das Taktband: Gedrückt wird nur bei den farbigen Zeichen, genau wenn sie im Ring in der Mitte sind. Die feinen Striche zählen nur den Takt.</p>
       <button class="big red go" id="iGo"><span>Los</span></button>
     </div>
   </section>
@@ -2631,7 +2631,7 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
 /* COLD MEDAL EISKUNSTLAUF – Ablauf, Bildschirme, Eingabe, Taktband, Ergebnis, Spielstand. */
 (function () {
   "use strict";
-  const VERSION = "0.22";
+  const VERSION = "0.23";
   // Seiten-Einstellungen aus dem Build (eigenes Hosting: Adresse, Hoster, Impressum); im claude.ai-Artefakt leer
   const SITE = Object.assign({ web: false, url: "", impressum: null }, {"web": true, "url": "https://matpeins-debug.github.io/cold-medal-eiskunstlauf/", "hoster": "GitHub Pages (GitHub Inc., USA)", "drittland": "GitHub ist nach dem EU-US Data Privacy Framework zertifiziert; die Übermittlung in die USA stützt sich auf den Angemessenheitsbeschluss der EU-Kommission dazu.", "impressum": {"name": "", "adresse": "", "mail": ""}} || {});
   const M = window.EKMusic, K = window.EKSkate, F = window.EKFig, SC = window.EKScene;
@@ -2765,6 +2765,17 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
       s0.connect(bp); bp.connect(g); g.connect(out); s0.start(t); s0.stop(t + d + 0.4);
       for (let i = 0; i < d * 9; i++) burst(t + Math.random() * d, 0.012, 2500 + Math.random() * 3000, 2, 0.04 + Math.random() * 0.08);
       burst(t, 0.06, 900, 1, 0.25); // Einschalt-Knacks
+    }
+    else if (kind === "woo") {
+      // Bravo-Rufe aus dem Publikum: Stimmen als Sägezahn durch zwei Formantfilter, Tonhöhe steigt und fällt
+      const n = Math.round(4 + 8 * (lvl === undefined ? 1 : lvl));
+      for (let i = 0; i < n; i++) {
+        const at = t + Math.random() * 1.6, f0 = 180 + Math.random() * 260, d = 0.45 + Math.random() * 0.5, o = c.createOscillator(), g = c.createGain();
+        o.type = "sawtooth"; o.frequency.setValueAtTime(f0, at); o.frequency.linearRampToValueAtTime(f0 * 1.45, at + d * 0.4); o.frequency.linearRampToValueAtTime(f0 * 1.1, at + d);
+        g.gain.setValueAtTime(0, at); g.gain.linearRampToValueAtTime(0.018 + Math.random() * 0.014, at + 0.06); g.gain.setTargetAtTime(0, at + d * 0.7, 0.08);
+        for (const [ff, q] of [[700 + Math.random() * 300, 6], [1150 + Math.random() * 400, 8]]) { const bp = c.createBiquadFilter(); bp.type = "bandpass"; bp.frequency.value = ff; bp.Q.value = q; o.connect(bp); bp.connect(g); }
+        g.connect(out); o.start(at); o.stop(at + d + 0.3);
+      }
     }
     else if (kind === "cheer") { const n = Math.round(25 + 50 * lvl); for (let i = 0; i < n; i++) burst(t + Math.random() * 1.1 * Math.sqrt(Math.random()), 0.05, 1500 + Math.random() * 2500, 1.2, 0.025 + Math.random() * 0.035); }
   }
@@ -2906,6 +2917,7 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
 
   function addInput(type, dir) {
     if (run && run.entry) { if (run.entry.t > 0.4 || run.entry.phase) run.entry.skip = true; return; }
+    if (run && run.honor) { if (songTime() - run.honor.t0 > 0.6) endHonor(); return; }
     if (!run || run.finished) return;
     const t = songTime() - (run.fake ? 0 : S.lat / 1000);
     if (run.down) { if (type === "down") riseTap(t); return; } // am Boden: Tippen hilft nur beim Aufstehen
@@ -3077,17 +3089,62 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
     for (const e of PROG.elements) { if (e.kind === "expr" || (e.kind === "glide" && e.role === "entry" && t > run.bt[e.end] - 0.25)) continue; const [a, b] = elWindow(e, run.bt); if (t >= a && t <= b) return e; } // Ausdruck läuft in der Choreografie mit
     return null;
   }
+  // Ehrenrunde nach einem Podestplatz: noch einmal hinausgleiten, eine Spirale, dann nach links, zur Mitte und nach rechts verbeugen
+  function honorState(t, dt) {
+    const r = run, u = t - r.honor.t0, moving = u < 4.6;
+    const sp = moving ? smooth(u / 0.8) * (u > 3.8 ? clamp((4.6 - u) / 0.8, 0, 1) : 1) : 0;
+    r.p += dt * sp * 1.15;
+    const P = r.p, x = WW / 2 + 660 * Math.sin(2 * Math.PI * P / 24), d = 0.52 + 0.3 * Math.sin(2 * Math.PI * P / 9.5 + 1), vx = Math.cos(2 * Math.PI * P / 24);
+    if (moving && Math.abs(vx) > 0.05) r.dir = vx > 0 ? 1 : -1;
+    let pose, want;
+    if (moving) {
+      const inB = (u / 1.25) % 1, glide = F.mix(F.strokePose(0), F.mix(F.POSES.glideArc, F.POSES.glideArc2, 0.5 - 0.5 * Math.cos(2 * Math.PI * inB)), 0.85);
+      pose = F.mix(glide, F.POSES.spiral, smooth((u - 1.5) / 0.5) * smooth((3.5 - u) / 0.5));
+      want = r.dir > 0 ? 0.25 : Math.PI - 0.25;
+    } else {
+      const v = u - 4.6, k = Math.min(2, Math.floor(v / 1.8)), w = v - k * 1.8, b = smooth((w - 0.4) / 0.4) * smooth((1.5 - w) / 0.35);
+      pose = F.mix(F.mix(F.POSES.final, F.POSES.portUp, 0.45), F.POSES.bow, b);
+      want = Math.PI / 2 - 0.5 + [-0.6, 0, 0.6][k];
+      if (k !== r.honor.k) { r.honor.k = k; sfx("cheer", 0.9); sfx("woo", 0.6); run.burst = 1; }
+    }
+    const df = want - r.face; r.face += Math.sign(df) * Math.min(Math.abs(df), dt * 3);
+    if (u > 10.3) endHonor();
+    return { x, d, pose, lift: 0, turn: r.face, tilt: 0, swap: false };
+  }
+  function startHonor(myRun) {
+    if (run !== myRun || !run.finished || $("scrRes").hidden || run.honor) return;
+    run.honor = { t0: songTime(), k: -1 }; show("none"); ambience(true); sfx("applause", 1); sfx("woo", 1);
+  }
+  function endHonor() {
+    if (!run || !run.honor) return;
+    run.honor = null; ambience(false); show("scrRes"); if (kc) requestAnimationFrame(kcDraw);
+  }
+  // stilvolle Zeile oben während der Ehrenrunde
+  function drawHonor(t) {
+    const u = t - run.honor.t0, a = clamp(u / 0.8, 0, 1) * clamp((10.3 - u) / 0.6, 0, 1); if (a <= 0) return;
+    ctx.save(); ctx.globalAlpha = a; ctx.textAlign = "center"; ctx.textBaseline = "alphabetic";
+    const g = ctx.createLinearGradient(0, 0, 0, 92); g.addColorStop(0, "rgba(10,14,30,0.75)"); g.addColorStop(1, "rgba(10,14,30,0)"); ctx.fillStyle = g; ctx.fillRect(0, 0, W, 92);
+    ctx.font = "600 11px " + font(); ctx.fillStyle = "#F3C969"; ctx.fillText("E H R E N R U N D E", W / 2, 26);
+    ctx.fillStyle = "rgba(243,201,105,0.7)"; ctx.fillRect(W / 2 - 150, 33, 110, 1); ctx.fillRect(W / 2 + 40, 33, 110, 1);
+    ctx.beginPath(); ctx.moveTo(W / 2, 29); ctx.lineTo(W / 2 + 4, 33.5); ctx.lineTo(W / 2, 38); ctx.lineTo(W / 2 - 4, 33.5); ctx.closePath(); ctx.fill();
+    ctx.font = "700 26px " + font(); ctx.fillStyle = "#FFF4D6"; ctx.fillText(run.honor.title || "", W / 2, 64);
+    ctx.font = "italic 13px " + getComputedStyle(document.body).getPropertyValue("--font-body"); ctx.fillStyle = "rgba(241,231,210,0.75)"; ctx.fillText("Danke, Wien!  ·  Tippen = zurück zur Wertung", W / 2, 82);
+    ctx.restore();
+  }
   function figureState(t, dt) {
     const r = run, bt = r.bt, el = phaseAt(t);
+    if (r.honor) return honorState(t, dt);
     const ended = t > bt[bt.length - 1];
     const speed = ended ? 0 : el && el.kind === "glide" ? 1.25 : el && el.kind === "spin" && t > bt[el.from] - 0.2 ? 0 : el && el.kind === "steps" ? 0.9 : el && el.kind === "pose" && t > bt[el.at] ? 0 : 1;
+    // gestürzt: kurz ausrutschen, dann liegt sie still; beim Aufstehen erst langsam wieder anfahren
+    const fallMul = r.down ? Math.max(0, 1 - (t - r.down.t0) / 0.45) * 0.6 : t < r.fallUntil ? 0.25 : 1;
     // Takt: ein Laufschritt je Takt, Abstoß auf der Eins; Stand- und Spielbein wechseln jeden Takt
     const bi = Math.max(0, bt.findIndex((b) => b > t) - 1), ph = bi >= 0 && bt[bi + 1] ? (t - bt[bi]) / (bt[bi + 1] - bt[bi]) : 0;
     const bar = t < 0 ? Math.floor(t / (bt[3] - bt[0])) : Math.floor(bi / 3);
     const inBar = t < 0 ? ((t / (bt[3] - bt[0])) % 1 + 1) % 1 : ((bi % 3) + ph) / 3;
     // Abstoß nur jeden zweiten Takt, dazwischen ein langer Bogen auf einer Kante: weniger Treten, mehr Gleiten
     const glideBar = bar % 2 === 1, push = !glideBar && inBar < 0.45 ? Math.sin(Math.PI * inBar / 0.45) : 0;
-    r.p += dt * speed * (glideBar ? 1.12 - 0.22 * inBar : 0.86 + 0.4 * push);
+    r.p += dt * speed * fallMul * (glideBar ? 1.12 - 0.22 * inBar : 0.86 + 0.4 * push);
     const P = r.p, x = WW / 2 + 660 * Math.sin(2 * Math.PI * P / 24), d = 0.52 + 0.3 * Math.sin(2 * Math.PI * P / 9.5 + 1);
     const vx = Math.cos(2 * Math.PI * P / 24);
     // Blickrichtung dreht weich (über die Vorderseite) statt umzuklappen
@@ -3233,7 +3290,7 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
     const nx = PROG.elements.find((e) => { const [a, b] = elWindow(e, bt); return b > t && a - 2.6 < t; });
     if (nx && !run.down && (S.help === "anf" || t < 8) && !(run.rate && performance.now() - run.rate.t < 1100)) {
       const hint = { jump: canHover() ? "Leertaste bei ● drücken, halten, bei ○ loslassen" : "bei ● drücken, halten, bei ○ loslassen", spin: canHover() ? "kreisen oder Leertaste auf jedes ⟳" : "mit dem Finger kreisen, jede Runde auf ⟳",
-        steps: canHover() ? "Pfeiltaste wie der Pfeil, wenn er die Linie erreicht" : "wisch in Pfeilrichtung, wenn er die Linie erreicht", pose: "tippen auf den Schlussakkord", expr: "tippen, wenn die Figur kommt",
+        steps: canHover() ? "Pfeiltaste wie der Pfeil, wenn er im Ring ist" : "wisch in Pfeilrichtung, wenn er im Ring ist", pose: "tippen auf den Schlussakkord", expr: "tippen, wenn die Figur kommt",
         glide: nx.role === "entry" ? (canHover() ? "Leertaste halten, beim Eindrehen loslassen" : "halten, beim Eindrehen loslassen") : (canHover() ? "Leertaste halten, am Ende des Bogens loslassen" : "halten, am Ende des Bogens loslassen") }[nx.kind];
       ctx.font = "600 14px " + font();
       const txt = nx.name.toUpperCase() + "  ·  " + hint, tw = ctx.measureText(txt).width + 22;
@@ -3538,7 +3595,7 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
     scene.draw(ctx, run.camX);
     // Publikum: steht bei Serien und gelungenen Elementen auf, klatscht und winkt
     run.burst = Math.max(0, run.burst - dt * 0.45);
-    const tgt = Math.max(Math.min(0.85, run.streak / 9), run.burst, run.throws ? 0.95 : 0);
+    const tgt = run.honor ? 1 : Math.max(Math.min(0.85, run.streak / 9), run.burst, run.throws ? 0.95 : 0);
     run.cheer += (tgt - run.cheer) * Math.min(1, dt * 3);
     const now = performance.now() / 1000;
     scene.twinkle(ctx, run.camX, now);
@@ -3590,7 +3647,7 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
     drawThrows(t, st.x, fy);
     scene.snow(ctx, run.camX, now, [2], 0.4 + 0.4 * run.cheer);
     scene.vignette(ctx);
-    drawLane(t); drawPops(fx, fy, s);
+    if (run.honor) drawHonor(t); else { drawLane(t); drawPops(fx, fy, s); }
     updateChips(t);
   }
   const IDLE = { face: 0, trail: [], tt: 0 };
@@ -3673,19 +3730,19 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
   $("aDone").onclick = () => show(run && run.finished ? "scrRes" : "scrMenu");
   function tipFor(res) {
     const tm = res.timing;
-    if (!tm) return "Tipp: Drück auf ● und lass auf ○ los, genau wenn die Zeichen die rote Linie erreichen.";
-    if (res.falls) return "Tipp: Ein Sturz kommt vom Loslassen weit neben dem ○. Halte, bis das ○ die Linie erreicht.";
+    if (!tm) return "Tipp: Drück auf ● und lass auf ○ los, genau wenn die Zeichen im Ring sind.";
+    if (res.falls) return "Tipp: Ein Sturz kommt vom Loslassen weit neben dem ○. Halte, bis das ○ im Ring ist.";
     if (tm.bias > 40) return `Du liegst im Schnitt ${tm.bias} ms zu spät. Mit Bluetooth-Kopfhörern hilft „Verzögerung“ in den Einstellungen.`;
     if (tm.bias < -40) return `Du bist im Schnitt ${-tm.bias} ms zu früh: lass den Schlag kommen, dann erst tippen.`;
     const weak = res.els.filter((e) => e.kind !== "pose" && e.kind !== "expr" && e.kind !== "glide" && !e.inCombo && (e.row || e).status !== "ok");
     if (weak.length) return `Am meisten Punkte liegen noch in: ${weak.map((e) => e.name).join(", ")}.`;
-    return tm.mean <= 60 ? "Stark im Takt. Probier „Experte“ in den Einstellungen: ohne Ring und mit engerem Fenster." : "Gut. Je näher an der Linie, desto mehr Ausführungspunkte (GOE).";
+    return tm.mean <= 60 ? "Stark im Takt. Probier „Experte“ in den Einstellungen: ohne Ring und mit engerem Fenster." : "Gut. Je genauer im Ring, desto mehr Ausführungspunkte (GOE).";
   }
   // Ergebnis wie im Fernsehen: Kiss & Cry mit Trainerin, das Preisgericht gibt nacheinander seine Wertungen,
   // dann zählt die Punktzahl hoch und der Platz erscheint. Tippen zeigt alles sofort.
   let kc = null;
   function kcDraw() {
-    if (!kc || $("scrRes").hidden) { kc = null; return; }
+    if (!kc || $("scrRes").hidden) return; // kc bleibt: nach der Ehrenrunde geht es weiter
     requestAnimationFrame(kcDraw);
     const cv = $("rKC"), g = cv.getContext("2d"), w = 180, h = 280, T = (performance.now() - kc.t0) / 1000;
     g.setTransform(2, 0, 0, 2, 0, 0); g.clearRect(0, 0, w, h);
@@ -3704,14 +3761,24 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
     if (kc.toys) { g.fillStyle = "#B07A4A"; g.beginPath(); g.arc(w - 34, h * 0.72 - 9, 6, 0, 7); g.arc(w - 34, h * 0.72 - 18, 4.5, 0, 7); g.fill(); g.beginPath(); g.arc(w - 37.5, h * 0.72 - 22, 1.8, 0, 7); g.arc(w - 30.5, h * 0.72 - 22, 1.8, 0, 7); g.fill(); }
     // Läuferin sitzt, Trainerin daneben; bei der Wertung Winken, bei Platz 1 Jubel
     const st = kc.stage, sit = F.POSES.kcSit, wave = F.POSES.kcWave, cheer = F.POSES.kcCheer;
-    let pose = sit; if (st >= 2) pose = kc.rank === 1 ? F.mix(sit, cheer, smooth(clamp((T - kc.t2) / 0.5, 0, 1))) : F.mix(sit, wave, 0.5 + 0.5 * Math.sin(T * 5));
+    let pose = sit; if (st >= 2) pose = kc.rank <= 3 ? F.mix(sit, cheer, smooth(clamp((T - kc.t2) / 0.5, 0, 1))) : F.mix(sit, wave, 0.5 + 0.5 * Math.sin(T * 5));
     else pose = F.mix(sit, F.POSES.kcSit, 1);
     const breath = Math.sin(T * 2.2) * 1.2;
-    F.draw(g, { x: w * 0.42, y: h * 0.82 - 2, s: 1.15, dir: 1, pose: openArms(Object.assign({}, pose, { lean: pose.lean + breath }), 0.7), turn: 0.7, look: kc.look, kit: "eiskunstlauf" });
+    F.draw(g, { x: w * 0.34, y: h * 0.82 - 2, s: 1.15, dir: 1, pose: openArms(Object.assign({}, pose, { lean: pose.lean + breath }), 0.7), turn: 0.7, look: kc.look, kit: "eiskunstlauf" });
     // Trainerin im Stil der 1920er (Bubikopf, dunkles Kostüm): wartet ruhig, klatscht bei der Wertung, bei einem Podestplatz begeistert
-    const clap = st >= 2 ? CMFigur.gesture("applaus", T * (kc.rank <= 3 ? 1 : 0.6)) : null;
-    const coachP = clap ? clap.pose : CMFigur.idle(F.POSES.stand, T, 0.8);
-    CMFigur.draw(g, { x: w * 0.8, y: h * 0.82 + 4, s: 1.05, dir: -1, pose: coachP, mood: clap ? clap.mood : "ruhig", turn: 0.35, look: { hair: 4, hairC: 0, skin: 0, suit: 5, accent: 3 }, kit: "plain" });
+    // sitzt dicht neben ihr auf der Bank, wartet ruhig, klatscht bei der Wertung
+    const clap = st >= 2 ? CMFigur.gesture("applaus", T * (kc.rank <= 3 ? 1 : 0.6)) : null, base = CMFigur.idle(F.POSES.kcSit, T, 0.6);
+    const coachP = clap ? Object.assign({}, base, { aF: clap.pose.aF, aB: clap.pose.aB, hd: -6 }) : Object.assign({}, base, { aF: [30, 70], aB: [20, 70] });
+    CMFigur.draw(g, { x: w * 0.66, y: h * 0.82 - 2, s: 1.1, dir: -1, pose: coachP, mood: clap ? clap.mood : "ruhig", turn: 0.55, look: { hair: 4, hairC: 0, skin: 0, suit: 5, accent: 3 }, kit: "plain" });
+    // Konfetti und goldener Glanz bei einem Podestplatz
+    if (st >= 2 && kc.rank <= 3) {
+      const u = T - kc.t2;
+      for (let i = 0; i < 46; i++) {
+        const sd = (i * 97.13) % 1, x0 = ((i * 53.7) % w), sp2 = 22 + (i % 7) * 6, y = ((u * sp2 + i * 37) % (h * 0.85)) - 10, x = x0 + Math.sin(u * 2 + i) * 8;
+        g.save(); g.translate(x, y); g.rotate(u * 3 + i); g.fillStyle = ["#F3C969", "#E8705A", "#F1E7D2", "#9EC3E6", "#D8A9DE"][i % 5]; g.globalAlpha = Math.min(1, u / 0.4); g.fillRect(-2, -1, 4, 2.2); g.restore();
+      }
+      if (kc.rank === 1) { g.fillStyle = "#F3C969"; g.font = "bold 10px " + font(); g.textAlign = "center"; g.globalAlpha = 0.6 + 0.4 * Math.sin(T * 3); g.fillText("★ SIEG ★", w / 2, 100); g.globalAlpha = 1; }
+    }
   }
   function showResult(res, board, rank) {
     $("rKick").textContent = `WIEN · ${run.mode === "comp" ? "KÜR · WETTKAMPF" : "TRAINING"} · ${useMusic().short.toUpperCase()}`;
@@ -3745,7 +3812,12 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
       card.classList.remove("wait", "count"); card.classList.add("done"); $("rJury").querySelectorAll(".judge").forEach((x) => x.classList.add("on"));
       $("rTotal").textContent = dec(res.total); $("rRank").textContent = board ? nb(`Platz ${rank} von ${board.length}`) : "Punkte";
       kc.stage = 2; kc.t2 = (performance.now() - kc.t0) / 1000; setSay(sayIdx);
-      if (board && rank <= 3) sfx("cheer", rank === 1 ? 1 : 0.6);
+      if (board && rank <= 3) {
+        // Jubel: Applaus und Bravo-Rufe, Konfetti im Kiss & Cry, danach die Ehrenrunde
+        sfx("applause", rank === 1 ? 1 : 0.7); sfx("woo", rank === 1 ? 1 : 0.6);
+        const myRun = run; run.honorTitle = `${rank}. Platz · ${dec(res.total)} Punkte`;
+        if (!(run.fake && run.manual)) setTimeout(() => { if (run === myRun) { startHonor(myRun); if (run.honor) run.honor.title = myRun.honorTitle; } }, 3200);
+      } else if (board) sfx("applause", 0.35);
       card.onclick = null;
     };
     J.forEach((j, i) => timers.push(setTimeout(() => { $("rJury").querySelector(`[data-j="${i}"]`).classList.add("on"); sfx("land", 0.2); }, 700 + i * 170)));
@@ -3776,7 +3848,7 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
     const d = canHover();
     $("hJump").textContent = (d ? "Leertaste auf ● drücken, halten, auf ○ loslassen." : "Auf ● drücken, halten, auf ○ loslassen.") + (PROG.elements.some((e) => e.part) ? " Kombination: gleich danach das nächste ●." : "") + (PROG.elements.some((e) => e.kind === "expr") ? " ✦ Choreo-Figur: tippen, wenn sie kommt." : "");
     $("hSpin").textContent = d ? "Mit der Maus kreisen oder Leertaste auf jedes ⟳." : "Mit dem Finger kreisen: jede Runde endet auf einem ⟳.";
-    $("hStep").textContent = (d ? "Pfeiltaste in Pfeilrichtung (oder Maus schwingen)" : "In Pfeilrichtung wischen") + ", wenn der Pfeil die Linie erreicht: ← → zur Seite, ↑ Hüpfer, ↓ tief in die Knie.";
+    $("hStep").textContent = (d ? "Pfeiltaste in Pfeilrichtung (oder Maus schwingen)" : "In Pfeilrichtung wischen") + ", wenn der Pfeil im Ring ist: ← → zur Seite, ↑ Hüpfer, ↓ tief in die Knie.";
     $("hPose").textContent = "Auf den Schlussakkord tippen.";
     show("scrIntro");
   }
@@ -4066,6 +4138,7 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
       this.stepTo(run.bt[run.bt.length - 1] + 4);
     },
     fig(t) { return figureState(t, 0); },
+    honor() { if (run) { run.manual = false; startHonor(run); if (run.honor) run.honor.title = run.honorTitle || ""; } return !!(run && run.honor); },
     screen() { return SCREENS.find((s) => !$(s).hidden) || (run ? "run" : ""); },
   };
 
