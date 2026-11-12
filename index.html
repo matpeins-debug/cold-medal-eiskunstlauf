@@ -392,6 +392,36 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
 .intro .lane .sym { left: 68%; top: 50%; width: 22px; height: 22px; margin: -11px 0 0 -11px; border-radius: 50%; background: #DDA43B; color: #141B25; font-style: normal; font-size: 12px; display: flex; align-items: center; justify-content: center; }
 .intro .go { position: static; align-self: center; min-width: 180px; align-items: center; background: linear-gradient(180deg, #F3D58A, #DDA43B); color: #141B25; border-color: #8C6A2A; box-shadow: 0 3px 0 #8C6A2A, 0 0 18px rgba(243,213,138,0.35); letter-spacing: 0.3em; }
 @media (max-height: 380px) { .card.intro { padding: 10px 16px; gap: 6px; } .intro h2 { font-size: 20px; } .intro .how > div { padding: 5px 8px; } .intro .how span { font-size: 11.5px; } }
+
+.mid.honor { background: linear-gradient(180deg, #F3D58A, #DDA43B); color: #141B25; border-color: #8C6A2A; box-shadow: 0 0 14px rgba(243,213,138,0.45); animation: honorGlow 1.6s ease-in-out infinite; }
+@keyframes honorGlow { 50% { box-shadow: 0 0 22px rgba(243,213,138,0.8); } }
+/* zehn Stücke: fünf je Reihe, kompakt; bei wenig Höhe scrollt die Liste */
+.mus { grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 6px; overflow-y: auto; min-height: 0; max-height: 100%; }
+.muC { min-height: 0; padding: 7px 8px; gap: 1px; }
+.muC b { font-size: 13.5px; }
+.muC small { font-size: 10px; }
+.muC i { font-size: 10.5px; margin-top: 2px; line-height: 1.2; }
+.muC span { margin-top: 4px; font-size: 10.5px; }
+.muF { gap: 6px; }
+.muPlay { width: 26px; height: 26px; padding: 6px; flex: none; }
+.rBtns { min-width: 0; }
+.rBtns .mid { min-width: 0; letter-spacing: 0.02em; white-space: nowrap; }
+.rBtns { flex-wrap: wrap; }
+.rBtns .mid.honor { flex: 1 0 100%; padding: 5px 4px; }
+#rHonor[hidden] { display: none; }
+/* Bildlaufleisten: schmal, Gold auf Nachtblau, ohne Pfeile; nie waagrecht */
+.rElsWrap, .mus, .sheet, .card.info .ifBody { scrollbar-width: thin; scrollbar-color: rgba(227,184,96,0.7) transparent; }
+.rElsWrap { overflow-x: hidden; padding-right: 4px; }
+.rElsWrap::-webkit-scrollbar, .mus::-webkit-scrollbar, .sheet::-webkit-scrollbar, .ifBody::-webkit-scrollbar { width: 4px; height: 0; }
+.rElsWrap::-webkit-scrollbar-track, .mus::-webkit-scrollbar-track, .sheet::-webkit-scrollbar-track, .ifBody::-webkit-scrollbar-track { background: rgba(227,184,96,0.08); border-radius: 2px; }
+.rElsWrap::-webkit-scrollbar-thumb, .mus::-webkit-scrollbar-thumb, .sheet::-webkit-scrollbar-thumb, .ifBody::-webkit-scrollbar-thumb { background: linear-gradient(180deg, #F3D58A, #B88A3A); border-radius: 2px; }
+.rElsWrap::-webkit-scrollbar-button, .mus::-webkit-scrollbar-button { display: none; height: 0; }
+.card.res .els { table-layout: fixed; }
+.card.res .els td.e { overflow: hidden; }
+.card.res .els td.e i { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.card.res .els td.n { width: 42px; }
+.card.res .els td.g { width: 30px; }
+.card.res:has(#rHonor:not([hidden])) .rTip { -webkit-line-clamp: 1; }
 </style>
 </head>
 <body>
@@ -520,7 +550,7 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
       <div class="ifBody">
         <h3>Fanspiel</h3><p>Inoffizielles Fanspiel ohne Verbindung zur Internationalen Eislaufunion (ISU), zu Verbänden oder Veranstaltern. Alle Läuferinnen und Läufer sind erfunden; Elemente und Wertung folgen dem echten Sport, in eigenen Worten.</p>
         <h3>Wertung</h3><p>Technik: Grundwert jedes Elements mal GOE (Abweichung vom Schlag). Komponenten: Komposition (Plan und Choreo-Note), Präsentation (Takt 60 %, Ausdruck 20 %: Choreo-Figuren ✦ auf den Schlag getippt, Ausstrahlung 20 %: Schlusspose, ohne Sturz, längste Serie sauberer Elemente) und läuferisches Können. Sturz −1.</p>
-        <h3>Musik</h3><p>Johann Strauss (Sohn), „An der schönen blauen Donau“ (1867); Émile Waldteufel, „Die Schlittschuhläufer“ (1882); Iosif Ivanovici, „Donauwellen“ (1880); Johannes Brahms, Wiegenlied „Guten Abend, gut' Nacht“ (1868); Johann Strauss (Sohn), „Rosen aus dem Süden“ (1880); Peter Tschaikowski, „Blumenwalzer“ aus dem Nussknacker (1892) und Walzer aus „Schwanensee“ (1877). Alle gemeinfrei; eigener, vereinfachter Satz, im Browser erzeugt, keine Aufnahme.</p>
+        <h3>Musik</h3><p>Johann Strauss (Sohn), „An der schönen blauen Donau“ (1867); Émile Waldteufel, „Die Schlittschuhläufer“ (1882); Iosif Ivanovici, „Donauwellen“ (1880); Johannes Brahms, Wiegenlied „Guten Abend, gut' Nacht“ (1868); Johann Strauss (Sohn), „Rosen aus dem Süden“ (1880); Peter Tschaikowski, „Blumenwalzer“ aus dem Nussknacker (1892) und Walzer aus „Schwanensee“ (1877); Johann Strauss (Sohn), „Kaiserwalzer“ (1889) und „Geschichten aus dem Wienerwald“ (1868); Franz Lehár, „Lippen schweigen“ aus „Die lustige Witwe“ (1905). Alle gemeinfrei; eigener, vereinfachter Satz, im Browser erzeugt, keine Aufnahme.</p>
         <h3>Ort</h3><p id="ifPlace"></p>
         <h3>Datenschutz</h3><p>Kein Konto, keine Werbung, keine Cookies, keine Analyse. Name, Aussehen, Bestwerte und Einstellungen speichert das Spiel nur im Browser auf diesem Gerät; es sendet nichts an einen Server.</p><p id="ifPriv"></p>
         <h3>Impressum</h3><p id="ifImp"></p>
@@ -541,7 +571,7 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
         <div class="rBody">
           <div class="rElsWrap"><table class="els" id="rEls"></table></div>
           <div class="rSide"><table class="board" id="rBoard"></table><div class="rTip" id="rTip"></div>
-            <div class="rBtns"><button class="mid red" id="rAgain">Nochmal</button><button class="mid" id="rPaint">Kür-Bild</button><button class="mid" id="rMenu">Menü</button></div></div>
+            <div class="rBtns"><button class="mid honor" id="rHonor" hidden>✦ Ehrenrunde</button><button class="mid red" id="rAgain">Nochmal</button><button class="mid" id="rPaint">Kür-Bild</button><button class="mid" id="rMenu">Menü</button></div></div>
         </div>
       </div>
     </div>
@@ -577,6 +607,8 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
     "F#m": { b: ["F#1", "C#2"], c: ["F#3", "A3", "C#4"] },
     B7: { b: ["B1", "F#2"], c: ["A3", "B3", "D#4"] },
     C: { b: ["C2", "G2"], c: ["G3", "C4", "E4"] },
+    "C#7": { b: ["C#2", "G#1"], c: ["F3", "G#3", "B3"] },
+    "F#7": { b: ["F#1", "C#2"], c: ["A#3", "C#4", "E4"] },
   };
   // Takt eine Oktave höher (für Wiederholungen mit mehr Glanz)
   const up = (bar) => [bar[0], bar[1] === "." ? "." : bar[1].replace(/([A-G][#b]?)(\d)/g, (_, n, o) => n + (+o + 1))];
@@ -710,9 +742,45 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
     bars: [["A", "."], ["A", "."], ["E7", "."], ["E7", "."], ...SW_LO, ...SW_HI],
     end: "A",
   };
+  // Franz Lehár, Walzer „Lippen schweigen“ aus „Die lustige Witwe“ (1905, gemeinfrei), A-Dur. Melodie nach der freien Violinstimme
+  // von 8notes.com, Harmonien aus deren Begleitung, eigener Satz.
+  const WIDOW = {
+    id: "witwe", title: "Lippen schweigen", short: "Lustige Witwe", composer: "Franz Lehár, 1905",
+    bpm: 126, meter: 3, pulse: 1, acc: "waltz", swing: true, finNote: "A4",
+    bars: [["A", "."], ["A", "."], ["E7", "."], ["E7", "."],
+      ["A", "1:E4:2 3:A4"], ["A", "1:B4:2 3:C#5"], ["A", "1:E4:2 3:A4"], ["A", "1:B4:2 3:C#5"], ["E7", "1:D5:3"], ["A", "1:C#5:3"], ["E7", "1:B4:6"], ["E7", "."],
+      ["E7", "1:E4:2 3:B4"], ["E7", "1:C#5:2 3:D5"], ["E7", "1:E4:2 3:B4"], ["E7", "1:C#5:2 3:D5"], ["A", "1:E5:3"], ["E7", "1:D5:3"], ["A", "1:C#5:6"], ["A", "."],
+      ["D", "1:F#5:2 3:F#5"], ["E7", "1:G#5:2 3:F#5"], ["A", "1:E5:3"], ["F#m", "1:A4:3"], ["Bm", "1:D5:2 3:D5"], ["E7", "1:E5:2 3:D5"], ["C#7", "1:C#5:6"], ["C#7", "."],
+      ["E7", "1:B4:2 3:B4"], ["E7", "1:C#5:2 3:B4"], ["A", "1:E5:2 3:C#5"], ["D", "1:A4:2 3:F#4"], ["Bm", "1:A4:3"], ["E7", "1:B4:3"], ["A", "1:A4:6"], ["A", "."]],
+    end: "A",
+  };
+  // Johann Strauss (Sohn), „Geschichten aus dem Wienerwald“ op. 325 (1868, gemeinfrei), erster Walzer in G-Dur, Melodie nach 8notes.com
+  const WALD = {
+    id: "wald", title: "Geschichten aus dem Wienerwald", short: "Wienerwald", composer: "Johann Strauss (Sohn), 1868",
+    bpm: 150, meter: 3, pulse: 1, acc: "waltz", swing: true, finNote: "G5",
+    bars: [["G", "."], ["G", "."], ["D7", "."], ["D7", "3.5:A#4:0.5"],
+      ["G", "1:B4:2.5 3.5:A#4:0.5"], ["G", "1:B4:2.5 3.5:A#4:0.5"], ["G", "1:B4:0.5 3:D5:0.5"], ["G", "1:D5:2.5 3.5:C5:0.25"], ["G", "1:C5:2.5 3.5:B4:0.25"], ["G", "1:B4:2.5 3.5:G#4:0.5"],
+      ["Am", "1:B4:0.5 3:A4:0.5"], ["Am", "1:A4:2.5 3.5:G#4:0.5"], ["Am", "1:B4:2.5 3.5:A4:0.25"], ["Am", "1:A4:2.5 3.5:G4:0.25"],
+      ["D7", "1:G4 3:F#4:0.5"], ["D7", "1:F#4:2.5 3.5:D#4:0.5"], ["D7", "1:F#4:2.5 3.5:E4:0.25"], ["D7", "1:E4:2.5 3.5:D4:0.5"], ["G", "1:A#3 3:B3"], ["G", "1:B3 3.5:A#4:0.5"],
+      ["G", "1:B4:2.5 3.5:A#4:0.5"], ["G", "1:B4:2.5 3.5:A#4:0.5"], ["G", "1:B4:0.5 3:D5:0.5"], ["G", "1:D5:2.5 3.5:C5:0.25"], ["G", "1:C5:2.5 3.5:B4:0.25"], ["G", "1:B4:2.5 3.5:G#4:0.5"],
+      ["Am", "1:B4:0.5 3:A4"], ["Am", "1:A4:2.5 3.5:A4:0.5"], ["Am", "1:B4 3:A4"], ["A7", "1:A4 3:G5"], ["G", "1:G5 3:D5"], ["G", "1:D5 2:D5:0.5 2.5:D5:0.5 3:E5:0.5 3.5:B4:0.5"],
+      ["D7", "1:D5:0.25 2:D5:0.25 3:C5:2"], ["D7", "2:E5:0.5 2.5:E5:0.5 3:F#5:0.5 3.5:C5:0.5"], ["G", "1:E5:0.25 2:E5:0.25 3:D5:1.5"], ["G", "1.5:G5:0.5 2:G5:1.5 3.5:G5:0.5"]],
+    end: "G",
+  };
+  // Johann Strauss (Sohn), „Kaiserwalzer“ op. 437 (1889, gemeinfrei), D-Dur: erst das zarte Thema, dann das berühmte große. Melodie nach 8notes.com
+  const KAISER = {
+    id: "kaiser", title: "Kaiserwalzer", short: "Kaiserwalzer", composer: "Johann Strauss (Sohn), 1889",
+    bpm: 150, meter: 3, pulse: 1, acc: "waltz", swing: true, finNote: "D5",
+    bars: [["D", "."], ["D", "."], ["A7", "."], ["A7", "."],
+      ["D", "1:F#4 2:A4:1.5 3.5:E4:0.5"], ["A7", "1:G4:3"], ["D", "1:F#4 2:A3 3:F#4"], ["A7", "1:E4:3"], ["B7", "1:G4 2:B4:1.5 3.5:F#4:0.5"], ["D7", "1:A4:3"], ["A7", "1:G4 2:A3 3:G4"], ["D", "1:F#4:3"],
+      ["D", "1:F#4 2:A4:1.5 3.5:E4:0.5"], ["A7", "1:G4:3"], ["B7", "1:F#4 2:B3 3:F#4"], ["Em", "1:E4:3"], ["G", "1:D5 2:D5:1.5 3.5:A4:0.5"], ["A7", "1:C#5:2 3:B4"], ["A7", "1:A4 2:G4 3:E4"], ["D", "1:D4:3"],
+      ["D", "1:D5 2:F#5:2"], ["D", "1:F#5 2:C#5:2"], ["Em", "1:C#5:0.75 1.75:E5:0.25 2:E5:0.5 3:E5:0.5"], ["Em", "1:B4:3"], ["A7", "1:C#5 2:E5:2"], ["A7", "1:E5 2:B4:2"], ["D", "1:B4:0.75 1.75:D5:0.25 2:D5:0.5 3:D5:0.5"], ["D", "1:A4:3"],
+      ["D", "1:D5 2:F#5:2"], ["D", "1:F#5 2:C#5:2"], ["Em", "1:C#5:0.75 1.75:E5:0.25 2:E5:0.5 3:E5:0.5"], ["Em", "1:B4:3"], ["F#7", "1:G5 2:F#5:1.5 3.5:C#5:0.5"], ["Bm", "1:E5 2:D5:1.5 3.5:B4:0.5"], ["A7", "1:B4:2 3:A4"], ["A7", "1:A4:3"]],
+    end: "D",
+  };
   DONAU.short = "Donauwalzer"; BARCA.short = "Barcarole";
-  const SCORES = { donau: DONAU, barca: BARCA, skaters: SKATERS, brahms: BRAHMS, wellen: WELLEN, rosen: ROSEN, blumen: FLOWER, schwan: SWAN };
-  const KUER = ["donau", "rosen", "skaters", "blumen", "wellen", "schwan", "brahms"]; // Stücke für die Kür: je 36 Takte im 3/4-Takt, Melodie ab Takt 4
+  const SCORES = { donau: DONAU, barca: BARCA, skaters: SKATERS, brahms: BRAHMS, wellen: WELLEN, rosen: ROSEN, blumen: FLOWER, schwan: SWAN, witwe: WIDOW, wald: WALD, kaiser: KAISER };
+  const KUER = ["donau", "kaiser", "wald", "rosen", "witwe", "skaters", "blumen", "wellen", "schwan", "brahms"]; // Stücke für die Kür: je 36 Takte im 3/4-Takt, Melodie ab Takt 4
 
   // Stück → Ereignisliste in Schlägen: { beat, m, dur, part: "mel"|"bass"|"chord", acc }
   function events(score) {
@@ -1111,8 +1179,11 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
     rosen: Object.assign({ peak: [5, 6] }, SEC0), // die Melodie steigt zum Cis5, Bogen über die Dominante
     blumen: Object.assign({ peak: [3, 7] }, SEC0), // Läufe hinauf zum D6 und zum G6
     schwan: Object.assign({ peak: [5, 6] }, SEC0), // verzierte Wiederholung, langes E5
+    witwe: Object.assign({ peak: [3, 4] }, SEC0), // E5, dann Fis5 und Gis5
+    wald: Object.assign({ peak: [6, 7] }, SEC0), // zweites Thema bis G5
+    kaiser: Object.assign({ peak: [6, 7] }, SEC0), // das große Thema, G5
   };
-  const MUSIC_NAME = { donau: "Donauwalzer", skaters: "Schlittschuhläufer", wellen: "Donauwellen", brahms: "Wiegenlied", rosen: "Rosen aus dem Süden", blumen: "Blumenwalzer", schwan: "Schwanensee" };
+  const MUSIC_NAME = { donau: "Donauwalzer", skaters: "Schlittschuhläufer", wellen: "Donauwellen", brahms: "Wiegenlied", rosen: "Rosen aus dem Süden", blumen: "Blumenwalzer", schwan: "Schwanensee", witwe: "Lustige Witwe", wald: "Wienerwald", kaiser: "Kaiserwalzer" };
   // Choreografie wie im Tanzsport durchplanen: jeder Abschnitt hat eine Stimmung, zu der manche Elemente besser passen
   const MOODS = {
     donau: [
@@ -1143,6 +1214,18 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
       ["schlicht, das Thema", ["choreo", "spin"]], ["Sehnsucht", ["spin", "jump"]], ["Thema noch einmal", ["jump", "choreo"]], ["sinkt", ["spin", "choreo"]],
       ["verziert", ["jump", "choreo"]], ["Höhepunkt", ["steps", "jump"]], ["Höhepunkt", ["jump", "steps"]], ["Ausklang", ["spin", "choreo"]],
     ],
+    witwe: [
+      ["leise, verliebt", ["choreo", "spin"]], ["Sehnsucht", ["spin", "choreo"]], ["Frage", ["jump", "choreo"]], ["Antwort", ["spin", "jump"]],
+      ["Herz geht auf", ["jump", "steps"]], ["schwebt", ["steps", "spin"]], ["noch einmal", ["jump", "choreo"]], ["„Hab mich lieb“", ["spin", "choreo"]],
+    ],
+    wald: [
+      ["Ländler, wiegend", ["choreo", "jump"]], ["Thema", ["jump", "spin"]], ["im Schatten", ["spin", "choreo"]], ["Vogelruf", ["steps", "jump"]],
+      ["Thema noch einmal", ["jump", "choreo"]], ["Wendung", ["spin", "jump"]], ["Lichtung", ["steps", "jump"]], ["tanzt hinaus", ["steps", "jump", "spin"]],
+    ],
+    kaiser: [
+      ["zart, Einzug", ["choreo", "spin"]], ["verneigt sich", ["spin", "choreo"]], ["Thema noch einmal", ["jump", "choreo"]], ["Kadenz", ["spin", "jump"]],
+      ["das große Thema", ["jump", "steps"]], ["schwingt", ["steps", "jump"]], ["Glanz", ["jump", "steps"]], ["Prunk zum Schluss", ["steps", "jump", "spin"]],
+    ],
   };
   // Kostüm zur Musik (Index wie CMFigur.SUIT: Rot, Blau, Grün, Gold, Violett, Nachtblau): Wert 0 … 10 und ein Wort dazu
   const COSTUME = {
@@ -1153,6 +1236,9 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
     rosen: { fit: [10, 5, 6, 9, 7, 6], best: "Rosenrot oder Gold, wie ein Strauß aus dem Süden" },
     blumen: { fit: [7, 6, 10, 8, 9, 4], best: "Blütenfarben: Grün, Violett oder Gold" },
     schwan: { fit: [4, 8, 5, 7, 9, 10], best: "Nachtblau oder Violett wie der Schwanensee bei Nacht" },
+    witwe: { fit: [9, 6, 5, 8, 10, 7], best: "Ballkleid-Farben: Violett, Rot oder Gold" },
+    wald: { fit: [5, 7, 10, 7, 6, 6], best: "Waldgrün, dazu Gold oder Blau" },
+    kaiser: { fit: [8, 7, 5, 10, 9, 8], best: "kaiserlich: Gold, Violett oder Rot" },
   };
   // Show-Effekte je Abschnitt (höchstens 3): Lasershow, Feuerwerk, Kostümwechsel (Farben von Kostüm und Streifen tauschen)
   const FX = { laser: "Lasershow", fire: "Feuerwerk", swap: "Kostümwechsel" }, FX_MAX = 3;
@@ -2738,7 +2824,7 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
 /* COLD MEDAL EISKUNSTLAUF – Ablauf, Bildschirme, Eingabe, Taktband, Ergebnis, Spielstand. */
 (function () {
   "use strict";
-  const VERSION = "0.26";
+  const VERSION = "0.28";
   // Seiten-Einstellungen aus dem Build (eigenes Hosting: Adresse, Hoster, Impressum); im claude.ai-Artefakt leer
   const SITE = Object.assign({ web: false, url: "", impressum: null }, {"web": true, "url": "https://matpeins-debug.github.io/cold-medal-eiskunstlauf/", "hoster": "GitHub Pages (GitHub Inc., USA)", "drittland": "GitHub ist nach dem EU-US Data Privacy Framework zertifiziert; die Übermittlung in die USA stützt sich auf den Angemessenheitsbeschluss der EU-Kommission dazu.", "impressum": {"name": "", "adresse": "", "mail": ""}} || {});
   const M = window.EKMusic, K = window.EKSkate, F = window.EKFig, SC = window.EKScene;
@@ -3022,23 +3108,14 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
     if (run && run.honor) { if (songTime() - run.honor.t0 > 0.6) endHonor(); return; }
     if (!run || run.finished) return;
     const t = songTime() - (run.fake ? 0 : S.lat / 1000);
-    if (run.down) { if (type === "down") riseTap(t); return; } // am Boden: Tippen hilft nur beim Aufstehen
+    // am Boden: nur Pfeil nach oben (oder nach oben wischen) hilft – damit steht sie auf; alles andere geht nicht
+    if (run.down) { if (type === "swipe" && dir === "u" && t > run.down.t0 + 0.4) standUp(t); else if (type !== "up") run.down.shake = t; return; }
     const inp = { t, type }; if (dir) inp.dir = dir;
     run.inputs.push(inp);
     feedback(inp);
   }
-  // Aufstehen nach einem Sturz: dreimal auf aufeinanderfolgende Schläge tippen (1 · 2 · 3), daneben fängt von vorn an.
-  // Wer liegen bleibt, verpasst die nächsten Elemente; nach 6 s steht sie von selbst auf.
-  const RISE_N = 3;
+  // Aufstehen nach einem Sturz: Pfeil ↑ oder einmal nach oben wischen; wer liegen bleibt, verpasst die nächsten Elemente, nach 6 s steht sie von selbst auf
   function nearBeat(t) { const bt = run.bt; let i = 0, best = 0; for (; i < bt.length; i++) if (Math.abs(bt[i] - t) < Math.abs(bt[best] - t)) best = i; return { i: best, d: t - bt[best] }; }
-  function riseTap(t) {
-    const D = run.down; if (t < D.t0 + 0.35) return;
-    const nbx = nearBeat(t), ok = Math.abs(nbx.d) <= 0.11 * run.k;
-    if (ok && (D.hits === 0 || nbx.i === D.last + 1)) { D.hits++; D.last = nbx.i; sfx("land"); }
-    else if (ok) { D.hits = 1; D.last = nbx.i; }
-    else { D.hits = 0; D.shake = t; }
-    if (D.hits >= RISE_N) standUp(t);
-  }
   function standUp(t) { run.down = null; run.fallUntil = t + 0.6; run.riseT = t; pop("wieder auf den Beinen", "#F1E7D2"); }
   // sofortige Rückmeldung: nächste passende Marke suchen
   function feedback(inp) {
@@ -3299,7 +3376,7 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
       }
     }
     if (r.down && t > r.down.t0 + 6) standUp(t);
-    if (r.down) { const u = clamp((t - r.down.t0) / 0.3, 0, 1), sh = t - r.down.shake < 0.4 ? Math.sin((t - r.down.shake) * 40) * 0.05 : 0; pose = F.mix(F.POSES.fallen, F.POSES.handDown, r.down.hits / RISE_N * 0.7); tilt = -1.25 * smooth(u) * (1 - r.down.hits * 0.12) + sh; lift = -4; }
+    if (r.down) { const u = clamp((t - r.down.t0) / 0.3, 0, 1), sh = t - r.down.shake < 0.4 ? Math.sin((t - r.down.shake) * 40) * 0.05 : 0; pose = F.POSES.fallen; tilt = -1.25 * smooth(u) * (1 - r.down.hits * 0.12) + sh; lift = -4; }
     else if (t < r.fallUntil) { const u = smooth(clamp((r.fallUntil - t) / 0.6, 0, 1)); pose = F.mix(F.POSES.glide, F.POSES.handDown, u); tilt = -0.9 * u; lift = -4 * u; }
     else if (t < r.landUntil) {
       pose = F.mix(F.POSES.land, pose, smooth(1 - (r.landUntil - t) / 0.6));
@@ -3346,6 +3423,7 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
       const te = t - bt[bt.length - 1];
       pose = te < 1.3 ? F.POSES.final : F.mix(F.POSES.final, F.POSES.bow, smooth((te - 1.3) / 0.5) * smooth((3.3 - te) / 0.5));
     }
+    if (r.down) turn = 0; // am Boden dreht sich nichts mehr
     return { x: x + (r.slide || 0), d, pose, lift, turn: r.face + turn, tilt, swap: r.swap && !(el && (el.kind === "spin" || el.kind === "jump")) };
   }
 
@@ -3458,11 +3536,14 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
     return true;
   }
   function riseCue(fx, y, t) {
-    const D = run.down, nbx = nearBeat(t), ph = clamp(1 - Math.abs(nbx.d) / 0.18, 0, 1);
-    ctx.fillStyle = "rgba(20,27,37,0.78)"; ctx.beginPath(); ctx.arc(fx, y, 24 + 6 * ph, 0, 7); ctx.fill();
-    ctx.strokeStyle = `rgba(232,160,122,${0.4 + 0.6 * ph})`; ctx.lineWidth = 3; ctx.stroke();
-    for (let i = 0; i < RISE_N; i++) { ctx.fillStyle = i < D.hits ? "#F3C969" : "rgba(241,231,210,0.3)"; ctx.beginPath(); ctx.arc(fx - 12 + i * 12, y, 4.5, 0, 7); ctx.fill(); }
-    label(fx, y + 38, canHover() ? "AUFSTEHEN: LEERTASTE IM TAKT 1 · 2 · 3" : "AUFSTEHEN: IM TAKT TIPPEN 1 · 2 · 3");
+    // großer Pfeil nach oben, pulsiert: eine Taste (↑) oder einmal nach oben wischen
+    const D = run.down, ph = 0.5 + 0.5 * Math.sin(t * 7), sh = t - D.shake < 0.35 ? Math.sin((t - D.shake) * 50) * 3 : 0;
+    ctx.save(); ctx.translate(fx + sh, y);
+    ctx.fillStyle = "rgba(20,27,37,0.82)"; ctx.beginPath(); ctx.arc(0, 0, 25 + 3 * ph, 0, 7); ctx.fill();
+    ctx.strokeStyle = `rgba(243,201,105,${0.6 + 0.4 * ph})`; ctx.lineWidth = 3; ctx.stroke();
+    ctx.fillStyle = "#F3C969"; ctx.beginPath(); ctx.moveTo(0, -15 - 3 * ph); ctx.lineTo(11, -2 - 3 * ph); ctx.lineTo(4, -2 - 3 * ph); ctx.lineTo(4, 13 - 3 * ph); ctx.lineTo(-4, 13 - 3 * ph); ctx.lineTo(-4, -2 - 3 * ph); ctx.lineTo(-11, -2 - 3 * ph); ctx.closePath(); ctx.fill();
+    ctx.restore();
+    label(fx, y + 40, canHover() ? "AUFSTEHEN: PFEIL ↑ DRÜCKEN" : "AUFSTEHEN: NACH OBEN WISCHEN");
   }
   function drawCue(fx, fy, s, t, lift) {
     const c = cueMark(t), m = c.m;
@@ -3926,6 +4007,7 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
     $("rJury").querySelectorAll(".judge").forEach((x) => (x.onclick = () => setSay(+x.dataset.j)));
     // Ablauf: warten, Richter nacheinander, hochzählen, Platz
     const card = $("rCard"); card.classList.remove("done"); card.classList.add("wait");
+    $("rHonor").hidden = true;
     $("rTotal").textContent = "…"; $("rRank").textContent = "Die Wertung kommt";
     kc = { t0: performance.now(), stage: 0, rank: board ? rank : 9, look: S.look, fl: run.gifts ? run.gifts.fl : 0, toys: run.gifts ? run.gifts.toys : 0, t2: 0 };
     requestAnimationFrame(kcDraw);
@@ -3938,8 +4020,7 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
       if (board && rank <= 3) {
         // Jubel: Applaus und Bravo-Rufe, Konfetti im Kiss & Cry, danach die Ehrenrunde
         sfx("applause", rank === 1 ? 1 : 0.7); sfx("woo", rank === 1 ? 1 : 0.6);
-        const myRun = run; run.honorTitle = `${rank}. Platz · ${dec(res.total)} Punkte`;
-        if (!(run.fake && run.manual)) setTimeout(() => { if (run === myRun) { startHonor(myRun); if (run.honor) run.honor.title = myRun.honorTitle; } }, 3200);
+        run.honorTitle = `${rank}. Platz · ${dec(res.total)} Punkte`; $("rHonor").hidden = false; // Ehrenrunde auf Wunsch
       } else if (board) sfx("applause", 0.35);
       card.onclick = null;
     };
@@ -3979,6 +4060,7 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
   $("bTrain").onclick = () => { unlock(); intro("train"); };
   $("iGo").onclick = () => { unlock(); startRun(pendingMode); };
   $("abort").onclick = abortRun;
+  $("rHonor").onclick = () => { if (!run || !run.finished) return; unlock(); startHonor(run); if (run.honor) run.honor.title = run.honorTitle || ""; };
   $("rAgain").onclick = () => { unlock(); startRun(run ? run.mode : "comp"); };
   $("rMenu").onclick = () => { run = null; show("scrMenu"); };
 
@@ -4034,7 +4116,7 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
   const MUSIC_INFO = {
     donau: "festlich · Wiener Ballsaal", skaters: "beschwingt · ein Wintertag auf dem Eis",
     wellen: "leidenschaftlich · in Moll", brahms: "zart und ruhig · zum Träumen",
-    rosen: "schwungvoll · Olympiasieg 1936", blumen: "verspielt · aus dem Nussknacker", schwan: "anmutig · Ballett-Walzer",
+    rosen: "schwungvoll · Olympiasieg 1936", kaiser: "prunkvoll · Hofball in Wien", wald: "ländlich und heiter · Wienerwald", witwe: "verliebt · Operettenwalzer", blumen: "verspielt · aus dem Nussknacker", schwan: "anmutig · Ballett-Walzer",
   };
   const KIND = { jump: ["●○", "Sprung"], spin: ["⟳", "Pirouette"], steps: ["➜", "Schritte"], choreo: ["✦", "Choreo"], glide: ["⌒", "Gleiten"] };
   let listenOn = false;
