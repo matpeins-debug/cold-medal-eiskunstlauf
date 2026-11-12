@@ -2411,7 +2411,7 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
 /* COLD MEDAL EISKUNSTLAUF – Ablauf, Bildschirme, Eingabe, Taktband, Ergebnis, Spielstand. */
 (function () {
   "use strict";
-  const VERSION = "0.18";
+  const VERSION = "0.19";
   // Seiten-Einstellungen aus dem Build (eigenes Hosting: Adresse, Hoster, Impressum); im claude.ai-Artefakt leer
   const SITE = Object.assign({ web: false, url: "", impressum: null }, {"web": true, "url": "https://matpeins-debug.github.io/cold-medal-eiskunstlauf/", "hoster": "GitHub Pages (GitHub Inc., USA)", "drittland": "GitHub ist nach dem EU-US Data Privacy Framework zertifiziert; die Übermittlung in die USA stützt sich auf den Angemessenheitsbeschluss der EU-Kommission dazu.", "impressum": {"name": "", "adresse": "", "mail": ""}} || {});
   const M = window.EKMusic, K = window.EKSkate, F = window.EKFig, SC = window.EKScene;
@@ -2963,8 +2963,9 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
   // ------------------------------------------------------------------ Zeichnen
   let FONT = null;
   const font = () => FONT || (FONT = getComputedStyle(document.body).getPropertyValue("--font-display").trim() || "sans-serif");
+  const LANE_X = W / 2; // Trefferpunkt: alles Wichtige sitzt hier unten in der Mitte
   function drawLane(t) {
-    const y0 = 350, h = 34, px = 120, pps = 175;
+    const y0 = 350, h = 34, px = LANE_X, pps = 175;
     ctx.fillStyle = "rgba(20,27,37,0.72)"; ctx.fillRect(0, y0, W, h);
     const bt = run.bt;
     // Schläge
@@ -2981,6 +2982,7 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
       const x = px + (m.t - t) * pps, x2 = m.t2 !== undefined ? px + (m.t2 - t) * pps : x;
       if (x2 < -20 || x > W + 20) continue;
       const yc = y0 + h / 2;
+      ctx.globalAlpha = x2 < px - 6 ? 0.35 : 1; // Vergangenes links vom Ring tritt zurück
       if (m.kind === "glide") {
         ctx.fillStyle = "rgba(158,195,230,0.35)"; ctx.fillRect(x, yc - 4, x2 - x, 8);
         ctx.fillStyle = "#9EC3E6"; ctx.beginPath(); ctx.arc(x, yc, 9, 0, 7); ctx.fill();
@@ -2995,11 +2997,16 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
         ctx.fillText(m.kind === "spin" ? "⟳" : m.kind === "pose" ? "★" : m.kind === "expr" ? "✦" : { l: "←", r: "→", u: "↑", d: "↓" }[m.dir], x, yc + 1);
       }
     }
-    // Linie
-    ctx.fillStyle = "#C23B2A"; ctx.fillRect(px - 1.5, y0 - 3, 3, h + 6);
+    ctx.globalAlpha = 1;
+    // Trefferring in der Mitte statt einer Linie: hier kommen die Zeichen an, hier steht auch die Rückmeldung
+    {
+      const nbx = nearBeat(t), pu = clamp(1 - Math.abs(nbx.d) / 0.12, 0, 1), yc = y0 + h / 2;
+      ctx.fillStyle = "rgba(20,27,37,0.55)"; ctx.beginPath(); ctx.arc(px, yc, 19, 0, 7); ctx.fill();
+      ctx.strokeStyle = `rgba(243,201,105,${0.55 + 0.45 * pu})`; ctx.lineWidth = 2.5 + 1.5 * pu; ctx.beginPath(); ctx.arc(px, yc, 17 + 2 * pu, 0, 7); ctx.stroke();
+    }
     // Hinweis zum nächsten Element
     const nx = PROG.elements.find((e) => { const [a, b] = elWindow(e, bt); return b > t && a - 2.6 < t; });
-    if (nx && !run.down && (S.help === "anf" || t < 8)) {
+    if (nx && !run.down && (S.help === "anf" || t < 8) && !(run.rate && performance.now() - run.rate.t < 1100)) {
       const hint = { jump: canHover() ? "Leertaste drücken, halten, loslassen" : "drücken, halten, loslassen", spin: canHover() ? "kreisen oder Leertaste auf jedes ⟳" : "mit dem Finger kreisen, jede Runde auf ⟳",
         steps: canHover() ? "Pfeiltaste wie der Pfeil, wenn er die Linie erreicht" : "wisch in Pfeilrichtung, wenn er die Linie erreicht", pose: "tippen auf den Schlussakkord", expr: "tippen, wenn die Figur kommt",
         glide: nx.role === "entry" ? (canHover() ? "Leertaste halten, beim Eindrehen loslassen" : "halten, beim Eindrehen loslassen") : (canHover() ? "Leertaste halten, am Ende des Bogens loslassen" : "halten, am Ende des Bogens loslassen") }[nx.kind];
@@ -3104,19 +3111,20 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
   function drawRate(fx, fy, s) {
     const R0 = run.rate; if (!R0) return;
     const age = (performance.now() - R0.t) / 1000; if (age > 1.1) return;
-    const sc = age < 0.12 ? 0.7 + 2.5 * age : 1, al = age > 0.8 ? 1 - (age - 0.8) / 0.3 : 1, x = clamp(fx + 75 * s, 80, W - 200), y = fy - 18 * s - age * 8;
+    const sc = age < 0.12 ? 0.7 + 2.5 * age : 1, al = age > 0.8 ? 1 - (age - 0.8) / 0.3 : 1, x = LANE_X, y = 330 - age * 8;
     ctx.save(); ctx.globalAlpha = al; ctx.translate(x, y); ctx.scale(sc, sc);
     ctx.textAlign = "center"; ctx.textBaseline = "alphabetic"; ctx.font = "800 21px " + font(); ctx.lineWidth = 5; ctx.strokeStyle = "#141B25";
     ctx.strokeText(R0.w, 0, 0); ctx.fillStyle = R0.c; ctx.fillText(R0.w, 0, 0);
     stars(0, 12, R0.st, 6, R0.c);
     ctx.font = "600 11px " + font(); ctx.lineWidth = 3; const sub = `${sg(R0.ms)} ms` + (R0.streak >= 3 ? ` · Serie ${R0.streak}` : "");
-    ctx.strokeText(sub, 0, 32); ctx.fillStyle = "#F1E7D2"; ctx.fillText(sub, 0, 32);
+    ctx.font = "800 21px " + font(); const sx = ctx.measureText(R0.w).width / 2 + 10; ctx.font = "600 11px " + font();
+    ctx.textAlign = "left"; ctx.strokeText(sub, sx, -6); ctx.fillStyle = "#F1E7D2"; ctx.fillText(sub, sx, -6);
     ctx.restore();
   }
   function drawCard() {
     const C = run.card; if (!C) return;
     const age = (performance.now() - C.t) / 1000; if (age > 2.2) return;
-    const al = age < 0.15 ? age / 0.15 : age > 1.8 ? 1 - (age - 1.8) / 0.4 : 1, w = 230, h = 54, x = 12, y = 52 - (age < 0.15 ? (0.15 - age) * 60 : 0);
+    const al = age < 0.15 ? age / 0.15 : age > 1.8 ? 1 - (age - 1.8) / 0.4 : 1, w = 220, h = 50, x = LANE_X + 150, y = 288 - (age < 0.15 ? (0.15 - age) * 60 : 0);
     ctx.save(); ctx.globalAlpha = al;
     ctx.fillStyle = "rgba(15,23,48,0.88)"; ctx.fillRect(x, y, w, h); ctx.strokeStyle = C.bad ? "#E8705A" : "#F3C969"; ctx.lineWidth = 1.5; ctx.strokeRect(x + 0.5, y + 0.5, w - 1, h - 1);
     ctx.textBaseline = "alphabetic"; ctx.textAlign = "left"; ctx.fillStyle = "#F1E7D2"; ctx.font = "700 13px " + font(); ctx.fillText(C.name, x + 10, y + 19);
@@ -3127,14 +3135,15 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
   }
   // Takt-Meter: Mitte = genau auf dem Schlag, links zu früh, rechts zu spät; die letzten Eingaben als Striche
   function drawMeter() {
-    const w = 170, h = 18, x = W - w - 14, y = 324, R = 160; // ±160 ms
-    ctx.fillStyle = "rgba(15,23,48,0.75)"; ctx.fillRect(x - 6, y - 14, w + 12, h + 18);
+    const w = 150, h = 12, x = LANE_X - 150 - w - 6, y = 326, R = 160; // ±160 ms, links neben dem Ring
+    if (!(run.meter && run.meter.length)) return;
+    ctx.fillStyle = "rgba(15,23,48,0.75)"; ctx.fillRect(x - 6, y - 13, w + 12, h + 17);
     const X = (ms) => x + w / 2 + clamp(ms / R, -1, 1) * w / 2;
     ctx.fillStyle = "rgba(143,211,160,0.28)"; ctx.fillRect(X(-M.TIMING.good), y, X(M.TIMING.good) - X(-M.TIMING.good), h);
     ctx.fillStyle = "rgba(243,201,105,0.45)"; ctx.fillRect(X(-M.TIMING.perfect), y, X(M.TIMING.perfect) - X(-M.TIMING.perfect), h);
     ctx.fillStyle = "#FFF4D6"; ctx.fillRect(x + w / 2 - 0.75, y - 2, 1.5, h + 4);
     ctx.font = "600 9px " + font(); ctx.fillStyle = "rgba(241,231,210,0.7)"; ctx.textBaseline = "alphabetic";
-    ctx.textAlign = "left"; ctx.fillText("ZU FRÜH", x, y - 4); ctx.textAlign = "right"; ctx.fillText("ZU SPÄT", x + w, y - 4); ctx.textAlign = "center"; ctx.fillText("IM TAKT", x + w / 2, y - 4);
+    ctx.textAlign = "left"; ctx.fillText("FRÜH", x, y - 3); ctx.textAlign = "right"; ctx.fillText("SPÄT", x + w, y - 3); ctx.textAlign = "center"; ctx.fillText("IM TAKT", x + w / 2, y - 3);
     const now = performance.now();
     for (const m of run.meter || []) {
       const age = (now - m.t) / 1000, al = clamp(1 - age / 6, 0.15, 1), fresh = age < 0.4;
