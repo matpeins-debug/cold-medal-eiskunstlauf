@@ -444,6 +444,18 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
 .svB .mid:last-child { flex: none; }
 .svList .empty { grid-column: 1 / -1; font-style: italic; opacity: 0.7; padding: 10px 0; }
 
+/* Ansehen wie im Fernsehen */
+#tv { position: absolute; inset: 0; z-index: 30; }
+#tvBar { position: absolute; left: 50%; bottom: 10px; transform: translate(-50%, 16px); opacity: 0; pointer-events: none; transition: opacity 0.25s, transform 0.25s;
+  display: flex; align-items: center; gap: 10px; padding: 6px 12px; background: rgba(15,23,48,0.86); border: 1px solid rgba(227,184,96,0.55); box-shadow: 0 4px 18px rgba(0,0,0,0.35); }
+#tvBar.on { opacity: 1; transform: translate(-50%, 0); pointer-events: auto; }
+#tvBar button { width: 34px; height: 30px; border: 0; background: transparent; color: #F3D58A; font-size: 16px; cursor: pointer; }
+#tvBar button:active { transform: scale(0.92); }
+#tvSeek { width: 260px; accent-color: #E3B860; }
+#tvTime { font-family: var(--font-display); font-size: 11px; color: rgba(241,231,210,0.8); font-variant-numeric: tabular-nums; min-width: 72px; }
+.kc .watch { position: absolute; left: 8px; right: 8px; bottom: 8px; padding: 7px 4px; font-size: 11.5px; letter-spacing: 0.08em; background: rgba(15,23,48,0.85); color: #F3D58A; border-color: rgba(227,184,96,0.7); }
+.kc .honor:not([hidden]) ~ .watch, .kc .watch:has(+ .honor:not([hidden])) { bottom: 46px; }
+
 /* Cold Medal Games · Fenster „Deine Figur“ (pass/pass.css)
    Aussehen wie die Menüs des Skispringens: Papier mit Doppelrahmen, Knöpfe wie Druckmarken, Futura für Titel und Knöpfe,
    Buchschrift für Lesetext. Farben und Schriften kommen aus den Variablen des Spiels (alle Spiele der Reihe haben sie),
@@ -584,6 +596,11 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
   <canvas id="cv"></canvas>
   <div class="grain"></div>
 
+  <!-- Ansehen wie im Fernsehen: Tippen blendet die schmale Leiste ein, nach drei Sekunden verschwindet sie -->
+  <div id="tv" hidden>
+    <div id="tvBar"><button id="tvPlay" aria-label="Pause">❚❚</button><input type="range" id="tvSeek" min="0" max="600" value="0" aria-label="Zeitleiste"><span id="tvTime"></span>
+      <button id="tvClap" aria-label="Applaus">👏</button><button id="tvRose" aria-label="Blumen werfen">🌹</button><button id="tvX" aria-label="Schließen">✕</button></div>
+  </div>
   <div id="hud" hidden>
     <div id="chips"></div>
     <button class="ibtn" id="abort" aria-label="Kür abbrechen">×</button>
@@ -637,6 +654,7 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
         <div class="kicker">DEIN KÜR-BILD</div>
         <p class="note">Die Spur deiner Kür von oben: Gold war perfekt im Takt, Blau gut, Grau daneben. Sterne sind die Sprünge, die Rosetten deine Pirouetten.</p>
         <div class="col">
+          <button class="mid red" id="pWatch" hidden>▶ Ansehen</button>
           <button class="mid red" id="pShare">Teilen</button>
           <button class="mid" id="pAlbum">Album</button>
           <button class="mid" id="pBack">Zurück</button>
@@ -701,7 +719,7 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
 
   <section class="scr" id="scrRes" hidden>
     <div class="card res studio" id="rCard">
-      <div class="kc"><canvas id="rKC" width="360" height="560"></canvas><button class="mid honor" id="rHonor" hidden>✦ Ehrenrunde</button></div>
+      <div class="kc"><canvas id="rKC" width="360" height="560"></canvas><button class="mid watch" id="rWatch">▶ Ansehen</button><button class="mid honor" id="rHonor" hidden>✦ Ehrenrunde</button></div>
       <div class="rMain">
         <div class="rHead">
           <div class="rHeadL"><div class="kicker" id="rKick"></div><div class="rTot"><b class="num" id="rTotal"></b><span id="rRank"></span></div><div class="rSplit" id="rSplit"></div></div>
@@ -1161,7 +1179,7 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
         // Ebene, die der Leistung folgt: Streicher (bzw. ein heller Oberton bei Klavier und Spieluhr) schwellen an, wenn man im Takt ist
         this.rich = c.createGain(); this.rich.gain.value = 0.7; this.rich.connect(this.voices);
         this.ev = events(this.score); this.idx = 0;
-        this.t0 = c.currentTime + 0.15;
+        this.t0 = c.currentTime + 0.15 - (opt.at || 0); // at: ab dieser Stelle im Stück (Sekunden), z. B. beim Ansehen einer Aufzeichnung
         const nb = this.score.bars.length * this.score.meter;
         this.beatTimes = []; for (let b = 0; b <= nb; b++) this.beatTimes.push(this.beatAt(b));
         this.endTime = this.beatAt(nb) + (this.score.ev ? 1 : 6) * 60 / this.bpm;
@@ -3549,7 +3567,7 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
 /* COLD MEDAL EISKUNSTLAUF – Ablauf, Bildschirme, Eingabe, Taktband, Ergebnis, Spielstand. */
 (function () {
   "use strict";
-  const VERSION = "0.37";
+  const VERSION = "0.38";
   // Seiten-Einstellungen aus dem Build (eigenes Hosting: Adresse, Hoster, Impressum); im claude.ai-Artefakt leer
   const SITE = Object.assign({ web: false, url: "", impressum: null }, {"web": true, "supabase": {"url": "https://pqpvgkslozsekjywpdrf.supabase.co", "key": "sb_publishable_KkKe9jchmXYp_-OEmB8WLQ_gZLXrRhF"}, "url": "https://matpeins-debug.github.io/cold-medal-eiskunstlauf/", "hoster": "GitHub Pages (GitHub Inc., USA)", "drittland": "GitHub ist nach dem EU-US Data Privacy Framework zertifiziert; die Übermittlung in die USA stützt sich auf den Angemessenheitsbeschluss der EU-Kommission dazu.", "impressum": {"name": "", "adresse": "", "mail": ""}} || {});
   const M = window.EKMusic, K = window.EKSkate, F = window.EKFig, SC = window.EKScene, PASS = window.CMPass;
@@ -3569,7 +3587,7 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
 
   // ------------------------------------------------------------------ Spielstand (nur auf diesem Gerät; Aussehen zieht später in pass/ um)
   const KEY = "coldmedal-eiskunstlauf";
-  const DEF = { v: 1, prog: null, name: "", nat: "AUT", look: F.DEF_LOOK, help: "norm", lv3: 1, progAuto: true, saved: [], passSeen: 0, sound: 1, preset: "salon", lat: 0, music: "donau", fx: [null, null, null, null, null, null, null, null], best: 0, bestTrain: 0, runs: 0, flowers: 0, toys: 0, album: [] };
+  const DEF = { v: 1, prog: null, name: "", nat: "AUT", look: F.DEF_LOOK, help: "norm", lv3: 1, progAuto: true, saved: [], passSeen: 0, recs: [], sound: 1, preset: "salon", lat: 0, music: "donau", fx: [null, null, null, null, null, null, null, null], best: 0, bestTrain: 0, runs: 0, flowers: 0, toys: 0, album: [] };
   function sanitize(o) {
     const S = Object.assign({}, DEF, { look: F.cleanLook(null), prog: K.DEFAULT_SLOTS.slice(), album: [] });
     if (o && typeof o === "object") {
@@ -3578,6 +3596,7 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
       S.look = F.cleanLook(o.look);
       if (o.help === "pro" || o.help === "anf" || o.help === "norm") S.help = o.help;
       if (o.passSeen) S.passSeen = 1;
+      if (Array.isArray(o.recs)) S.recs = o.recs.slice(0, 8).map(cleanRec).filter(Boolean);
       if (o.help === "anf" && !o.lv3) S.help = "norm"; // bis 0.28 hieß die normale Stufe „Anfänger“
       S.sound = o.sound === 0 ? 0 : 1;
       if (M.PRESETS[o.preset]) S.preset = o.preset;
@@ -3589,10 +3608,21 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
       if (M.KUER.includes(o.music)) S.music = o.music;
       S.fx = K.cleanFx(o.fx);
       S.album = Array.isArray(o.album) ? o.album.filter((a) => a && typeof a.img === "string" && a.img.startsWith("data:image/jpeg;base64,") && a.img.length < 250000)
-        .slice(0, 8).map((a) => ({ img: a.img, date: String(a.date || "").slice(0, 12), score: String(a.score || "").slice(0, 12), venue: String(a.venue || "").slice(0, 40) })) : [];
+        .slice(0, 8).map((a) => ({ img: a.img, date: String(a.date || "").slice(0, 12), score: String(a.score || "").slice(0, 12), venue: String(a.venue || "").slice(0, 40), rec: String(a.rec || "").slice(0, 16) })) : [];
       for (const k of ["best", "bestTrain", "runs", "flowers", "toys"]) if (Number.isFinite(o[k]) && o[k] >= 0) S[k] = +o[k];
     }
     return S;
+  }
+  // Aufzeichnung einer Kür: nur Plan, Figur und die Eingaben mit Zeit (ms) – daraus entsteht beim Ansehen alles neu (wie die
+  // Geister im Skispringen, aber noch kleiner). Eingabe-Kürzel: d = drücken, u = loslassen, c = kreisen, l/r/h/t = Pfeil links/rechts/hoch/tief.
+  const IN_CODE = { down: "d", up: "u", circle: "c" }, DIR_CODE = { l: "l", r: "r", u: "h", d: "t" }, CODE_IN = { d: ["down"], u: ["up"], c: ["circle"], l: ["swipe", "l"], r: ["swipe", "r"], h: ["swipe", "u"], t: ["swipe", "d"] };
+  function cleanRec(r) {
+    if (!r || typeof r !== "object" || typeof r.in !== "string" || r.in.length > 6000 || !M.SCORES[r.music]) return null;
+    const look = F.cleanLook(r.look);
+    return { v: 1, id: String(r.id || "").slice(0, 16), at: +r.at || 0, mode: r.mode === "train" ? "train" : "comp", name: String(r.name || "").replace(/[<>&"]/g, "").slice(0, 14), nat: /^[A-Z]{3}$/.test(r.nat) ? r.nat : "AUT",
+      look, music: r.music, slots: K.cleanSlots(r.slots), fx: K.cleanFx(r.fx), lvl: ["anf", "norm", "pro"].includes(r.lvl) ? r.lvl : "norm", cap: [8, 9, 10].includes(r.cap) ? r.cap : 9,
+      seed: (+r.seed >>> 0) || 7, in: r.in.replace(/[^0-9a-z;]/g, ""), total: +r.total || 0, rank: +r.rank || 0,
+      board: Array.isArray(r.board) ? r.board.slice(0, 8).map((b) => ({ name: String(b.name || "").replace(/[<>&"]/g, "").slice(0, 20), nat: /^[A-Z]{3}$/.test(b.nat) ? b.nat : "", total: +b.total || 0, me: !!b.me })) : null };
   }
   let S = sanitize(null);
   try { S = sanitize(JSON.parse(localStorage.getItem(KEY) || "null")); } catch (e) { /* ohne Speicher */ }
@@ -3739,6 +3769,7 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
   const planCap = () => (S.progAuto ? 8 : LV().own ? 10 : 9);
   function songTime() {
     if (!run) return 0;
+    if (run.paused != null) return run.paused;
     if (run.fake) return run.fakeT;
     if (run.finished) return run.finishT + (performance.now() - run.finishAt) / 1000; // nach dem Ende läuft die Szene weiter (Blumen landen)
     return player && player.playing ? player.heardNow() - player.t0 : run.lastT + (run.lastT > run.bt[run.bt.length - 1] ? (performance.now() - (run.lastNow || performance.now())) / 1000 : 0);
@@ -3760,11 +3791,20 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
   const elWindow = K.elWindow;
   function startRun(mode, opt) {
     opt = opt || {};
-    const fake = !!opt.fake || testMode || !player;
-    useMusic(); PROG = K.buildProgram(S.prog, SCORE.id, S.help); PROG.look = S.look; PROG.fx = S.fx.slice(); PROG.planCap = planCap();
-    const lv = LV(), bt = M.grid(SCORE, Math.round(SCORE.bpm * lv.tempo), true);
+    const fake = !!opt.fake || testMode || !player, rec = opt.replay || null;
+    if (rec) { SCORE = M.SCORES[rec.music]; PROG = K.buildProgram(rec.slots, rec.music, rec.lvl); PROG.look = rec.look; PROG.fx = rec.fx.slice(); PROG.planCap = rec.cap; }
+    else { useMusic(); PROG = K.buildProgram(S.prog, SCORE.id, S.help); PROG.look = S.look; PROG.fx = S.fx.slice(); PROG.planCap = planCap(); }
+    const lv = rec ? LEVELS[rec.lvl] || LEVELS.norm : LV(), bt = M.grid(SCORE, Math.round(SCORE.bpm * lv.tempo), true);
     run = { mode, lv, bt, marks: buildMarks(bt), inputs: [], fake, fakeT: -0.6, lastT: 0, done: {}, pops: [], p: 0, camX: WW / 2 - W / 2,
       dir: 1, face: 0, trail: [], trailT: 0, turn: 0, spinV: 0, jump: null, fallUntil: -1, landUntil: -1, lastSwipe: null, posed: false, finished: false, k: kHelp(), paint: { pts: [], marks: [], t: 0 }, sparks: [], burstQ: 0, lastQ: null, pos: null, intensity: 0.6, cheer: 0, burst: 0, streak: 0, bestStreak: 0, accI: 0, throws: null, intT: 0, seed: (Date.now() & 0xffff) || 7 };
+    run.raw = []; run.look = rec ? rec.look : S.look;
+    if (rec) {
+      // Aufzeichnung ansehen: gleicher Zufall, gleiche Eingaben; ohne Auftritt, ohne Taktband – wie im Fernsehen
+      Object.assign(run, { replay: rec, ri: 0, seed: rec.seed, mode: rec.mode });
+      show(null); $("hud").hidden = true; tvShow(true);
+      if (!fake && !opt.silent) { ambience(true); player.start(SCORE.id, { preset: S.preset, swing: true, bpm: Math.round(SCORE.bpm * lv.tempo), at: opt.at || 0 }); }
+      return;
+    }
     show(null); $("hud").hidden = false; buildChips();
     if (!fake) { run.entry = { t: 0, phase: 0, x: WW / 2 - 820, face: 0, sp: null }; ambience(true); }
     else if (opt.entry) run.entry = { t: 0, phase: 0, x: WW / 2 - 820, face: 0, sp: null, fake: true };
@@ -3861,11 +3901,13 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
   }
   function abortRun() { ambience(false); try { if (window.speechSynthesis) window.speechSynthesis.cancel(); } catch (e) { /* egal */ } if (player && player.playing) player.stop(); run = null; $("hud").hidden = true; show("scrMenu"); }
 
-  function addInput(type, dir) {
+  function addInput(type, dir, tAt) {
     if (run && run.entry) { if (run.entry.t > 0.4 || run.entry.phase) run.entry.skip = true; return; }
     if (run && run.honor) { if (songTime() - run.honor.t0 > 0.6) endHonor(); return; }
+    if (run && run.replay && tAt === undefined) { if (type === "down") tvTap(); return; } // beim Ansehen: Tippen zeigt die Leiste
     if (!run || run.finished) return;
-    const t = songTime() - (run.fake ? 0 : S.lat / 1000);
+    const t = tAt !== undefined ? tAt : songTime() - (run.fake ? 0 : S.lat / 1000);
+    if (!run.replay && run.raw.length < 1500) run.raw.push(Math.round(t * 1000) + (type === "swipe" ? DIR_CODE[dir] : IN_CODE[type]));
     // am Boden: nur Pfeil nach oben (oder nach oben wischen) hilft – damit steht sie auf; alles andere geht nicht
     if (run.down) { if (type === "swipe" && dir === "u" && t > run.down.t0 + 0.4) standUp(t); else if (type !== "up") run.down.shake = t; return; }
     const inp = { t, type }; if (dir) inp.dir = dir;
@@ -4431,6 +4473,65 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
     render(t, dt);
     if (!run.finished && t > run.bt[run.bt.length - 1] + 3.8) finish();
   }
+  // ------------------------------------------------------------------ Ansehen wie im Fernsehen: volles Bild mit Musik, keine Knöpfe.
+  // Tippen blendet eine schmale Leiste ein (Pause, Zeitleiste, Applaus, Blumen, Schließen), nach drei Sekunden verschwindet sie wieder.
+  let tvTimer = 0;
+  function tvShow(on) { $("tv").hidden = !on; $("tvBar").classList.remove("on"); clearTimeout(tvTimer); }
+  function tvTap() { const b = $("tvBar"); b.classList.add("on"); tvSync(); clearTimeout(tvTimer); tvTimer = setTimeout(() => b.classList.remove("on"), 3000); }
+  const tvEnd = () => run.bt[run.bt.length - 1] + 2;
+  function tvSync() {
+    if (!run || !run.replay) return;
+    const t = Math.max(0, songTime()), e = tvEnd();
+    $("tvPlay").textContent = run.paused != null ? "▶" : "❚❚"; $("tvSeek").max = Math.round(e * 10); $("tvSeek").value = Math.round(Math.min(t, e) * 10);
+    $("tvTime").textContent = `${mmss(Math.min(t, e))} / ${mmss(e)}`;
+  }
+  function tvPause() {
+    if (!run || !run.replay || run.finished) return;
+    if (run.paused == null) { run.paused = songTime(); if (player && player.playing) { player.onEnd = null; player.stop(); } ambience(false); }
+    else { const at = run.paused; tvSeekTo(at); }
+    tvTap();
+  }
+  // Springen: von vorn still nachrechnen bis zur Stelle (Eingaben und Bewegung), dann ab dort mit Musik weiter
+  function tvSeekTo(target) {
+    const rec = run.replay; target = clamp(target, 0, tvEnd() - 0.5);
+    if (player && player.playing) { player.onEnd = null; player.stop(); }
+    startRun(rec.mode, { replay: rec, fake: run.fake, at: target, silent: true });
+    const step = 1 / 30; let t = -0.6;
+    while (t < target) { t = Math.min(target, t + step); feedReplay(t); figureState(t, step); }
+    run.fakeT = target; run.lastT = target;
+    if (player && !run.fake) { ambience(true); player.start(SCORE.id, { preset: S.preset, swing: true, bpm: Math.round(SCORE.bpm * run.lv.tempo), at: target }); }
+  }
+  function drawTV(t) {
+    // Name und Land klein am Rand, wie eine Einblendung im Fernsehen; Musik oben rechts
+    const R0 = run.replay, txt = `${(R0.name || "Läuferin").toUpperCase()}  ·  ${R0.nat}`;
+    ctx.save(); ctx.font = "700 12px " + font(); const w = ctx.measureText(txt).width + 26;
+    ctx.fillStyle = "rgba(15,23,48,0.72)"; ctx.fillRect(14, H - 40, w, 24); ctx.fillStyle = "#E3B860"; ctx.fillRect(14, H - 40, 3, 24);
+    ctx.fillStyle = "#FFF4D6"; ctx.textAlign = "left"; ctx.textBaseline = "middle"; ctx.fillText(txt, 26, H - 28);
+    ctx.font = "italic 11px " + getComputedStyle(document.body).getPropertyValue("--font-body"); ctx.textAlign = "right"; ctx.fillStyle = "rgba(241,231,210,0.75)";
+    ctx.fillText(`♪ ${SCORE.title}`, W - 16, 22);
+    if (run.paused != null) { ctx.fillStyle = "rgba(10,14,30,0.35)"; ctx.fillRect(0, 0, W, H); ctx.font = "700 30px " + font(); ctx.textAlign = "center"; ctx.fillStyle = "#FFF4D6"; ctx.fillText("❚❚", W / 2, H / 2); }
+    ctx.restore();
+    if ($("tvBar").classList.contains("on")) tvSync();
+  }
+  function watch(rec) { if (!rec) return; unlock(); if (listenOn) listen(false); startRun(rec.mode, { replay: rec }); }
+  $("tvPlay").onclick = (e) => { e.stopPropagation(); tvPause(); };
+  $("tvSeek").oninput = (e) => { e.stopPropagation(); clearTimeout(tvTimer); };
+  $("tvSeek").onchange = (e) => { const was = run && run.paused != null; tvSeekTo(+e.target.value / 10); if (was) { run.paused = songTime(); if (player && player.playing) player.stop(); } tvTap(); };
+  $("tvClap").onclick = (e) => { e.stopPropagation(); if (!run) return; sfx("applause", 0.7); sfx("woo", 0.4); run.burst = 1; tvTap(); };
+  $("tvRose").onclick = (e) => {
+    e.stopPropagation(); if (!run) return;
+    const t = songTime(), st = figureState(t, 0), list = run.fans || (run.fans = []);
+    for (let i = 0; i < 4; i++) list.push({ kind: "rose", t0: t + i * 0.12, x0: run.camX + Math.random() * W, y0: 200, x1: st.x + (Math.random() - 0.5) * 200, y1: SC.footY(st.d) - 4 + (Math.random() - 0.5) * 40, dur: 0.9, rot: Math.random() * 6, col: ["#C23B2A", "#E07A8B", "#F3C969"][i % 3] });
+    sfx("cheer", 0.5); tvTap();
+  };
+  $("tvX").onclick = (e) => { e.stopPropagation(); if (player && player.playing) { player.onEnd = null; player.stop(); } ambience(false); tvShow(false); run = null; show("scrMenu"); };
+  $("tv").addEventListener("pointerdown", (e) => { if (e.target.closest("#tvBar")) return; e.preventDefault(); tvTap(); });
+  // Aufzeichnung: Eingaben bis zur Zeit t nachspielen (dieselbe Logik wie beim Laufen)
+  function recInputs(rec) { if (!rec._in) rec._in = rec.in.split(";").filter(Boolean).map((x) => { const c = x.slice(-1), ms = parseInt(x, 10); return [ms / 1000].concat(CODE_IN[c] || ["down"]); }); return rec._in; }
+  function feedReplay(t) {
+    const L = recInputs(run.replay);
+    while (run.ri < L.length && L[run.ri][0] <= t) { const [ti, type, dir] = L[run.ri++]; addInput(type, dir, ti); }
+  }
   // Kufenspur in vier Helligkeitsstufen gebündelt (wenige Zeichenbefehle je Bild)
   function drawTrail(tr, camX) {
     const now = performance.now();
@@ -4457,8 +4558,8 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
       }
       run.throws = list; run.burst = 1; sfx("applause", clamp((res.total - 20) / 40, 0.2, 1));
     }
-    if (!run.throws) return;
-    for (const o of run.throws) {
+    const all = (run.throws || []).concat(run.fans || []); // dazu Blumen, die man beim Ansehen selbst wirft
+    for (const o of all) {
       if (t < o.t0) continue;
       const u = clamp((t - o.t0) / o.dur, 0, 1), x = o.x0 + (o.x1 - o.x0) * u - run.camX, y = o.y0 + (o.y1 - o.y0) * u - Math.sin(Math.PI * u) * 90;
       ctx.save(); ctx.translate(x, y); ctx.rotate(o.rot + u * 6 * (1 - u * 0.7)); ctx.scale(1.6, 1.6);
@@ -4556,6 +4657,7 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
   }
 
   function render(t, dt) {
+    if (run.replay && run.paused == null) feedReplay(t); // Aufzeichnung: Eingaben bis jetzt nachspielen
     const st = figureState(t, dt);
     const fy = SC.footY(st.d), s = SC.scaleAt(st.d);
     const target = clamp(st.x - W / 2 + Math.cos(run.face) * 60, 0, WW - W);
@@ -4589,7 +4691,7 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
     run.spotP = (run.spotP || 0.6) + ((run.throws ? 1.25 : 0.55 + 0.45 * run.intensity + 0.25 * run.burst) - (run.spotP || 0.6)) * Math.min(1, dt * 2);
     scene.spot(ctx, fx, fy, s, run.spotP);
     ctx.fillStyle = "rgba(20,27,37,0.18)"; ctx.beginPath(); ctx.ellipse(fx, fy + 3, 18 * s * (1 - st.lift / 120), 4 * s, 0, 0, 7); ctx.fill();
-    if (run.lv.cues || run.down) drawCue(fx, fy, s, t, st.lift);
+    if (!run.replay && (run.lv.cues || run.down)) drawCue(fx, fy, s, t, st.lift);
     // Kufenspur auf dem Eis, verblasst
     {
       run.trailT += dt;
@@ -4598,7 +4700,7 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
     }
     run.sp = F.ease(run.sp, st.pose, dt, st.lift > 1 || st.tilt < -0.3);
     drawLaser(SH, fx, fy);
-    const swT = run.swapT !== undefined ? t - run.swapT : 9, look = run.swapped ? Object.assign({}, S.look, { suit: S.look.accent, accent: S.look.suit }) : S.look;
+    const swT = run.swapT !== undefined ? t - run.swapT : 9, look = run.swapped ? Object.assign({}, run.look, { suit: run.look.accent, accent: run.look.suit }) : run.look;
     const fo = { x: fx, y: fy, s, dir: 1, pose: openArms(run.sp, st.turn), lift: st.lift, turn: st.turn + (swT < 0.6 ? smooth(swT / 0.6) * Math.PI * 2 : 0), tilt: st.tilt, swap: st.swap, look };
     drawReflection(fo);
     F.draw(ctx, fo);
@@ -4615,7 +4717,7 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
     drawThrows(t, st.x, fy);
     scene.snow(ctx, run.camX, now, [2], 0.4 + 0.4 * run.cheer);
     scene.vignette(ctx);
-    if (run.honor) drawHonor(t); else { drawLane(t); drawPops(fx, fy, s); }
+    if (run.honor) drawHonor(t); else if (run.replay) drawTV(t); else { drawLane(t); drawPops(fx, fy, s); }
     updateChips(t);
   }
   const IDLE = { face: 0, trail: [], tt: 0 };
@@ -4641,6 +4743,7 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
     const r = run; r.finished = true; r.finishT = r.lastT; r.finishAt = performance.now(); ambience(false);
     if (player && player.playing) player.stop();
     const res = K.judge(PROG, r.bt, r.inputs, { k: r.k, level: r.lv });
+    if (r.replay) { tvShow(false); const R0 = r.replay; r.gifts = { fl: 0, toys: 0 }; showResult(res, R0.board || null, R0.rank || 0); window.__ek.last = res; return; }
     S.runs++;
     const gifts = r.throws || [], fl = gifts.filter((g) => g.kind === "rose").length, toys = gifts.length - fl;
     S.flowers += fl; S.toys += toys; r.gifts = { fl, toys };
@@ -4650,6 +4753,10 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
       board.sort((a, b) => b.total - a.total); rank = board.findIndex((x) => x.me) + 1;
       if (res.total > S.best) S.best = res.total;
     } else if (res.total > S.bestTrain) S.bestTrain = res.total;
+    // Aufzeichnung behalten (die letzten acht), damit man die Kür ansehen und später in der Gruppe zeigen kann
+    r.rec = cleanRec({ id: Date.now().toString(36), at: Date.now(), mode: r.mode, name: S.name, nat: S.nat, look: S.look, music: SCORE.id, slots: S.prog, fx: S.fx, lvl: S.help, cap: planCap(),
+      seed: r.seed, in: r.raw.join(";"), total: res.total, rank });
+    if (r.rec) { r.rec.board = board ? board.map((b) => ({ name: b.name, nat: b.nat, total: b.total, me: !!b.me })) : null; S.recs.unshift(r.rec); S.recs = S.recs.slice(0, 8); }
     save();
 
     $("hud").hidden = true;
@@ -4667,17 +4774,19 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
         score: score + (rank ? ` · ${rank}.` : ""), timing: res.timing ? `Ø ${res.timing.mean} ms vom Takt` : "" });
       const img = paintCv.toDataURL("image/jpeg", 0.72);
       paintShown = img;
-      S.album.unshift({ img, date, score, venue: SC.PLACES.wien.venue }); S.album = S.album.slice(0, 8); save();
+      S.album.unshift({ img, date, score, venue: SC.PLACES.wien.venue, rec: run.rec ? run.rec.id : "" }); S.album = S.album.slice(0, 8); save();
     } catch (e) { paintShown = null; }
   }
-  function openPaint(img, from) {
+  let paintRec = "";
+  function openPaint(img, from, recId) {
     if (!img) return;
+    paintRec = recId || ""; $("pWatch").hidden = !S.recs.some((r) => r.id === paintRec);
     paintShown = img; $("paintImg").src = img; paintFrom = from;
     $("pShare").hidden = !SITE.web;
     show("scrPaint");
   }
   let paintFrom = "scrRes";
-  $("rPaint").onclick = () => openPaint(paintShown, "scrRes");
+  $("rPaint").onclick = () => openPaint(paintShown, "scrRes", run && run.rec ? run.rec.id : "");
   $("pBack").onclick = () => show(paintFrom);
   $("pAlbum").onclick = () => openAlbum();
   $("pShare").onclick = async () => {
@@ -4691,7 +4800,7 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
     $("aSum").innerHTML = nb(`${S.runs} ${S.runs === 1 ? "Kür" : "Küren"} · ${S.flowers} ${S.flowers === 1 ? "Blume" : "Blumen"} · ${S.toys} ${S.toys === 1 ? "Stofftier" : "Stofftiere"}`);
     $("aGrid").innerHTML = S.album.length ? S.album.map((a, i) => `<button data-i="${i}"><img src="${a.img}" alt="Kür-Bild ${esc(a.date)}"><small>${esc(a.date)} · ${esc(a.score)}</small></button>`).join("")
       : `<div class="empty">Noch leer: Nach jeder Kür kommt hier dein Kür-Bild hinein, die letzten acht bleiben.</div>`;
-    $("aGrid").querySelectorAll("button").forEach((b) => (b.onclick = () => openPaint(S.album[+b.dataset.i].img, "scrAlbum")));
+    $("aGrid").querySelectorAll("button").forEach((b) => (b.onclick = () => openPaint(S.album[+b.dataset.i].img, "scrAlbum", S.album[+b.dataset.i].rec)));
     show("scrAlbum");
   }
   $("bAlbum").onclick = openAlbum;
@@ -4774,7 +4883,7 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
     const card = $("rCard"); card.classList.remove("done"); card.classList.add("wait");
     $("rHonor").hidden = true;
     $("rTotal").textContent = "…"; $("rRank").textContent = "Die Wertung kommt";
-    kc = { t0: performance.now(), stage: 0, rank: board ? rank : 9, look: S.look, fl: run.gifts ? run.gifts.fl : 0, toys: run.gifts ? run.gifts.toys : 0, t2: 0 };
+    kc = { t0: performance.now(), stage: 0, rank: board ? rank : 9, look: run.look || S.look, fl: run.gifts ? run.gifts.fl : 0, toys: run.gifts ? run.gifts.toys : 0, t2: 0 };
     requestAnimationFrame(kcDraw);
     const timers = []; let finished = false;
     const finish = () => {
@@ -4828,6 +4937,8 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
   $("bTrain").onclick = () => { unlock(); intro("train"); };
   $("iGo").onclick = () => { unlock(); if (needOwn()) { $("bProg").onclick(); return; } startRun(pendingMode); };
   $("abort").onclick = abortRun;
+  $("rWatch").onclick = () => { if (run) watch(run.replay || run.rec); };
+  $("pWatch").onclick = () => watch(S.recs.find((r) => r.id === paintRec));
   $("rHonor").onclick = () => { if (!run || !run.finished) return; unlock(); startHonor(run); if (run.honor) run.honor.title = run.honorTitle || ""; };
   $("rAgain").onclick = () => { unlock(); startRun(run ? run.mode : "comp"); };
   $("rMenu").onclick = () => { run = null; show("scrMenu"); };
@@ -5138,6 +5249,8 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
       this.stepTo(run.bt[run.bt.length - 1] + 4);
     },
     fig(t) { return figureState(t, 0); },
+    watch(i) { watch(S.recs[i || 0]); if (run) run.manual = true; return !!(run && run.replay); },
+    seek(t) { tvSeekTo(t); },
     honor() { if (run) { run.manual = false; startHonor(run); if (run.honor) run.honor.title = run.honorTitle || ""; } return !!(run && run.honor); },
     screen() { return SCREENS.find((s) => !$(s).hidden) || (run ? "run" : ""); },
   };
