@@ -3284,6 +3284,9 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
 (function (root) {
   "use strict";
   const W = 844, H = 390, WW = 2000, PAR = 0.35;
+  // Tiefe der fernen Ebene: draußen weit weg (Parallaxe 0,35); im Theater steht die Logenwand gleich hinter dem Publikum und
+  // läuft fast mit – sonst wirkt der Saal wie ein Zylinder, der sich dreht
+  const parOf = (P) => (P && P.indoor ? 0.85 : PAR);
   const ICE_TOP = 216;
   const PLACES = {
     wien: {
@@ -3368,7 +3371,7 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
     }
     // Vorhänge links und rechts in Falten, oben ein Volant mit Goldfransen
     const curtain = (x0, x1) => { for (let x = x0; x < x1; x += 10) { const cg = g.createLinearGradient(x, 0, x + 10, 0); cg.addColorStop(0, "#5A0E1A"); cg.addColorStop(0.5, "#9A1C2C"); cg.addColorStop(1, "#5A0E1A"); g.fillStyle = cg; g.fillRect(x, 0, 10, ICE_TOP); } };
-    for (let x = 0; x < w; x += 520) { curtain(x, x + 70); curtain(x + 450, x + 520); }
+    curtain(0, 110); curtain(w - 110, w); // Vorhang nur an den Enden des Saals
     for (let x = 0; x < w; x += 40) { g.fillStyle = "#8C1626"; g.beginPath(); g.moveTo(x, 0); g.quadraticCurveTo(x + 20, 34, x + 40, 0); g.fill(); g.fillStyle = "#E3B860"; for (let k = 0; k < 40; k += 3) g.fillRect(x + k, 14 + 10 * Math.sin(Math.PI * k / 40), 1, 4); }
     // Kristallluster
     for (let x = 150; x < w; x += 300) {
@@ -3381,7 +3384,7 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
     const fl = g.createLinearGradient(0, ICE_TOP - 50, 0, ICE_TOP); fl.addColorStop(0, "rgba(255,200,120,0)"); fl.addColorStop(1, "rgba(255,200,120,0.35)"); g.fillStyle = fl; g.fillRect(0, ICE_TOP - 50, w, 50);
   }
   function far(dpr, P) {
-    const w = Math.ceil(W + (WW - W) * PAR) + 4, [c, g] = mk(w, ICE_TOP, dpr), R = rng(11), st = P.style || "wien";
+    const w = Math.ceil(W + (WW - W) * parOf(P)) + 4, [c, g] = mk(w, ICE_TOP, dpr), R = rng(11), st = P.style || "wien";
     const sky = g.createLinearGradient(0, 0, 0, ICE_TOP);
     for (const [o, col] of P.sky) sky.addColorStop(o, col);
     g.fillStyle = sky; g.fillRect(0, 0, w, ICE_TOP);
@@ -3693,7 +3696,7 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
       place: PL,
       // Kamera: camX = linke Bildkante in Weltkoordinaten
       draw(ctx, camX) {
-        const fx = camX * PAR;
+        const fx = camX * parOf(PL);
         ctx.drawImage(F, fx * dpr, 0, W * dpr, ICE_TOP * dpr, 0, 0, W, ICE_TOP);
         ctx.drawImage(N.c, camX * dpr, 0, W * dpr, H * dpr, 0, 0, W, H);
         ctx.drawImage(FR, fx * dpr, 0, W * dpr, RH * dpr, 0, ICE_TOP, W, RH);
@@ -3851,7 +3854,7 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
 /* COLD MEDAL EISKUNSTLAUF – Ablauf, Bildschirme, Eingabe, Taktband, Ergebnis, Spielstand. */
 (function () {
   "use strict";
-  const VERSION = "0.41";
+  const VERSION = "0.42";
   // Seiten-Einstellungen aus dem Build (eigenes Hosting: Adresse, Hoster, Impressum); im claude.ai-Artefakt leer
   const SITE = Object.assign({ web: false, url: "", impressum: null }, {"web": true, "supabase": {"url": "https://pqpvgkslozsekjywpdrf.supabase.co", "key": "sb_publishable_KkKe9jchmXYp_-OEmB8WLQ_gZLXrRhF"}, "url": "https://matpeins-debug.github.io/cold-medal-eiskunstlauf/", "hoster": "GitHub Pages (GitHub Inc., USA)", "drittland": "GitHub ist nach dem EU-US Data Privacy Framework zertifiziert; die Übermittlung in die USA stützt sich auf den Angemessenheitsbeschluss der EU-Kommission dazu.", "impressum": {"name": "", "adresse": "", "mail": ""}} || {});
   const M = window.EKMusic, K = window.EKSkate, F = window.EKFig, SC = window.EKScene, PASS = window.CMPass;
@@ -5151,6 +5154,17 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
     const swT = run.swapT !== undefined ? t - run.swapT : 9, look = run.swapped ? Object.assign({}, run.look, { suit: run.look.accent, accent: run.look.suit }) : run.look;
     const fo = { x: fx, y: fy, s, dir: 1, pose: openArms(run.sp, st.turn), lift: st.lift, turn: st.turn + (swT < 0.6 ? smooth(swT / 0.6) * Math.PI * 2 : 0), tilt: st.tilt, swap: st.swap, look };
     drawReflection(fo);
+    // Bewegungsunschärfe bei schnellen Drehungen (Pirouette bis 5 U/s, Sprünge): bei 60 Bildern je Sekunde springt die Figur sonst
+    // 30° und mehr je Bild und wirkt wie eine Pappe, die umklappt. Wie bei einer Fernsehkamera: zwei, drei blasse Zwischenstände.
+    {
+      const om = dt > 0 && run.lastTurnVis !== undefined ? (fo.turn - run.lastTurnVis) / dt : 0; run.lastTurnVis = fo.turn;
+      if (Math.abs(om) > 7 && Math.abs(om) < 80) {
+        const n = Math.abs(om) > 20 ? 3 : 2, step = om * Math.min(dt, 1 / 30) / (n + 1);
+        ctx.save();
+        for (let k = n; k >= 1; k--) { ctx.globalAlpha = 0.3 / k; F.draw(ctx, Object.assign({}, fo, { turn: fo.turn - step * k })); }
+        ctx.restore();
+      }
+    }
     F.draw(ctx, fo);
     // Glitzer: bei Treffern, Eisstaub in Pirouetten und bei Landungen
     {
