@@ -456,6 +456,79 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
 .kc .watch { position: absolute; left: 8px; right: 8px; bottom: 8px; padding: 7px 4px; font-size: 11.5px; letter-spacing: 0.08em; background: rgba(15,23,48,0.85); color: #F3D58A; border-color: rgba(227,184,96,0.7); }
 .kc .honor:not([hidden]) ~ .watch, .kc .watch:has(+ .honor:not([hidden])) { bottom: 46px; }
 
+/* Gruppen */
+.compRow { display: flex; gap: 8px; }
+.compRow .big { flex: 1; min-width: 0; padding-left: 12px; padding-right: 10px; }
+.compRow .big span { white-space: nowrap; }
+.compRow:has(.grpBtn:not([hidden])) .big small { font-size: 11.5px; }
+.grpBtn { position: relative; flex: none; width: 66px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 1px; padding: 4px 2px; font-size: 11px; letter-spacing: 0.04em; background: var(--ink); color: var(--paper); box-shadow: 3px 3px 0 var(--ink-deep); }
+.grpBtn small { font-family: var(--font-body); font-weight: 400; text-transform: none; letter-spacing: 0; font-size: 10px; opacity: 0.8; line-height: 1.1; }
+.grpBtn .nw { position: absolute; top: -8px; right: -8px; }
+.nw { display: inline-flex; align-items: center; justify-content: center; min-width: 20px; height: 18px; padding: 0 5px; border-radius: 9px; background: var(--red); color: #fff; font-size: 10.5px; font-family: var(--font-display); letter-spacing: 0.04em; }
+.nw[hidden], .grpBtn[hidden] { display: none; }
+.card.grp { display: flex; flex-direction: column; gap: 8px; padding: 10px 14px 12px; }
+.gHead { display: flex; align-items: flex-end; justify-content: space-between; gap: 10px; }
+.gTitle { min-width: 0; }
+.gTitle h2 { font-family: var(--font-display); font-size: 21px; letter-spacing: 0.04em; color: #FFF4D6; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.gTitle small { display: block; font-size: 11px; color: rgba(241,231,210,0.7); }
+.gActs { display: flex; gap: 6px; flex: none; }
+.gActs .mid { padding: 6px 10px; font-size: 11.5px; }
+.gBody { flex: 1; min-height: 0; display: grid; grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr); gap: 12px; }
+.gCol { display: flex; flex-direction: column; gap: 6px; min-height: 0; }
+.gBox { border: 1px solid rgba(227,184,96,0.35); background: rgba(255,255,255,0.04); padding: 8px 10px; display: flex; flex-direction: column; gap: 6px; min-height: 0; }
+.gBox.grow { flex: 1; }
+.gLbl { font-family: var(--font-display); font-size: 9.5px; letter-spacing: 0.16em; color: #E3B860; text-transform: uppercase; }
+.gRow { display: flex; gap: 6px; align-items: center; }
+.gRow > input, .gRow > select { flex: 1; min-width: 0; font: inherit; font-size: 13px; padding: 6px 8px; background: rgba(255,255,255,0.07); border: 1px solid rgba(227,184,96,0.5); color: var(--paper); -webkit-user-select: text; user-select: text; }
+.gRow > select option { color: var(--ink); }
+.gRow .mid { padding: 6px 10px; font-size: 11.5px; flex: none; }
+.gList { overflow-y: auto; min-height: 0; display: flex; flex-direction: column; gap: 4px; }
+.gItem { display: flex; align-items: center; gap: 8px; padding: 6px 8px; text-align: left; border: 1px solid rgba(241,231,210,0.25); background: rgba(255,255,255,0.05); color: var(--paper); }
+.gItem b { font-family: var(--font-display); font-size: 13.5px; display: block; }
+.gItem small { font-size: 10.5px; color: rgba(241,231,210,0.65); }
+.gItem .gT { flex: 1; min-width: 0; }
+.gItem .gT b, .gItem .gT small { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.gDots { display: flex; }
+.gDots i { width: 14px; height: 14px; border-radius: 50%; border: 1.5px solid #0F1730; margin-left: -4px; }
+.gDots i:first-child { margin-left: 0; }
+.gEmpty { font-style: italic; font-size: 12px; opacity: 0.7; padding: 6px 0; }
+.gNav { display: flex; align-items: center; gap: 6px; }
+.gNav b { flex: 1; text-align: center; font-family: var(--font-display); font-size: 12px; letter-spacing: 0.1em; color: #F3D58A; }
+.gNav .pill { width: 30px; padding: 2px 0; color: var(--ink); }
+.gPiece { font-size: 12px; color: rgba(241,231,210,0.85); text-align: center; }
+.gPiece i { color: #F3D58A; }
+.gTab { width: 100%; border-collapse: collapse; font-size: 12.5px; }
+.gTab td { padding: 3px 4px; border-bottom: 1px solid rgba(241,231,210,0.12); white-space: nowrap; }
+.gTab td.n { text-align: right; font-variant-numeric: tabular-nums; }
+.gTab td.nm { white-space: normal; }
+.gTab td small { color: rgba(241,231,210,0.6); font-size: 10px; }
+.gTab tr.me td { color: #F3D58A; font-weight: 700; }
+.gTab .play { border: 1px solid rgba(227,184,96,0.6); background: transparent; color: #F3D58A; font-size: 11px; padding: 1px 7px; }
+.gTabs { display: flex; gap: 4px; }
+.gTabs button { flex: 1; padding: 4px; font-family: var(--font-display); font-size: 10.5px; letter-spacing: 0.08em; text-transform: uppercase; border: 1px solid rgba(241,231,210,0.35); background: transparent; color: var(--paper); }
+.gTabs button.on { background: var(--paper); color: var(--ink); }
+.gFeed { flex: 1; overflow-y: auto; min-height: 0; display: flex; flex-direction: column; gap: 3px; font-size: 12px; }
+.gMsg { line-height: 1.3; }
+.gMsg b { color: #F3D58A; font-weight: 600; }
+.gMsg small { color: rgba(241,231,210,0.5); font-size: 10px; }
+.gMsg.run { font-style: italic; color: rgba(241,231,210,0.8); }
+.gMsg .del { border: 0; background: transparent; color: rgba(241,231,210,0.5); font-size: 11px; padding: 0 3px; }
+.gOk { font-size: 12.5px; line-height: 1.4; }
+.gNote { font-size: 12px; color: #F3D58A; }
+.gNote[hidden] { display: none; }
+.gFine { font-size: 10.5px; color: rgba(241,231,210,0.55); }
+.gFine .lnk { color: rgba(241,231,210,0.75); font-size: 10.5px; }
+.gBox.grow > .gList { flex: 1; }
+/* Laufweg im Kürplan */
+.secCol .way { margin-top: auto; display: flex; flex-direction: column; gap: 3px; }
+.secCol .way small { font-size: 9.5px; }
+.secCol .way span { display: grid; grid-template-columns: repeat(4, 1fr); gap: 3px; }
+.secCol .way .tg { font-size: 10px; padding: 3px 0; white-space: nowrap; }
+.secCol .way canvas { width: 100%; height: 56px; display: block; }
+.iPlaces { display: flex; align-items: center; justify-content: center; gap: 6px; }
+.iPlaces small { font-family: var(--font-display); font-size: 10px; letter-spacing: 0.14em; color: #F3C969; margin-right: 4px; }
+.iPlaces[hidden] { display: none; }
+
 /* Cold Medal Games · Fenster „Deine Figur“ (pass/pass.css)
    Aussehen wie die Menüs des Skispringens: Papier mit Doppelrahmen, Knöpfe wie Druckmarken, Futura für Titel und Knöpfe,
    Buchschrift für Lesetext. Farben und Schriften kommen aus den Variablen des Spiels (alle Spiele der Reihe haben sie),
@@ -612,7 +685,8 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
       <h1>Eiskunstlauf</h1>
       <div class="place"><b id="mPlace"></b><span id="mFact"></span></div>
       <div class="col">
-        <button class="big red" id="bComp"><span>Kür · Wettkampf</span><small id="mBest"></small></button>
+        <div class="compRow"><button class="big red" id="bComp"><span>Kür · Wettkampf</span><small id="mBest"></small></button>
+          <button class="mid grpBtn" id="bGrp" hidden><span>Gruppen</span><small>mit Freunden</small><b class="nw" id="mGrpNw" hidden></b></button></div>
         <button class="planCard" id="bProg"><span class="pcHead"><b>MEINE KÜR</b><i id="mPiece"></i><em id="mNote"></em></span><span class="pcStrip" id="mStrip"></span><span class="pcFoot">Kürplan gestalten <b>›</b></span></button>
         <div class="row2">
           <button class="mid" id="bTrain">Training</button>
@@ -663,6 +737,15 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
     </div>
   </section>
 
+  <!-- Gruppen online: Link, Runden (alle dieselbe Musik am selben Ort), Gespräch; Küren der anderen ansehen -->
+  <section class="scr" id="scrGrp" hidden>
+    <div class="card wide studio grp">
+      <div class="gHead"><div class="gTitle"><div class="kicker" id="gKick">GRUPPEN</div><h2 id="gName">Mit Freunden laufen</h2><small id="gSub"></small></div><div class="gActs" id="gActs"></div></div>
+      <div class="gBody" id="gBody"></div>
+      <p class="gNote" id="gNote" hidden></p>
+    </div>
+  </section>
+
   <section class="scr" id="scrAlbum" hidden>
     <div class="card wide albumC">
       <div class="pHead"><div class="kicker">ALBUM</div><div class="pSum" id="aSum"></div></div>
@@ -697,6 +780,7 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
         <div class="lane"><i class="tk"></i><i class="tk one"></i><i class="st"></i><i class="tk"></i><i class="ring"></i><i class="sym">●</i><i class="tk one"></i><i class="tk"></i></div>
         <p><b>Das Taktband</b> Alles kommt von rechts in den <em>goldenen Ring</em>. Gedrückt wird genau dann – bei den farbigen Zeichen und bei den kleinen <em>weißen Ringen</em> (Abstoß, gibt Schwung). Die feinen Striche zählen nur den Takt.</p>
       </div>
+      <div class="iPlaces" id="iPlaces" hidden></div>
       <p class="own" id="iOwn" hidden>✦ Experte: Du choreografierst selbst. Belege im Kürplan alle acht Abschnitte – die Choreo-Note zählt doppelt.</p>
       <button class="big red go" id="iGo"><span>Los</span></button>
     </div>
@@ -1299,6 +1383,12 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
     CATALOG["1" + c] = { kind: "jump", fam: c, name: nm, short: nm, base: b1, hold: 1, w: r2(1.1 - 0.05 * (i + 1)), rot: 1 };
     CATALOG["2" + c] = { kind: "jump", fam: c, name: "Doppel-" + nm, short: "2" + nm, base: b2, hold: 2, w: r2((1.1 - 0.05 * (i + 1)) * 0.9), rot: 2 };
   });
+  // Wagnis: einen Sprung eine Drehung schwerer wagen (dreifach, beim Axel der Dreifach-Axel). Grundwert nach ISU-Tabelle, engeres
+  // Zeitfenster; nur ganz sauber steht er – jede Unsauberkeit (zu kurz, wackelig, Hand) wird zum Sturz.
+  const RISK_BASE = { T: 4.2, S: 4.3, Lo: 4.9, F: 5.3, Lz: 5.9, A: 8.0 };
+  JUMPS.forEach(([c, nm], i) => {
+    CATALOG["3" + c] = { kind: "jump", fam: c, name: "Dreifach-" + nm, short: "3" + nm, base: RISK_BASE[c], hold: 2, w: r2((1.1 - 0.05 * (i + 1)) * 0.72), rot: 3, risk: true };
+  });
   // Einlauf und Auslauf der Pirouette (Gleitpassagen): belegen den Abschnitt davor bzw. danach. Kante halten (drücken auf der Eins
   // des zweiten Takts, loslassen beim Eindrehen bzw. am Ende des Bogens). Sauberer Einlauf = schwieriger Einlauf, +1 Stufe;
   // sauberer Auslauf = +1 GOE der Pirouette.
@@ -1323,7 +1413,7 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
   CATALOG.ChIB = { kind: "choreo", name: "Ina Bauer", short: "Ina Bauer", pose: "inaBauer" };
   CATALOG.ChPB = { kind: "choreo", name: "Port de bras", short: "Arme", pose: "portUp" };
   CATALOG.ChTw = { kind: "choreo", name: "Twizzles", short: "Twizzle", pose: "twizzle" };
-  const RULES = { jumps: 4, famMax: 2, spins: 2, steps: 1, combos: 2 };
+  const RULES = { jumps: 4, famMax: 2, spins: 2, steps: 1, combos: 2, risk: 2 };
 
   // Die Musik in Abschnitte: acht Phrasen zu je vier Takten ab dem Einsatz der Melodie (Takt 4); jedes Element füllt eine Phrase,
   // die Schrittfolge zwei. Danach immer die Schlusspose auf dem Schlussakkord.
@@ -1414,8 +1504,59 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
     let best = 0, bd = Infinity; SUIT6.forEach((q, i) => { const d = (q[0] - c[0]) ** 2 + (q[1] - c[1]) ** 2 + (q[2] - c[2]) ** 2; if (d < bd) { bd = d; best = i; } });
     return best;
   }
+  // ---------------------------------------------------------------- Laufweg: je Abschnitt eine Bahnfigur über die Eisfläche
+  // Eisfläche in Metern (Plakat-Maßstab): x −27 … 27 (links/rechts), y −12,5 … 12,5 (hinten/vorn). Die Läuferin fährt wie eine
+  // Schildkröte: Richtung th, je Meter eine Krümmung nach Bahnfigur; nahe der Bande lenkt sie zur Mitte. Gerade = lange Diagonale
+  // (gut als Anlauf zum Sprung), Bogen = weite Kurve, Kreis = enge Schleife (gut für Pirouetten und Choreo), Welle = Schlangenlinie.
+  const PATHS = { bogen: ["◠", "Bogen"], gerade: ["／", "Gerade"], kreis: ["◯", "Kreis"], welle: ["∿", "Welle"] };
+  const DEF_PATH = ["gerade", "bogen", "kreis", "bogen", "welle", "welle", "gerade", "bogen"]; // passt zu DEFAULT_SLOTS
+  const RINK = { x: 27, y: 12.5 };
+  function cleanPath(a) { return Array.isArray(a) && a.length === 8 && a.every((x) => PATHS[x]) ? a.slice() : DEF_PATH.slice(); }
+  function navNew() { return { x: 0, y: 11.4, th: 0, s: 0, sg: 1, type: null }; }
+  // ds Meter weiterfahren mit Bahnfigur type
+  function pathStep(n, type, ds) {
+    if (ds <= 0) return n;
+    if (type !== n.type) {   // neuer Abschnitt: Kurven drehen zur Mitte hin
+      n.type = type; n.s = 0;
+      const cx = -n.x, cy = -n.y, cr = Math.cos(n.th) * cy - Math.sin(n.th) * cx; n.sg = cr >= 0 ? 1 : -1;
+    }
+    const step = 0.25;
+    for (let left = ds; left > 0; left -= step) {
+      const d = Math.min(step, left);
+      let k = type === "kreis" ? 0.22 * n.sg : type === "bogen" ? 0.075 * n.sg : type === "welle" ? 0.2 * Math.sin(2 * Math.PI * n.s / 12) : 0;
+      // Bande: 7 m voraus schauen; draußen → zur Mitte lenken
+      const ax = n.x + Math.cos(n.th) * 7, ay = n.y + Math.sin(n.th) * 7, ox = Math.max(0, Math.abs(ax) - RINK.x), oy = Math.max(0, Math.abs(ay) - RINK.y);
+      if (ox || oy) { const cr = Math.cos(n.th) * -n.y - Math.sin(n.th) * -n.x; k += (cr >= 0 ? 1 : -1) * Math.min(0.5, 0.12 + 0.08 * (ox + oy)); }
+      n.th += k * d; n.x += Math.cos(n.th) * d; n.y += Math.sin(n.th) * d; n.s += d;
+      n.x = clamp(n.x, -RINK.x - 1, RINK.x + 1); n.y = clamp(n.y, -RINK.y - 0.5, RINK.y + 0.5);
+    }
+    return n;
+  }
+  // ganzer Weg ohne Pausen (5 m/s) für Vorschau und Bewertung: Punkte je Abschnitt und Anteil der genutzten Fläche (6 × 3 Felder)
+  function pathTrack(path, music) {
+    path = cleanPath(path);
+    const sc = root.EKMusic && root.EKMusic.SCORES[music], bpm = sc ? sc.bpm : 170, secLen = 12 * 60 / bpm * 5;
+    const n = navNew(), pts = [], seen = new Set();
+    for (let i = 0; i < 8; i++) {
+      const seg = [];
+      for (let m = 0; m < secLen; m += 1) { pathStep(n, path[i], 1); seg.push([n.x, n.y]); seen.add(Math.min(5, Math.floor((n.x + RINK.x) / (2 * RINK.x) * 6)) + "," + Math.min(2, Math.floor((n.y + RINK.y) / (2 * RINK.y) * 3))); }
+      pts.push(seg);
+    }
+    return { pts, cover: seen.size / 18 };
+  }
+  function suggestPath(slots) {
+    const out = []; let last = null;
+    for (let i = 0; i < 8; i++) {
+      let id = slots[i]; if (id === "~") id = slots[i - 1];
+      const c = id && CATALOG[id], k = c ? c.kind : null;
+      let t = k === "jump" ? "gerade" : k === "spin" || k === "glide" ? "kreis" : k === "steps" ? "welle" : "bogen";
+      if (t === last && t !== "welle") t = t === "gerade" ? "bogen" : "gerade";
+      out.push(t); last = t;
+    }
+    return out;
+  }
   // cap: Höchstwert der Choreo-Note (Vorschlag 8, selbst geändert 9, Experte 10)
-  function plan(slots, look, music, fx, cap) {
+  function plan(slots, look, music, fx, cap, path) {
     music = SECTIONS[music] ? music : "donau";
     const moods = MOODS[music], sec = SECTIONS[music], ids = slots.map((x) => (x === "~" ? "~" : x));
     const kindAt = (i) => { let id = ids[i]; if (id === "~") id = ids[i - 1]; return id && CATALOG[id] ? CATALOG[id].kind : null; };
@@ -1451,15 +1592,21 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
     // 4 Kostüm: Farbe zur Musik, Streifen setzt sich ab
     const C = COSTUME[music], L = look || {}, su = suitIdx(L.suit), ac = suitIdx(L.accent);
     const cost = clamp(C.fit[su] - (su === ac ? 3 : 0), 0, 10);
+    // 5 Laufweg: genutzte Fläche, verschiedene Bahnfiguren, kein enger Kreis direkt vor einem Sprung (kein Anlauf)
+    const P = cleanPath(path), tr = pathTrack(P, music), kinds2 = new Set(P);
+    let samePath = 0; for (let i = 1; i < 8; i++) if (P[i] === P[i - 1] && ids[i] !== "~") samePath++; // Schrittfolge über zwei Abschnitte zählt nicht
+    const badRun = P.filter((t, i) => t === "kreis" && kindAt(i) === "jump").length;
+    const way = clamp(1 + 7 * tr.cover + 0.6 * kinds2.size - samePath - 1.5 * badRun, 0, 10);
     const r1 = (v) => Math.round(v * 2) / 2;
     const parts = [
       { id: "musik", name: "Passt zur Musik", v: r1(music10), why: misfit.length ? `Abschnitt ${misfit.map((i) => i + 1).join(", ")}: ${moods[misfit[0]][0]} – dort passt eher ${moods[misfit[0]][1].map((k) => KIND_DE[k]).join(" oder ")}` : "jedes Element passt zur Stimmung" },
       { id: "aufbau", name: "Spannungsbogen", v: r1(clamp(arc, 0, 10)), why: arcWhy[0] || "steigert sich bis zum Höhepunkt" },
       { id: "abw", name: "Abwechslung", v: r1(vari), why: same ? "zweimal hintereinander dasselbe" : kinds.size < 3 ? "mehr verschiedene Elemente (Sprung, Pirouette, Schritte, Choreo)" : empty > 2 ? "viel Gleiten" : !chor.size ? "Tipp: eine Choreo-Figur in einen freien Abschnitt" : "abwechslungsreich" },
+      { id: "weg", name: "Laufweg", v: r1(way), why: badRun ? "enger Kreis vor einem Sprung: kein Anlauf – lieber Gerade oder Bogen" : tr.cover < 0.6 ? "nutzt nur einen Teil der Fläche – mehr Geraden und Bögen" : samePath ? "zweimal dieselbe Bahn hintereinander" : kinds2.size < 3 ? "mehr verschiedene Bahnen (Bogen, Gerade, Kreis, Welle)" : "nutzt die ganze Fläche" },
       { id: "kostuem", name: "Kostüm", v: r1(cost), why: su === ac ? "Streifen in derselben Farbe wie das Kostüm" : C.fit[su] >= 8 ? "passt zur Musik" : "Tipp: " + C.best },
     ];
     const raw = r1(parts.reduce((a, x) => a + x.v, 0) / parts.length), total = Math.min(raw, cap || 10);
-    return { total, raw, cap: cap || 10, parts, moods };
+    return { total, raw, cap: cap || 10, parts, moods, cover: tr.cover };
   }
   const KIND_DE = { jump: "ein Sprung", spin: "eine Pirouette", steps: "die Schrittfolge", choreo: "eine Choreo-Figur" };
   const STEP_PATTERN = [[0, "r"], [3, "l"], [6, "r"], [8, "u"], [9, "l"], [12, "d"], [14, "r"], [15, "l"], [18, "u"], [20, "d"], [21, "r"], [24, "l"]];
@@ -1472,6 +1619,7 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
     if (jumps.length > RULES.jumps) msg.push(`höchstens ${RULES.jumps} Sprünge`);
     const fam = {}; jumps.forEach((x) => (CATALOG[x].fams || [CATALOG[x].fam]).forEach((f) => (fam[f] = (fam[f] || 0) + 1)));
     if (jumps.filter((x) => CATALOG[x].combo).length > RULES.combos) msg.push(`höchstens ${RULES.combos} Kombinationen`);
+    if (jumps.filter((x) => CATALOG[x].risk).length > RULES.risk) msg.push(`höchstens ${RULES.risk} Wagnisse`);
     for (const f in fam) if (fam[f] > RULES.famMax) msg.push(`jeden Sprung höchstens ${RULES.famMax}-mal`);
     const spins = ids.filter((x) => CATALOG[x] && CATALOG[x].kind === "spin");
     if (spins.length > RULES.spins) msg.push(`höchstens ${RULES.spins} Pirouetten`);
@@ -1546,7 +1694,7 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
     return STEP_PATTERN;
   }
   // lvl: "anf" | "norm" | "pro" – ändert Schrittfolge und Abstöße (Experte jeden Takt)
-  function buildProgram(slots, music, lvl) {
+  function buildProgram(slots, music, lvl, path) {
     music = music || "donau";
     if (!SECTIONS[music]) music = "donau";
     const sec = SECTIONS[music], els = [], choreo = {};
@@ -1564,12 +1712,12 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
         const a = CATALOG[c.combo[0]], b = CATALOG[c.combo[1]], tk = (bar + 2) * 3, tk2 = tk + a.hold + 1;
         els.push(Object.assign({}, base, { short: a.short, base: a.base, w: a.w, tk, land: tk + a.hold, rot: a.rot, part: "a" }));
         els.push(Object.assign({}, base, { short: "+" + b.short, base: b.base, w: b.w, tk: tk2, land: tk2 + b.hold, rot: b.rot, part: "b" }));
-      } else if (c.kind === "jump") els.push(Object.assign(base, { base: c.base, tk: (bar + 2) * 3, land: (bar + 2) * 3 + c.hold, rot: c.rot }));
+      } else if (c.kind === "jump") els.push(Object.assign(base, { base: c.base, tk: (bar + 2) * 3, land: (bar + 2) * 3 + c.hold, rot: c.rot, risk: !!c.risk }));
       else if (c.kind === "spin") els.push(Object.assign(base, { levels: c.levels, pose: c.pose, from: bar * 3, turns: 4 }));
       else if (c.kind === "steps") els.push(Object.assign(base, { levels: c.levels, arrows: stepPattern(lvl).map(([o, d]) => [bar * 3 + o, d]) }));
     });
     els.push({ id: "Pose", kind: "pose", name: "Schlusspose", short: "Pose", at: sec.end });
-    return { id: "eigen", music, name: "Kür: " + (MUSIC_NAME[music] || music), elements: els, slots: slots.slice(), choreo, sec, lvl: lvl || "norm", strokeEvery: lvl === "pro" ? 1 : 2 };
+    return { id: "eigen", music, name: "Kür: " + (MUSIC_NAME[music] || music), elements: els, slots: slots.slice(), path: cleanPath(path), choreo, sec, lvl: lvl || "norm", strokeEvery: lvl === "pro" ? 1 : 2 };
   }
   // Summe der höchsten Grundwerte (für den Editor)
   function maxBase(slots) {
@@ -1614,7 +1762,8 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
     if (Math.abs(dL) > WIN.hand * k) { goe = Math.min(goe, -3); land = "hand"; note = note || "Hand auf dem Eis"; }
     else if (Math.abs(dL) > WIN.wobble * k) { goe = Math.min(goe, 0); land = "wobble"; note = note || "wackelige Landung"; }
     if (!note && Math.max(Math.abs(dT), Math.abs(dL)) > 0.05) note = Math.abs(dT) >= Math.abs(dL) ? (dT < 0 ? "Absprung etwas früh" : "Absprung etwas spät") : (dL < 0 ? "Landung etwas früh" : "Landung etwas spät");
-    return { status, base, goe, land, score: r2(base * (1 + goe / 10)), devs, note: note || "sauber im Takt" };
+    if (e.risk && (status !== "ok" || land !== "clean")) return { status: "fall", score: r2(e.base * 0.3), goe: -5, devs, land: "fall", risk: true, note: "Wagnis misslungen (" + (note || "unsauber") + "): Sturz" };
+    return { status, base, goe, land, risk: !!e.risk, score: r2(base * (1 + goe / 10)), devs, note: e.risk ? "Wagnis gelungen! " + (note || "sauber im Takt") : note || "sauber im Takt" };
   }
 
   function judgeSpin(e, bt, inp, k) {
@@ -1706,6 +1855,16 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
     const n = beats.length, qual = n ? clamp((q - 0.5 * stray) / n, 0, 1) : 0;
     return { n, hit, stray, q: r2(qual), devs };
   }
+  // schwerstes gewertetes Element der Kür (Sprung, Pirouette, Schritte; Kombination als Ganzes über den ersten Teil)
+  function scoredBig(els) {
+    let best = null, bv = 0;
+    for (const x of els) {
+      if (x.kind !== "jump" && x.kind !== "spin" && x.kind !== "steps") continue; if (x.part === "b") continue;
+      const c = CATALOG[x.id], v = !c ? 0 : c.kind === "jump" ? c.base : c.levels[c.levels.length - 1];
+      if (v > bv) { bv = v; best = x; }
+    }
+    return best;
+  }
   function judge(prog, bt, inputs, opt) {
     const k = (opt && opt.k) || 1, inp = inputs.slice().sort((a, b) => a.t - b.t);
     const els = prog.elements.map((e) => Object.assign({ id: e.id, name: e.name, kind: e.kind, base: e.base || 0, part: e.part, slot: e.slot, role: e.role }, JUDGE[e.kind](e, bt, inp, k)));
@@ -1751,7 +1910,11 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
     const meanDev = all.length ? mean(all) : 400, pose = els.find((x) => x.kind === "pose");
     // Komposition: die geplante Choreografie (Musik, Bogen, Abwechslung, Kostüm) zählt bis 1,5 Punkte, Höhepunkt genutzt 0,25
     const strokes = judgeStrokes(prog, bt, inp, k);
-    const pl = plan(prog.slots || [], prog.look, prog.music, prog.fx, prog.planCap), variety = pl.total * (level.choreo || 0.15) + (els.some((x) => x.peak) ? 0.25 : 0);
+    const pl = plan(prog.slots || [], prog.look, prog.music, prog.fx, prog.planCap, prog.path);
+    // das schwerste Element sauber auf dem Höhepunkt: die Kür hat ihren Moment (Komposition, Ausdruck, Ausstrahlung)
+    const big = scoredBig(els), star = !!(big && big.peak);
+    if (star) { big.star = true; big.note += " · ★ das Schwerste genau auf dem Höhepunkt"; }
+    const variety = pl.total * (level.choreo || 0.15) + (star ? 0.6 : els.some((x) => x.peak) ? 0.25 : 0);
     const pcs = {
       comp: q4(clamp(3 + 4.5 * done + (pose && pose.status === "ok" ? 1.25 : 0) - 0.75 * falls + variety, 1.5, 9.75)),
       pres: 0,
@@ -1760,16 +1923,16 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
     // Präsentation wie im echten Sport: Takt (Ø Abweichung), Ausdruck (Choreo-Figuren auf den Schlag getroffen),
     // Ausstrahlung (Schlusspose, ohne Sturz, längste Serie sauberer Elemente)
     const takt = clamp(10 - meanDev / k / 22, 0, 10), ex = els.filter((x) => x.kind === "expr");
-    const ausdruck = ex.length ? clamp(3 + 7 * ex.reduce((a, x) => a + (x.q || 0), 0) / ex.length, 0, 10) : 4;
+    const ausdruck = clamp((ex.length ? 3 + 7 * ex.reduce((a, x) => a + (x.q || 0), 0) / ex.length : 4) + (star ? 1.5 : 0), 0, 10);
     let run0 = 0, longest = 0; for (const x of scored) { const y = x.row || x; if (x.status === "ok" && y.goe >= 1) { run0++; longest = Math.max(longest, run0); } else run0 = 0; }
-    const ausstrahlung = clamp(2 + (pose && pose.status === "ok" ? 3 : 0) + (falls ? 0 : 2) + 3 * (scored.length ? longest / scored.length : 0), 0, 10);
+    const ausstrahlung = clamp(2 + (pose && pose.status === "ok" ? 3 : 0) + (falls ? 0 : 2) + 3 * (scored.length ? longest / scored.length : 0) + (star ? 1 : 0), 0, 10);
     pcs.pres = q4(clamp(0.6 * takt + 0.2 * ausdruck + 0.2 * ausstrahlung, 1.5, 9.75));
     // Experte: Komposition und Können nie mehr als 1,5 über dem Takt – hohe Komponenten nur bei sehr genauem Laufen
     if (level.strict) { pcs.comp = Math.min(pcs.comp, q4(takt + 1.5)); pcs.skill = Math.min(pcs.skill, q4(takt + 1.5)); }
     const presParts = { takt: r2(takt), ausdruck: r2(ausdruck), ausstrahlung: r2(ausstrahlung), expr: ex.length, exprOk: ex.filter((x) => x.status === "ok").length };
     const pcsTotal = r2((pcs.comp + pcs.pres + pcs.skill) * PCS_FACTOR);
     const ded = falls;
-    return { els, tes, pcs, pcsTotal, ded, falls, factor: level.factor || 1, total: r2((tes + pcsTotal - ded) * (level.factor || 1)), timing: tim, devs: all, plan: pl, presParts, strokes };
+    return { star, els, tes, pcs, pcsTotal, ded, falls, factor: level.factor || 1, total: r2((tes + pcsTotal - ded) * (level.factor || 1)), timing: tim, devs: all, plan: pl, presParts, strokes };
   }
 
   // perfekte Eingaben für eine Kür (Tests, Vorführung); off = Abweichung in Sekunden
@@ -1833,7 +1996,7 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
     return list;
   }
 
-  root.EKSkate = { tB, suggest, elWindow, strokeBeats, jury, JUDGES, PROGRAMS, CATALOG, RULES, SECTIONS, DEFAULT_SLOTS, check, cleanSlots, buildProgram, plan, MOODS, COSTUME, MUSIC_NAME, FX, FX_MAX, cleanFx, maxBase, WIN, judge, goeFrom, perfectInputs, field, PCS_FACTOR };
+  root.EKSkate = { PATHS, DEF_PATH, RINK, cleanPath, navNew, pathStep, pathTrack, suggestPath, scoredBig, tB, suggest, elWindow, strokeBeats, jury, JUDGES, PROGRAMS, CATALOG, RULES, SECTIONS, DEFAULT_SLOTS, check, cleanSlots, buildProgram, plan, MOODS, COSTUME, MUSIC_NAME, FX, FX_MAX, cleanFx, maxBase, WIN, judge, goeFrom, perfectInputs, field, PCS_FACTOR };
 })(typeof window !== "undefined" ? window : globalThis);
 
 /* Cold Medal Games · gemeinsame Figur (figur/figur.js, global CMFigur)
@@ -3098,9 +3261,28 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
   const ICE_TOP = 216;
   const PLACES = {
     wien: {
-      id: "wien", name: "Wien", venue: "Wiener Eislaufverein", nat: "AUT",
+      id: "wien", name: "Wien", venue: "Wiener Eislaufverein", nat: "AUT", style: "wien", moon: true, stars: true,
+      sky: [[0, "#0B1430"], [0.45, "#24356A"], [0.72, "#5A4A7E"], [0.88, "#B9786A"], [1, "#F0AE6A"]],
       fact: "Verein seit 1867, seit 1901 am Heumarkt zwischen Konzerthaus und Stadtpark; über 6000 m² Freiluft-Eis. Hier war 1907 die Weltmeisterschaft im Eiskunstlauf.",
       src: "ORF Wien (wien.orf.at/stories/3195247, …/2872066), derStandard",
+    },
+    davos: {
+      id: "davos", name: "Davos", venue: "Natureisbahn Davos", nat: "SUI", style: "davos", sun: true, mountains: { far: "#7D8FB5", near: "#4C5D82", snow: "#F4EEE6", glow: "rgba(255,190,140,0.5)" },
+      sky: [[0, "#3C6AA8"], [0.5, "#7FA4CF"], [0.8, "#E9B98E"], [1, "#F6CF97"]],
+      fact: "Seit den 1860er-Jahren wird in Davos Schlittschuh gelaufen; auf der großen Natureisbahn fanden viele Welt- und Europameisterschaften statt. Heute liegt dort der Eistraum Davos.",
+      src: "davos.ch (Davos the Pioneer, Eistraum), Südostschweiz",
+    },
+    stmoritz: {
+      id: "stmoritz", name: "St. Moritz", venue: "Eisstadion Badrutts Park", nat: "SUI", style: "stmoritz", moon: true, stars: true, mountains: { far: "#3E4A78", near: "#2A3358", snow: "#C9D3EE", glow: "rgba(150,170,255,0.25)" },
+      sky: [[0, "#0A1028"], [0.5, "#1E2A5C"], [0.8, "#4C4A86"], [1, "#9C7BA8"]],
+      fact: "Hier fanden die Olympischen Winterspiele 1928 und 1948 statt. 1928 gewann die 15-jährige Sonja Henie hier Gold im Eiskunstlauf.",
+      src: "olympedia.org (St. Moritz 1928), olympics.com, wissen.de",
+    },
+    revue: {
+      id: "revue", name: "Eisrevue", venue: "Gala der Wiener Eisrevue", nat: "AUT", style: "revue", indoor: true,
+      sky: [[0, "#12060A"], [0.6, "#2A0C14"], [1, "#4A1620"]],
+      fact: "1945 gegründet, bis 1971 auf Tournee durch ganz Europa; ab 1952/53 schrieb Robert Stolz eigene Eis-Operetten, der Donauwalzer war das Finale jeder Produktion.",
+      src: "ganz-wien.at, derStandard (Ausstellung 2008), Wikipedia „Vienna Ice Revue“",
     },
   };
   // Lage auf dem Eis: d 0 = hinten an der Bande, 1 = vorn
@@ -3110,86 +3292,161 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
   function rng(seed) { let s = seed >>> 0; return () => ((s = (s * 1664525 + 1013904223) >>> 0) / 4294967296); }
   function mk(w, h, dpr) { const c = document.createElement("canvas"); c.width = Math.round(w * dpr); c.height = Math.round(h * dpr); const x = c.getContext("2d"); x.scale(dpr, dpr); return [c, x]; }
 
-  function far(dpr) {
-    const w = Math.ceil(W + (WW - W) * PAR) + 4, [c, g] = mk(w, ICE_TOP, dpr), R = rng(11);
-    const sky = g.createLinearGradient(0, 0, 0, ICE_TOP);
-    sky.addColorStop(0, "#0B1430"); sky.addColorStop(0.45, "#24356A"); sky.addColorStop(0.72, "#5A4A7E"); sky.addColorStop(0.88, "#B9786A"); sky.addColorStop(1, "#F0AE6A");
-    g.fillStyle = sky; g.fillRect(0, 0, w, ICE_TOP);
-    // Mond mit Hof
-    { const mx = w * 0.16, my = 44, hl = g.createRadialGradient(mx, my, 6, mx, my, 70); hl.addColorStop(0, "rgba(255,244,214,0.45)"); hl.addColorStop(0.3, "rgba(200,210,255,0.12)"); hl.addColorStop(1, "rgba(200,210,255,0)");
-      g.fillStyle = hl; g.fillRect(mx - 70, my - 70, 140, 140); g.fillStyle = "#FFF4D6"; g.beginPath(); g.arc(mx, my, 11, 0, 7); g.fill(); g.fillStyle = "rgba(200,190,160,0.35)"; g.beginPath(); g.arc(mx + 3, my - 2, 3, 0, 7); g.arc(mx - 4, my + 4, 2, 0, 7); g.fill(); }
-    // Sterne
-    g.fillStyle = "rgba(241,231,210,0.8)";
-    for (let i = 0; i < 160; i++) { const x = R() * w, y = R() * 110, z = R(); g.globalAlpha = 0.3 + 0.7 * z * (1 - y / 130); g.fillRect(x, y, z > 0.85 ? 2 : 1.2, z > 0.85 ? 2 : 1.2); }
-    g.globalAlpha = 1;
-    // Dächer der Stadt in der Ferne
-    g.fillStyle = "#3B3F5C";
-    for (let x = 0; x < w; x += 28 + R() * 30) { const hh = 22 + R() * 30; g.fillRect(x, ICE_TOP - 46 - hh, 26 + R() * 30, hh + 50); }
-    // Palais im Stil der Ringstraße: Flügel mit Pilastern und Balustrade, Mittelrisalit mit Giebel und Kuppel,
-    // hohe Bogenfenster im Festsaal, in jedem ein Kristallluster. Alle Fenster sitzen genau in den Achsen zwischen den Pilastern.
-    const kx = w * 0.42, kw = 420, ky = 70;
-    { const hg = g.createRadialGradient(kx + kw / 2, ICE_TOP, 20, kx + kw / 2, ICE_TOP, kw * 0.8); hg.addColorStop(0, "rgba(255,200,120,0.55)"); hg.addColorStop(1, "rgba(255,200,120,0)"); g.fillStyle = hg; g.fillRect(kx - kw * 0.3, 0, kw * 1.6, ICE_TOP); }
-    const cx0 = kx + kw * 0.34, cw = kw * 0.32, wy = ky + 34; // Mittelrisalit, Oberkante der Flügel
-    const STONE = "#E2CFA4", STONE2 = "#CDB485", SHADE = "#B49A6E", GOLD = "#E3B860";
-    // Flügel
-    g.fillStyle = STONE; g.fillRect(kx, wy, kw, ICE_TOP - wy);
-    g.fillStyle = SHADE; g.fillRect(cx0 + cw, wy, kx + kw - cx0 - cw, ICE_TOP - wy); g.globalAlpha = 0.55; g.fillStyle = STONE; g.fillRect(cx0 + cw, wy, kx + kw - cx0 - cw, ICE_TOP - wy); g.globalAlpha = 1;
-    // Mittelrisalit mit Kuppel und Giebel
-    { const dx = cx0 + cw / 2, dy = ky - 18;
-      g.fillStyle = "#5E7C86"; g.beginPath(); g.ellipse(dx, dy + 2, 30, 26, 0, Math.PI, 0); g.fill(); g.strokeStyle = "#141B25"; g.lineWidth = 1.5; g.stroke(); // Kupferkuppel
-      g.strokeStyle = "rgba(20,27,37,0.45)"; g.lineWidth = 1; for (let k = -2; k <= 2; k++) { g.beginPath(); g.moveTo(dx + k * 10, dy + 2); g.quadraticCurveTo(dx + k * 6, dy - 16, dx, dy - 24); g.stroke(); }
-      g.fillStyle = GOLD; g.fillRect(dx - 1.5, dy - 36, 3, 12); g.beginPath(); g.arc(dx, dy - 38, 3, 0, 7); g.fill(); }
-    g.fillStyle = STONE2; g.fillRect(cx0, ky, cw, ICE_TOP - ky);
-    g.fillStyle = STONE; g.beginPath(); g.moveTo(cx0 - 4, ky + 2); g.lineTo(cx0 + cw / 2, ky - 20); g.lineTo(cx0 + cw + 4, ky + 2); g.closePath(); g.fill();
-    g.strokeStyle = "#141B25"; g.lineWidth = 1.6; g.stroke();
-    g.fillStyle = GOLD; g.beginPath(); g.arc(cx0 + cw / 2, ky - 7, 4.5, 0, 7); g.fill(); g.strokeStyle = "#7E6A4C"; g.lineWidth = 1; g.stroke(); // Wappen im Giebel
-    // Licht von unten (Scheinwerfer) über der ganzen Front
-    { const up = g.createLinearGradient(0, ICE_TOP, 0, ky - 20); up.addColorStop(0, "rgba(255,190,110,0.42)"); up.addColorStop(1, "rgba(80,90,150,0.22)"); g.fillStyle = up; g.fillRect(kx, wy, kw, ICE_TOP - wy); g.fillRect(cx0, ky, cw, wy - ky); }
-    g.strokeStyle = "#141B25"; g.lineWidth = 2; g.strokeRect(kx, wy, kw, ICE_TOP - wy); g.strokeRect(cx0, ky, cw, ICE_TOP - ky);
-    // Gesimse und Balustrade mit Vasen
-    const cornice = (x0, x1, y) => { g.fillStyle = "#8C7552"; g.fillRect(x0 - 5, y - 3, x1 - x0 + 10, 5); g.fillStyle = "#EAD9B2"; g.fillRect(x0 - 5, y - 3, x1 - x0 + 10, 1.5); };
-    for (const [x0, x1] of [[kx, cx0], [cx0 + cw, kx + kw]]) {
-      g.fillStyle = STONE2; g.fillRect(x0, wy - 9, x1 - x0, 9); g.fillStyle = "rgba(20,27,37,0.35)";
-      for (let x = x0 + 4; x < x1 - 4; x += 5) g.fillRect(x, wy - 7, 2, 6);
-      for (let x = x0 + 8; x < x1; x += (x1 - x0 - 16) / 4) { g.fillStyle = STONE; g.beginPath(); g.ellipse(x, wy - 13, 3, 4, 0, 0, 7); g.fill(); g.fillRect(x - 1, wy - 11, 2, 3); }
-      cornice(x0, x1, wy);
-    }
-    cornice(cx0, cx0 + cw, ky + 2); cornice(kx, kx + kw, 112);
-    // Fensterachsen: Pilaster dazwischen, Fenster mittig. Flügel: oben kleine Rechteckfenster, darunter hohe Bogenfenster
-    const lit = (x, y, ww, hh, arch, big) => {
-      const on = R() < 0.85;
-      if (on) { const wg = g.createRadialGradient(x + ww / 2, y + hh * 0.45, 2, x + ww / 2, y + hh * 0.45, ww * 1.6); wg.addColorStop(0, "rgba(255,210,120,0.55)"); wg.addColorStop(1, "rgba(255,210,120,0)"); g.fillStyle = wg; g.fillRect(x - ww, y - ww * 0.6, ww * 3, hh + ww * 1.2); }
-      // Rahmen mit Schlussstein
-      g.fillStyle = "#F0E2C0"; g.beginPath();
-      if (arch) { g.moveTo(x - 2, y + hh + 1); g.lineTo(x - 2, y + ww / 2); g.arc(x + ww / 2, y + ww / 2, ww / 2 + 2, Math.PI, 0); g.lineTo(x + ww + 2, y + hh + 1); } else g.rect(x - 2, y - 2, ww + 4, hh + 3);
-      g.fill();
-      const ig = g.createLinearGradient(0, y, 0, y + hh); ig.addColorStop(0, on ? "#FFE9A8" : "#4F4A44"); ig.addColorStop(1, on ? "#E9A94E" : "#3A3632");
-      g.fillStyle = ig; g.beginPath();
-      if (arch) { g.moveTo(x, y + hh); g.lineTo(x, y + ww / 2); g.arc(x + ww / 2, y + ww / 2, ww / 2, Math.PI, 0); g.lineTo(x + ww, y + hh); g.closePath(); } else g.rect(x, y, ww, hh);
-      g.fill();
-      if (arch) { g.fillStyle = "#C9AE7A"; g.fillRect(x + ww / 2 - 2, y - 3, 4, 5); }
-      // Sprossen
-      g.strokeStyle = on ? "rgba(140,90,40,0.55)" : "rgba(20,20,20,0.5)"; g.lineWidth = 0.8; g.beginPath(); g.moveTo(x + ww / 2, y + (arch ? ww / 2 : 0)); g.lineTo(x + ww / 2, y + hh);
-      g.moveTo(x, y + hh * 0.6); g.lineTo(x + ww, y + hh * 0.6); g.stroke();
-      // Kristallluster im Festsaal
-      if (on && big) {
-        const lx = x + ww / 2, ly = y + ww * 0.55;
-        g.strokeStyle = "rgba(120,80,30,0.8)"; g.lineWidth = 0.7; g.beginPath(); g.moveTo(lx, y + 1); g.lineTo(lx, ly - 2); g.stroke();
-        const cg = g.createRadialGradient(lx, ly + 3, 0, lx, ly + 3, ww * 0.75); cg.addColorStop(0, "rgba(255,255,235,0.95)"); cg.addColorStop(0.35, "rgba(255,230,160,0.6)"); cg.addColorStop(1, "rgba(255,230,160,0)");
-        g.fillStyle = cg; g.beginPath(); g.arc(lx, ly + 3, ww * 0.75, 0, 7); g.fill();
-        g.fillStyle = "#B88A3A"; g.beginPath(); g.ellipse(lx, ly + 4, ww * 0.34, 1.6, 0, 0, 7); g.fill();
-        for (let k = -2; k <= 2; k++) { g.fillStyle = "#FFFDF0"; g.beginPath(); g.arc(lx + k * ww * 0.15, ly + 2 - Math.abs(k) * 0.6, 1.1, 0, 7); g.fill(); g.fillStyle = "rgba(255,255,255,0.8)"; g.fillRect(lx + k * ww * 0.15 - 0.4, ly + 5, 0.8, 2.5 + (2 - Math.abs(k))); }
-        g.fillStyle = "#FFF6D8"; g.beginPath(); g.moveTo(lx - 2, ly + 6); g.lineTo(lx, ly + 11); g.lineTo(lx + 2, ly + 6); g.closePath(); g.fill();
+  // Berge: zwei Ketten mit Schneekappen (Davos, St. Moritz)
+  function mountains(g, w, R, P) {
+    const M = P.mountains;
+    for (const [col, base, amp, step, snow] of [[M.far, 128, 92, 95, 0.4], [M.near, 168, 62, 72, 0.3]]) {
+      const pts = []; for (let x = -40; x < w + 80; x += step * (0.6 + R() * 0.7)) pts.push([x, base - amp * (0.35 + R() * 0.65)]);
+      g.fillStyle = col; g.beginPath(); g.moveTo(-40, ICE_TOP);
+      for (let i = 0; i < pts.length; i++) { const [x, y] = pts[i], nx = pts[i + 1]; g.lineTo(x, y); if (nx) g.lineTo((x + nx[0]) / 2, Math.max(y, nx[1]) + 18 + R() * 14); }
+      g.lineTo(w + 80, ICE_TOP); g.closePath(); g.fill();
+      // Schnee auf den Gipfeln
+      g.fillStyle = M.snow;
+      for (let i = 0; i < pts.length; i++) {
+        const [x, y] = pts[i], hh = (base - y) * snow + 6;
+        g.beginPath(); g.moveTo(x, y); g.lineTo(x - hh * 0.9, y + hh); g.lineTo(x - hh * 0.35, y + hh * 0.8); g.lineTo(x, y + hh * 1.05); g.lineTo(x + hh * 0.4, y + hh * 0.75); g.lineTo(x + hh * 0.85, y + hh); g.closePath(); g.fill();
       }
-    };
-    const pil = (x, y0, y1) => { g.fillStyle = "rgba(255,240,205,0.5)"; g.fillRect(x - 2.5, y0, 5, y1 - y0); g.fillStyle = "rgba(120,95,60,0.45)"; g.fillRect(x + 1.5, y0, 1, y1 - y0); g.fillStyle = "#EAD9B2"; g.fillRect(x - 4, y0, 8, 3); };
-    for (const [x0, x1] of [[kx, cx0], [cx0 + cw, kx + kw]]) {
-      const n = 5, bw = (x1 - x0) / n;
-      for (let i = 0; i <= n; i++) pil(x0 + i * bw, wy + 2, ICE_TOP);
-      for (let i = 0; i < n; i++) { const xc = x0 + (i + 0.5) * bw; lit(xc - 6, wy + 10, 12, 14, false, false); lit(xc - 7, 124, 14, 36, true, true); }
+      const gl = g.createLinearGradient(0, base - amp, 0, ICE_TOP); gl.addColorStop(0, M.glow); gl.addColorStop(1, "rgba(0,0,0,0)"); g.fillStyle = gl; g.fillRect(0, base - amp, w, ICE_TOP - base + amp);
     }
-    { const n = 3, bw = cw / n; for (let i = 0; i <= n; i++) pil(cx0 + i * bw, ky + 6, ICE_TOP);
-      for (let i = 0; i < n; i++) { const xc = cx0 + (i + 0.5) * bw; lit(xc - 8, ky + 16, 16, 18, true, false); lit(xc - 10, 120, 20, 46, true, true); } }
+  }
+  // Davos: hölzernes Klubhaus mit Tribüne, Giebeldach, warm erleuchtete Fenster und Fahnen
+  function chalet(g, x0, ww, R) {
+    const y0 = 120, roof = 92;
+    g.fillStyle = "#6B4A33"; g.fillRect(x0, y0, ww, ICE_TOP - y0);
+    g.fillStyle = "rgba(0,0,0,0.18)"; for (let x = x0; x < x0 + ww; x += 7) g.fillRect(x, y0, 1.2, ICE_TOP - y0);
+    g.fillStyle = "#3A2A22"; g.beginPath(); g.moveTo(x0 - 16, y0 + 2); g.lineTo(x0 + ww * 0.5, roof); g.lineTo(x0 + ww + 16, y0 + 2); g.closePath(); g.fill();
+    g.fillStyle = "#F4EEE6"; g.beginPath(); g.moveTo(x0 - 16, y0 + 2); g.lineTo(x0 + ww * 0.5, roof); g.lineTo(x0 + ww + 16, y0 + 2); g.lineTo(x0 + ww + 8, y0 - 2); g.lineTo(x0 + ww * 0.5, roof + 5); g.lineTo(x0 - 8, y0 - 2); g.closePath(); g.fill();
+    g.strokeStyle = "#141B25"; g.lineWidth = 2; g.strokeRect(x0, y0, ww, ICE_TOP - y0);
+    for (let x = x0 + 18; x < x0 + ww - 20; x += 34) for (const y of [y0 + 14, y0 + 48]) {
+      const wg = g.createRadialGradient(x + 8, y + 10, 1, x + 8, y + 10, 22); wg.addColorStop(0, "rgba(255,210,130,0.5)"); wg.addColorStop(1, "rgba(255,210,130,0)"); g.fillStyle = wg; g.fillRect(x - 14, y - 12, 44, 44);
+      g.fillStyle = "#FFDFA0"; g.fillRect(x, y, 16, 20); g.strokeStyle = "#3A2A22"; g.lineWidth = 1.4; g.strokeRect(x, y, 16, 20); g.beginPath(); g.moveTo(x + 8, y); g.lineTo(x + 8, y + 20); g.moveTo(x, y + 10); g.lineTo(x + 16, y + 10); g.stroke();
+    }
+    // Balkon mit Geländer
+    g.fillStyle = "#4A3324"; g.fillRect(x0 - 6, y0 + 40, ww + 12, 4); for (let x = x0 - 4; x < x0 + ww + 6; x += 6) g.fillRect(x, y0 + 32, 1.6, 8);
+    // Fahnen
+    for (const [fx, col] of [[x0 + 30, "#C23B2A"], [x0 + ww - 30, "#C23B2A"], [x0 + ww * 0.5, "#23466B"]]) { g.strokeStyle = "#141B25"; g.lineWidth = 1.5; g.beginPath(); g.moveTo(fx, roof + (fx === x0 + ww * 0.5 ? 0 : 24)); g.lineTo(fx, roof - 34); g.stroke(); g.fillStyle = col; g.fillRect(fx, roof - 34, 18, 11); if (col === "#C23B2A") { g.fillStyle = "#F4EEE6"; g.fillRect(fx + 7.5, roof - 32, 3, 7); g.fillRect(fx + 5.5, roof - 30, 7, 3); } }
+  }
+  // Eisrevue: Theatersaal mit Proszenium in Gold, roten Samtvorhängen, Logen und großen Kristalllustern
+  function theatre(g, w, R) {
+    // Logenränge
+    for (let row = 0; row < 3; row++) {
+      const y = 40 + row * 46;
+      g.fillStyle = "#3A0F18"; g.fillRect(0, y, w, 30);
+      g.fillStyle = "#E3B860"; g.fillRect(0, y + 28, w, 2.5); g.fillRect(0, y - 2, w, 1.5);
+      for (let x = 10; x < w; x += 46) {
+        const lg = g.createRadialGradient(x + 18, y + 14, 1, x + 18, y + 14, 22); lg.addColorStop(0, "rgba(255,210,140,0.55)"); lg.addColorStop(1, "rgba(255,210,140,0)"); g.fillStyle = lg; g.fillRect(x - 6, y - 8, 48, 46);
+        g.fillStyle = "#5C1A26"; g.fillRect(x, y + 4, 36, 22); g.fillStyle = "#1A0A0E"; g.fillRect(x + 4, y + 6, 28, 14);
+        for (let k = 0; k < 3; k++) { g.fillStyle = ["#E6C2A0", "#C9966C", "#F0D5BC"][(k + row) % 3]; g.beginPath(); g.arc(x + 9 + k * 9, y + 14, 2.6, 0, 7); g.fill(); }
+        g.fillStyle = "#E3B860"; g.beginPath(); g.ellipse(x + 18, y + 26, 20, 3, 0, 0, Math.PI); g.fill();
+      }
+    }
+    // Vorhänge links und rechts in Falten, oben ein Volant mit Goldfransen
+    const curtain = (x0, x1) => { for (let x = x0; x < x1; x += 10) { const cg = g.createLinearGradient(x, 0, x + 10, 0); cg.addColorStop(0, "#5A0E1A"); cg.addColorStop(0.5, "#9A1C2C"); cg.addColorStop(1, "#5A0E1A"); g.fillStyle = cg; g.fillRect(x, 0, 10, ICE_TOP); } };
+    for (let x = 0; x < w; x += 520) { curtain(x, x + 70); curtain(x + 450, x + 520); }
+    for (let x = 0; x < w; x += 40) { g.fillStyle = "#8C1626"; g.beginPath(); g.moveTo(x, 0); g.quadraticCurveTo(x + 20, 34, x + 40, 0); g.fill(); g.fillStyle = "#E3B860"; for (let k = 0; k < 40; k += 3) g.fillRect(x + k, 14 + 10 * Math.sin(Math.PI * k / 40), 1, 4); }
+    // Kristallluster
+    for (let x = 150; x < w; x += 300) {
+      const y = 36, cg = g.createRadialGradient(x, y + 10, 2, x, y + 10, 70); cg.addColorStop(0, "rgba(255,248,220,0.9)"); cg.addColorStop(0.25, "rgba(255,226,160,0.45)"); cg.addColorStop(1, "rgba(255,226,160,0)");
+      g.fillStyle = cg; g.fillRect(x - 70, y - 60, 140, 140);
+      g.strokeStyle = "#B88A3A"; g.lineWidth = 1; g.beginPath(); g.moveTo(x, 0); g.lineTo(x, y); g.stroke();
+      for (let r = 0; r < 3; r++) { g.fillStyle = "#E3B860"; g.beginPath(); g.ellipse(x, y + r * 7, 22 - r * 6, 2, 0, 0, 7); g.fill(); for (let k = -3; k <= 3; k++) { g.fillStyle = "#FFFDF0"; g.beginPath(); g.arc(x + k * (6 - r * 1.6), y + r * 7 + 3, 1.3, 0, 7); g.fill(); } }
+    }
+    // Rampenlicht über der Bande
+    const fl = g.createLinearGradient(0, ICE_TOP - 50, 0, ICE_TOP); fl.addColorStop(0, "rgba(255,200,120,0)"); fl.addColorStop(1, "rgba(255,200,120,0.35)"); g.fillStyle = fl; g.fillRect(0, ICE_TOP - 50, w, 50);
+  }
+  function far(dpr, P) {
+    const w = Math.ceil(W + (WW - W) * PAR) + 4, [c, g] = mk(w, ICE_TOP, dpr), R = rng(11), st = P.style || "wien";
+    const sky = g.createLinearGradient(0, 0, 0, ICE_TOP);
+    for (const [o, col] of P.sky) sky.addColorStop(o, col);
+    g.fillStyle = sky; g.fillRect(0, 0, w, ICE_TOP);
+    if (P.indoor) { theatre(g, w, R); return c; }
+    if (P.moon) {
+      // Mond mit Hof
+      { const mx = w * 0.16, my = 44, hl = g.createRadialGradient(mx, my, 6, mx, my, 70); hl.addColorStop(0, "rgba(255,244,214,0.45)"); hl.addColorStop(0.3, "rgba(200,210,255,0.12)"); hl.addColorStop(1, "rgba(200,210,255,0)");
+        g.fillStyle = hl; g.fillRect(mx - 70, my - 70, 140, 140); g.fillStyle = "#FFF4D6"; g.beginPath(); g.arc(mx, my, 11, 0, 7); g.fill(); g.fillStyle = "rgba(200,190,160,0.35)"; g.beginPath(); g.arc(mx + 3, my - 2, 3, 0, 7); g.arc(mx - 4, my + 4, 2, 0, 7); g.fill(); }
+    }
+    if (P.stars) {
+      // Sterne
+      g.fillStyle = "rgba(241,231,210,0.8)";
+      for (let i = 0; i < 160; i++) { const x = R() * w, y = R() * 110, z = R(); g.globalAlpha = 0.3 + 0.7 * z * (1 - y / 130); g.fillRect(x, y, z > 0.85 ? 2 : 1.2, z > 0.85 ? 2 : 1.2); }
+      g.globalAlpha = 1;
+    }
+    if (P.sun) { const sx = w * 0.7, sy = 120, sg = g.createRadialGradient(sx, sy, 4, sx, sy, 120); sg.addColorStop(0, "rgba(255,236,190,0.95)"); sg.addColorStop(0.12, "rgba(255,210,140,0.6)"); sg.addColorStop(1, "rgba(255,190,120,0)"); g.fillStyle = sg; g.fillRect(sx - 120, sy - 120, 240, 240); }
+    if (P.mountains) mountains(g, w, R, P);
+    let bx0 = w * 0.42, bx1 = bx0 + 420;
+    if (st === "wien") {
+      // Dächer der Stadt in der Ferne
+      g.fillStyle = "#3B3F5C";
+      for (let x = 0; x < w; x += 28 + R() * 30) { const hh = 22 + R() * 30; g.fillRect(x, ICE_TOP - 46 - hh, 26 + R() * 30, hh + 50); }
+      // Palais im Stil der Ringstraße: Flügel mit Pilastern und Balustrade, Mittelrisalit mit Giebel und Kuppel,
+      // hohe Bogenfenster im Festsaal, in jedem ein Kristallluster. Alle Fenster sitzen genau in den Achsen zwischen den Pilastern.
+      palais(w * 0.42, 420, 70);
+    } else if (st === "stmoritz") { bx0 = w * 0.47; bx1 = bx0 + 330; palais(bx0, 330, 70); }
+    else { bx0 = w * 0.4; bx1 = bx0 + 460; chalet(g, bx0, 460, R); }
+    function palais(kx, kw, ky) {
+      { const hg = g.createRadialGradient(kx + kw / 2, ICE_TOP, 20, kx + kw / 2, ICE_TOP, kw * 0.8); hg.addColorStop(0, "rgba(255,200,120,0.55)"); hg.addColorStop(1, "rgba(255,200,120,0)"); g.fillStyle = hg; g.fillRect(kx - kw * 0.3, 0, kw * 1.6, ICE_TOP); }
+      const cx0 = kx + kw * 0.34, cw = kw * 0.32, wy = ky + 34; // Mittelrisalit, Oberkante der Flügel
+      const STONE = "#E2CFA4", STONE2 = "#CDB485", SHADE = "#B49A6E", GOLD = "#E3B860";
+      // Flügel
+      g.fillStyle = STONE; g.fillRect(kx, wy, kw, ICE_TOP - wy);
+      g.fillStyle = SHADE; g.fillRect(cx0 + cw, wy, kx + kw - cx0 - cw, ICE_TOP - wy); g.globalAlpha = 0.55; g.fillStyle = STONE; g.fillRect(cx0 + cw, wy, kx + kw - cx0 - cw, ICE_TOP - wy); g.globalAlpha = 1;
+      // Mittelrisalit mit Kuppel und Giebel
+      { const dx = cx0 + cw / 2, dy = ky - 18;
+        g.fillStyle = "#5E7C86"; g.beginPath(); g.ellipse(dx, dy + 2, 30, 26, 0, Math.PI, 0); g.fill(); g.strokeStyle = "#141B25"; g.lineWidth = 1.5; g.stroke(); // Kupferkuppel
+        g.strokeStyle = "rgba(20,27,37,0.45)"; g.lineWidth = 1; for (let k = -2; k <= 2; k++) { g.beginPath(); g.moveTo(dx + k * 10, dy + 2); g.quadraticCurveTo(dx + k * 6, dy - 16, dx, dy - 24); g.stroke(); }
+        g.fillStyle = GOLD; g.fillRect(dx - 1.5, dy - 36, 3, 12); g.beginPath(); g.arc(dx, dy - 38, 3, 0, 7); g.fill(); }
+      g.fillStyle = STONE2; g.fillRect(cx0, ky, cw, ICE_TOP - ky);
+      g.fillStyle = STONE; g.beginPath(); g.moveTo(cx0 - 4, ky + 2); g.lineTo(cx0 + cw / 2, ky - 20); g.lineTo(cx0 + cw + 4, ky + 2); g.closePath(); g.fill();
+      g.strokeStyle = "#141B25"; g.lineWidth = 1.6; g.stroke();
+      g.fillStyle = GOLD; g.beginPath(); g.arc(cx0 + cw / 2, ky - 7, 4.5, 0, 7); g.fill(); g.strokeStyle = "#7E6A4C"; g.lineWidth = 1; g.stroke(); // Wappen im Giebel
+      // Licht von unten (Scheinwerfer) über der ganzen Front
+      { const up = g.createLinearGradient(0, ICE_TOP, 0, ky - 20); up.addColorStop(0, "rgba(255,190,110,0.42)"); up.addColorStop(1, "rgba(80,90,150,0.22)"); g.fillStyle = up; g.fillRect(kx, wy, kw, ICE_TOP - wy); g.fillRect(cx0, ky, cw, wy - ky); }
+      g.strokeStyle = "#141B25"; g.lineWidth = 2; g.strokeRect(kx, wy, kw, ICE_TOP - wy); g.strokeRect(cx0, ky, cw, ICE_TOP - ky);
+      // Gesimse und Balustrade mit Vasen
+      const cornice = (x0, x1, y) => { g.fillStyle = "#8C7552"; g.fillRect(x0 - 5, y - 3, x1 - x0 + 10, 5); g.fillStyle = "#EAD9B2"; g.fillRect(x0 - 5, y - 3, x1 - x0 + 10, 1.5); };
+      for (const [x0, x1] of [[kx, cx0], [cx0 + cw, kx + kw]]) {
+        g.fillStyle = STONE2; g.fillRect(x0, wy - 9, x1 - x0, 9); g.fillStyle = "rgba(20,27,37,0.35)";
+        for (let x = x0 + 4; x < x1 - 4; x += 5) g.fillRect(x, wy - 7, 2, 6);
+        for (let x = x0 + 8; x < x1; x += (x1 - x0 - 16) / 4) { g.fillStyle = STONE; g.beginPath(); g.ellipse(x, wy - 13, 3, 4, 0, 0, 7); g.fill(); g.fillRect(x - 1, wy - 11, 2, 3); }
+        cornice(x0, x1, wy);
+      }
+      cornice(cx0, cx0 + cw, ky + 2); cornice(kx, kx + kw, 112);
+      // Fensterachsen: Pilaster dazwischen, Fenster mittig. Flügel: oben kleine Rechteckfenster, darunter hohe Bogenfenster
+      const lit = (x, y, ww, hh, arch, big) => {
+        const on = R() < 0.85;
+        if (on) { const wg = g.createRadialGradient(x + ww / 2, y + hh * 0.45, 2, x + ww / 2, y + hh * 0.45, ww * 1.6); wg.addColorStop(0, "rgba(255,210,120,0.55)"); wg.addColorStop(1, "rgba(255,210,120,0)"); g.fillStyle = wg; g.fillRect(x - ww, y - ww * 0.6, ww * 3, hh + ww * 1.2); }
+        // Rahmen mit Schlussstein
+        g.fillStyle = "#F0E2C0"; g.beginPath();
+        if (arch) { g.moveTo(x - 2, y + hh + 1); g.lineTo(x - 2, y + ww / 2); g.arc(x + ww / 2, y + ww / 2, ww / 2 + 2, Math.PI, 0); g.lineTo(x + ww + 2, y + hh + 1); } else g.rect(x - 2, y - 2, ww + 4, hh + 3);
+        g.fill();
+        const ig = g.createLinearGradient(0, y, 0, y + hh); ig.addColorStop(0, on ? "#FFE9A8" : "#4F4A44"); ig.addColorStop(1, on ? "#E9A94E" : "#3A3632");
+        g.fillStyle = ig; g.beginPath();
+        if (arch) { g.moveTo(x, y + hh); g.lineTo(x, y + ww / 2); g.arc(x + ww / 2, y + ww / 2, ww / 2, Math.PI, 0); g.lineTo(x + ww, y + hh); g.closePath(); } else g.rect(x, y, ww, hh);
+        g.fill();
+        if (arch) { g.fillStyle = "#C9AE7A"; g.fillRect(x + ww / 2 - 2, y - 3, 4, 5); }
+        // Sprossen
+        g.strokeStyle = on ? "rgba(140,90,40,0.55)" : "rgba(20,20,20,0.5)"; g.lineWidth = 0.8; g.beginPath(); g.moveTo(x + ww / 2, y + (arch ? ww / 2 : 0)); g.lineTo(x + ww / 2, y + hh);
+        g.moveTo(x, y + hh * 0.6); g.lineTo(x + ww, y + hh * 0.6); g.stroke();
+        // Kristallluster im Festsaal
+        if (on && big) {
+          const lx = x + ww / 2, ly = y + ww * 0.55;
+          g.strokeStyle = "rgba(120,80,30,0.8)"; g.lineWidth = 0.7; g.beginPath(); g.moveTo(lx, y + 1); g.lineTo(lx, ly - 2); g.stroke();
+          const cg = g.createRadialGradient(lx, ly + 3, 0, lx, ly + 3, ww * 0.75); cg.addColorStop(0, "rgba(255,255,235,0.95)"); cg.addColorStop(0.35, "rgba(255,230,160,0.6)"); cg.addColorStop(1, "rgba(255,230,160,0)");
+          g.fillStyle = cg; g.beginPath(); g.arc(lx, ly + 3, ww * 0.75, 0, 7); g.fill();
+          g.fillStyle = "#B88A3A"; g.beginPath(); g.ellipse(lx, ly + 4, ww * 0.34, 1.6, 0, 0, 7); g.fill();
+          for (let k = -2; k <= 2; k++) { g.fillStyle = "#FFFDF0"; g.beginPath(); g.arc(lx + k * ww * 0.15, ly + 2 - Math.abs(k) * 0.6, 1.1, 0, 7); g.fill(); g.fillStyle = "rgba(255,255,255,0.8)"; g.fillRect(lx + k * ww * 0.15 - 0.4, ly + 5, 0.8, 2.5 + (2 - Math.abs(k))); }
+          g.fillStyle = "#FFF6D8"; g.beginPath(); g.moveTo(lx - 2, ly + 6); g.lineTo(lx, ly + 11); g.lineTo(lx + 2, ly + 6); g.closePath(); g.fill();
+        }
+      };
+      const pil = (x, y0, y1) => { g.fillStyle = "rgba(255,240,205,0.5)"; g.fillRect(x - 2.5, y0, 5, y1 - y0); g.fillStyle = "rgba(120,95,60,0.45)"; g.fillRect(x + 1.5, y0, 1, y1 - y0); g.fillStyle = "#EAD9B2"; g.fillRect(x - 4, y0, 8, 3); };
+      for (const [x0, x1] of [[kx, cx0], [cx0 + cw, kx + kw]]) {
+        const n = 5, bw = (x1 - x0) / n;
+        for (let i = 0; i <= n; i++) pil(x0 + i * bw, wy + 2, ICE_TOP);
+        for (let i = 0; i < n; i++) { const xc = x0 + (i + 0.5) * bw; lit(xc - 6, wy + 10, 12, 14, false, false); lit(xc - 7, 124, 14, 36, true, true); }
+      }
+      { const n = 3, bw = cw / n; for (let i = 0; i <= n; i++) pil(cx0 + i * bw, ky + 6, ICE_TOP);
+        for (let i = 0; i < n; i++) { const xc = cx0 + (i + 0.5) * bw; lit(xc - 8, ky + 16, 16, 18, true, false); lit(xc - 10, 120, 20, 46, true, true); } }
+    }
     // Stadtpark im Winter: verschneite Tannen und Laubbäume, in die warme Lichterketten gewickelt (wie beim Wiener Eistraum)
     g.lineCap = "round";
     const glow = (x, y, r, a) => { const gl = g.createRadialGradient(x, y, 0, x, y, r); gl.addColorStop(0, `rgba(255,214,140,${a})`); gl.addColorStop(1, "rgba(255,214,140,0)"); g.fillStyle = gl; g.fillRect(x - r, y - r, 2 * r, 2 * r); };
@@ -3227,17 +3484,17 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
       g.fillStyle = "#F3C969"; g.beginPath(); g.arc(x, ICE_TOP - 8 * s - hh * 0.63 - hh * 0.36 + 2, 1.8 * s, 0, 7); g.fill(); glow(x, ICE_TOP - 8 * s - hh * 0.99, 8, 0.5);
     };
     const plant = (x) => { const sc = 0.8 + R() * 0.45; if (R() < 0.45) fir(x, sc * 0.95); else lightTree(x, sc); };
-    for (let x = 20; x < kx - 30; x += 60 + R() * 50) plant(x);
-    for (let x = kx + kw + 40; x < w; x += 60 + R() * 50) plant(x);
+    for (let x = 20; x < bx0 - 30; x += 60 + R() * 50) plant(x);
+    for (let x = bx1 + 40; x < w; x += 60 + R() * 50) plant(x);
     // Schnee am Boden vor der Bande
     g.fillStyle = "rgba(230,236,246,0.9)"; for (let x = 0; x < w; x += 6) { g.beginPath(); g.ellipse(x, ICE_TOP - 1, 6 + R() * 4, 2.5 + R() * 2, 0, Math.PI, 0); g.fill(); }
     return c;
   }
 
-  function near(dpr) {
+  function near(dpr, P) {
     const w = WW, [c, g] = mk(w, H, dpr), R = rng(5), people = [], bulbs = [];
     // Laternen und Lichterketten (vor dem Konzerthaus, über dem Publikum)
-    const posts = []; for (let x = 120; x < w; x += 330) posts.push(x);
+    const posts = []; if (!P.indoor) for (let x = 120; x < w; x += 330) posts.push(x);
     g.strokeStyle = "#141B25"; g.lineWidth = 3;
     for (const x of posts) { g.beginPath(); g.moveTo(x, 205); g.lineTo(x, 70); g.stroke(); g.fillStyle = "#141B25"; g.fillRect(x - 5, 64, 10, 8); }
     for (let i = 0; i < posts.length - 1; i++) {
@@ -3404,10 +3661,10 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
 
   function Scene(place, dpr) {
     dpr = Math.min(2, dpr || 1);
-    const F = far(dpr), N = near(dpr), FR = farReflect(F, dpr), VIG = vignette(), SPOT = spotSprite(), FL = flakes();
+    const PL = PLACES[place] || PLACES.wien, F = far(dpr, PL), N = near(dpr, PL), FR = farReflect(F, dpr), VIG = vignette(), SPOT = spotSprite(), FL = flakes();
     const snowCol = ["rgba(235,240,255,0.55)", "rgba(245,248,255,0.8)", "rgba(255,255,255,0.9)"], snowR = [0.9, 1.6, 2.8], snowV = [14, 26, 48], snowP = [0.35, 0.8, 1.3];
     return {
-      place: PLACES[place] || PLACES.wien,
+      place: PL,
       // Kamera: camX = linke Bildkante in Weltkoordinaten
       draw(ctx, camX) {
         const fx = camX * PAR;
@@ -3440,6 +3697,7 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
       },
       // Schnee in drei Tiefen; layer 0/1 hinter der Figur, 2 davor
       snow(ctx, camX, time, layers, amount) {
+        if (PL.indoor) return;
         for (const z of layers) {
           ctx.fillStyle = snowCol[z]; ctx.beginPath();
           const r = snowR[z], v = snowV[z], par = snowP[z];
@@ -3567,7 +3825,7 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
 /* COLD MEDAL EISKUNSTLAUF – Ablauf, Bildschirme, Eingabe, Taktband, Ergebnis, Spielstand. */
 (function () {
   "use strict";
-  const VERSION = "0.38";
+  const VERSION = "0.40";
   // Seiten-Einstellungen aus dem Build (eigenes Hosting: Adresse, Hoster, Impressum); im claude.ai-Artefakt leer
   const SITE = Object.assign({ web: false, url: "", impressum: null }, {"web": true, "supabase": {"url": "https://pqpvgkslozsekjywpdrf.supabase.co", "key": "sb_publishable_KkKe9jchmXYp_-OEmB8WLQ_gZLXrRhF"}, "url": "https://matpeins-debug.github.io/cold-medal-eiskunstlauf/", "hoster": "GitHub Pages (GitHub Inc., USA)", "drittland": "GitHub ist nach dem EU-US Data Privacy Framework zertifiziert; die Übermittlung in die USA stützt sich auf den Angemessenheitsbeschluss der EU-Kommission dazu.", "impressum": {"name": "", "adresse": "", "mail": ""}} || {});
   const M = window.EKMusic, K = window.EKSkate, F = window.EKFig, SC = window.EKScene, PASS = window.CMPass;
@@ -3587,15 +3845,22 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
 
   // ------------------------------------------------------------------ Spielstand (nur auf diesem Gerät; Aussehen zieht später in pass/ um)
   const KEY = "coldmedal-eiskunstlauf";
-  const DEF = { v: 1, prog: null, name: "", nat: "AUT", look: F.DEF_LOOK, help: "norm", lv3: 1, progAuto: true, saved: [], passSeen: 0, recs: [], sound: 1, preset: "salon", lat: 0, music: "donau", fx: [null, null, null, null, null, null, null, null], best: 0, bestTrain: 0, runs: 0, flowers: 0, toys: 0, album: [] };
+  const DEF = { v: 1, prog: null, name: "", nat: "AUT", look: F.DEF_LOOK, help: "norm", lv3: 1, progAuto: true, saved: [], passSeen: 0, season: null, places: ["wien"], trophies: [], recs: [], grps: [], gseen: {}, onOk: 0, sound: 1, preset: "salon", lat: 0, music: "donau", path: null, fx: [null, null, null, null, null, null, null, null], best: 0, bestTrain: 0, runs: 0, flowers: 0, toys: 0, album: [] };
   function sanitize(o) {
-    const S = Object.assign({}, DEF, { look: F.cleanLook(null), prog: K.DEFAULT_SLOTS.slice(), album: [] });
+    const S = Object.assign({}, DEF, { season: newSeason(1), places: ["wien"], trophies: [], look: F.cleanLook(null), prog: K.DEFAULT_SLOTS.slice(), path: K.DEF_PATH.slice(), album: [], grps: [], gseen: {}, recs: [], saved: [] });
     if (o && typeof o === "object") {
       if (typeof o.name === "string") S.name = o.name.replace(/[<>&"]/g, "").trim().slice(0, 14);
       if (NAT[o.nat]) S.nat = o.nat;
       S.look = F.cleanLook(o.look);
       if (o.help === "pro" || o.help === "anf" || o.help === "norm") S.help = o.help;
       if (o.passSeen) S.passSeen = 1;
+      if (o.onOk) S.onOk = 1;
+      if (o.season && typeof o.season === "object") S.season = cleanSeason(o.season);
+      if (Array.isArray(o.places)) S.places = ["wien"].concat(o.places.filter((x) => SC.PLACES[x] && x !== "wien")).slice(0, 4);
+      if (Array.isArray(o.trophies)) S.trophies = o.trophies.slice(-20).filter((x) => x && Number.isFinite(x.n) && Number.isFinite(x.rank)).map((x) => ({ n: x.n, rank: x.rank, pts: +x.pts || 0 }));
+      if (Array.isArray(o.grps)) S.grps = o.grps.filter((x) => x && /^[A-HJ-NP-Z2-9]{7}$/.test(x.c)).slice(0, 16).map((x) => ({ c: x.c, name: typeof x.name === "string" ? x.name.replace(/[<>&"]/g, "").slice(0, 24) : null,
+        k: +x.k || 1, m: M.SCORES[x.m] ? x.m : "donau", nm: +x.nm || 0, nr: +x.nr || 0, rk: +x.rk || 0, nw: +x.nw || 0, own: !!x.own, mem: Array.isArray(x.mem) ? x.mem.slice(0, 6).filter((m) => m && typeof m === "object") : [] }));
+      if (o.gseen && typeof o.gseen === "object") for (const k of Object.keys(o.gseen).slice(-40)) if (/^[A-HJ-NP-Z2-9]{7}$/.test(k) && Array.isArray(o.gseen[k])) S.gseen[k] = o.gseen[k].slice(0, 2).map((v) => +v || 0);
       if (Array.isArray(o.recs)) S.recs = o.recs.slice(0, 8).map(cleanRec).filter(Boolean);
       if (o.help === "anf" && !o.lv3) S.help = "norm"; // bis 0.28 hieß die normale Stufe „Anfänger“
       S.sound = o.sound === 0 ? 0 : 1;
@@ -3603,10 +3868,11 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
       if (Number.isFinite(o.lat)) S.lat = clamp(Math.round(o.lat / 10) * 10, -200, 400);
       S.prog = K.cleanSlots(o.prog);
       // gespeicherte Küren (höchstens 8): Name, Plan, Show, Musik, ob es ein Vorschlag war
-      if (Array.isArray(o.saved)) S.saved = o.saved.slice(0, 8).filter((x) => x && Array.isArray(x.prog)).map((x) => ({ name: String(x.name || "Kür").replace(/[<>&"]/g, "").slice(0, 24), prog: K.cleanSlots(x.prog), fx: K.cleanFx(x.fx), music: M.KUER.includes(x.music) ? x.music : "donau", auto: !!x.auto, date: String(x.date || "").slice(0, 12) }));
+      if (Array.isArray(o.saved)) S.saved = o.saved.slice(0, 8).filter((x) => x && Array.isArray(x.prog)).map((x) => ({ name: String(x.name || "Kür").replace(/[<>&"]/g, "").slice(0, 24), prog: K.cleanSlots(x.prog), fx: K.cleanFx(x.fx), path: K.cleanPath(x.path), music: M.KUER.includes(x.music) ? x.music : "donau", auto: !!x.auto, date: String(x.date || "").slice(0, 12) }));
       S.progAuto = typeof o.progAuto === "boolean" ? o.progAuto : S.prog.join() === K.DEFAULT_SLOTS.join();
       if (M.KUER.includes(o.music)) S.music = o.music;
       S.fx = K.cleanFx(o.fx);
+      S.path = K.cleanPath(o.path);
       S.album = Array.isArray(o.album) ? o.album.filter((a) => a && typeof a.img === "string" && a.img.startsWith("data:image/jpeg;base64,") && a.img.length < 250000)
         .slice(0, 8).map((a) => ({ img: a.img, date: String(a.date || "").slice(0, 12), score: String(a.score || "").slice(0, 12), venue: String(a.venue || "").slice(0, 40), rec: String(a.rec || "").slice(0, 16) })) : [];
       for (const k of ["best", "bestTrain", "runs", "flowers", "toys"]) if (Number.isFinite(o[k]) && o[k] >= 0) S[k] = +o[k];
@@ -3616,12 +3882,29 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
   // Aufzeichnung einer Kür: nur Plan, Figur und die Eingaben mit Zeit (ms) – daraus entsteht beim Ansehen alles neu (wie die
   // Geister im Skispringen, aber noch kleiner). Eingabe-Kürzel: d = drücken, u = loslassen, c = kreisen, l/r/h/t = Pfeil links/rechts/hoch/tief.
   const IN_CODE = { down: "d", up: "u", circle: "c" }, DIR_CODE = { l: "l", r: "r", u: "h", d: "t" }, CODE_IN = { d: ["down"], u: ["up"], c: ["circle"], l: ["swipe", "l"], r: ["swipe", "r"], h: ["swipe", "u"], t: ["swipe", "d"] };
+  // ------------------------------------------------------------------ Saison: vier Wettbewerbe an vier Orten, Punkte nach Platz,
+  // zum Schluss die Gala der Eisrevue. Jede Saison wird das Feld stärker; erreichte Orte bleiben fürs Training frei.
+  const SEASON = [{ id: "wien", boost: 0 }, { id: "davos", boost: 2 }, { id: "stmoritz", boost: 4 }, { id: "revue", boost: 6, finale: true }];
+  const SEASON_PTS = [12, 10, 8, 7, 6, 5];
+  function newSeason(n) { return { n, ev: 0, pts: {}, done: [] }; }
+  function cleanSeason(o) {
+    const z = newSeason(Number.isFinite(o.n) && o.n >= 1 ? Math.min(999, Math.floor(o.n)) : 1);
+    z.ev = Number.isFinite(o.ev) ? clamp(Math.floor(o.ev), 0, SEASON.length - 1) : 0;
+    if (o.pts && typeof o.pts === "object") for (const k of Object.keys(o.pts).slice(0, 12)) if (Number.isFinite(o.pts[k])) z.pts[String(k).slice(0, 20)] = +o.pts[k];
+    if (Array.isArray(o.done)) z.done = o.done.slice(0, 4).filter((d) => d && SC.PLACES[d.id]).map((d) => ({ id: d.id, rank: +d.rank || 0, total: +d.total || 0 }));
+    return z;
+  }
+  // Stand der Saison: [{ name, nat, pts, me }] nach Punkten
+  function seasonTable() {
+    const z = S.season, me = S.name || "Du", rows = Object.keys(z.pts).map((k) => ({ name: k === "__me" ? me : k, nat: k === "__me" ? S.nat : (K.field(1, 5).find((f) => f.name === k) || {}).nat || "", pts: z.pts[k], me: k === "__me" }));
+    return rows.sort((a, b) => b.pts - a.pts || (b.me ? 1 : 0) - (a.me ? 1 : 0));
+  }
   function cleanRec(r) {
     if (!r || typeof r !== "object" || typeof r.in !== "string" || r.in.length > 6000 || !M.SCORES[r.music]) return null;
     const look = F.cleanLook(r.look);
     return { v: 1, id: String(r.id || "").slice(0, 16), at: +r.at || 0, mode: r.mode === "train" ? "train" : "comp", name: String(r.name || "").replace(/[<>&"]/g, "").slice(0, 14), nat: /^[A-Z]{3}$/.test(r.nat) ? r.nat : "AUT",
-      look, music: r.music, slots: K.cleanSlots(r.slots), fx: K.cleanFx(r.fx), lvl: ["anf", "norm", "pro"].includes(r.lvl) ? r.lvl : "norm", cap: [8, 9, 10].includes(r.cap) ? r.cap : 9,
-      seed: (+r.seed >>> 0) || 7, in: r.in.replace(/[^0-9a-z;]/g, ""), total: +r.total || 0, rank: +r.rank || 0,
+      look, music: r.music, slots: K.cleanSlots(r.slots), fx: K.cleanFx(r.fx), path: K.cleanPath(r.path), lvl: ["anf", "norm", "pro"].includes(r.lvl) ? r.lvl : "norm", cap: [8, 9, 10].includes(r.cap) ? r.cap : 9,
+      place: SC.PLACES[r.place] ? r.place : "wien", seed: (+r.seed >>> 0) || 7, in: r.in.replace(/[^0-9a-z;]/g, ""), total: +r.total || 0, rank: +r.rank || 0,
       board: Array.isArray(r.board) ? r.board.slice(0, 8).map((b) => ({ name: String(b.name || "").replace(/[<>&"]/g, "").slice(0, 20), nat: /^[A-Z]{3}$/.test(b.nat) ? b.nat : "", total: +b.total || 0, me: !!b.me })) : null };
   }
   let S = sanitize(null);
@@ -3667,7 +3950,11 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
   }
   layout();
   window.addEventListener("resize", layout);
-  let scene = SC.Scene("wien", Math.min(2, (window.devicePixelRatio || 1) * uiS));
+  let scene = SC.Scene(SEASON[S.season.ev].id, Math.min(2, (window.devicePixelRatio || 1) * uiS));
+  // Ort wechseln: Kulisse neu vorberechnen (nur wenn nötig)
+  const P = () => scene.place;
+  function usePlace(id) { if (!SC.PLACES[id]) id = "wien"; if (scene.place.id !== id) scene = SC.Scene(id, Math.min(2, (window.devicePixelRatio || 1) * uiS)); }
+  let trainPlace = null;
 
   // ------------------------------------------------------------------ Ton
   let ctxA = null, player = null, keep = null, master = null;
@@ -3753,7 +4040,9 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
 
   // ------------------------------------------------------------------ Lauf
   let SCORE = M.SCORES.donau;
-  const useMusic = () => { SCORE = M.SCORES[M.KUER.includes(S.music) ? S.music : "donau"]; return SCORE; };
+  // Lauf in einer Gruppe: Musik und Startwert der Runde (alle laufen dasselbe am selben Ort)
+  let grpRun = null;
+  const useMusic = () => { SCORE = M.SCORES[grpRun ? grpRun.m : M.KUER.includes(S.music) ? S.music : "donau"]; return SCORE; };
   let PROG = K.buildProgram(S.prog);
   let run = null, testMode = false;
   // Stufen: Anfänger langsamer, weite Fenster, kein Sturz, Wertung ×0,8; Normal; Experte schneller, enge Fenster,
@@ -3792,16 +4081,18 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
   function startRun(mode, opt) {
     opt = opt || {};
     const fake = !!opt.fake || testMode || !player, rec = opt.replay || null;
-    if (rec) { SCORE = M.SCORES[rec.music]; PROG = K.buildProgram(rec.slots, rec.music, rec.lvl); PROG.look = rec.look; PROG.fx = rec.fx.slice(); PROG.planCap = rec.cap; }
-    else { useMusic(); PROG = K.buildProgram(S.prog, SCORE.id, S.help); PROG.look = S.look; PROG.fx = S.fx.slice(); PROG.planCap = planCap(); }
+    usePlace(rec ? rec.place : grpRun && mode === "comp" ? "wien" : mode === "comp" ? SEASON[S.season.ev].id : trainPlace || SEASON[S.season.ev].id);
+    if (rec) { SCORE = M.SCORES[rec.music]; PROG = K.buildProgram(rec.slots, rec.music, rec.lvl, rec.path); PROG.look = rec.look; PROG.fx = rec.fx.slice(); PROG.planCap = rec.cap; }
+    else { useMusic(); PROG = K.buildProgram(S.prog, SCORE.id, S.help, S.path); PROG.look = S.look; PROG.fx = S.fx.slice(); PROG.planCap = planCap(); }
     const lv = rec ? LEVELS[rec.lvl] || LEVELS.norm : LV(), bt = M.grid(SCORE, Math.round(SCORE.bpm * lv.tempo), true);
     run = { mode, lv, bt, marks: buildMarks(bt), inputs: [], fake, fakeT: -0.6, lastT: 0, done: {}, pops: [], p: 0, camX: WW / 2 - W / 2,
-      dir: 1, face: 0, trail: [], trailT: 0, turn: 0, spinV: 0, jump: null, fallUntil: -1, landUntil: -1, lastSwipe: null, posed: false, finished: false, k: kHelp(), paint: { pts: [], marks: [], t: 0 }, sparks: [], burstQ: 0, lastQ: null, pos: null, intensity: 0.6, cheer: 0, burst: 0, streak: 0, bestStreak: 0, accI: 0, throws: null, intT: 0, seed: (Date.now() & 0xffff) || 7 };
+      grp: !rec && grpRun && mode === "comp" ? Object.assign({}, grpRun) : null, dir: 1, face: 0, trail: [], trailT: 0, turn: 0, spinV: 0, jump: null, fallUntil: -1, landUntil: -1, lastSwipe: null, posed: false, finished: false, k: kHelp(), paint: { pts: [], marks: [], t: 0 }, sparks: [], burstQ: 0, lastQ: null, pos: null, intensity: 0.6, cheer: 0, burst: 0, streak: 0, bestStreak: 0, accI: 0, throws: null, intT: 0, seed: (Date.now() & 0xffff) || 7 };
     run.raw = []; run.look = rec ? rec.look : S.look;
+    if (run.grp) run.seed = run.grp.s;
     if (rec) {
       // Aufzeichnung ansehen: gleicher Zufall, gleiche Eingaben; ohne Auftritt, ohne Taktband – wie im Fernsehen
       Object.assign(run, { replay: rec, ri: 0, seed: rec.seed, mode: rec.mode });
-      show(null); $("hud").hidden = true; tvShow(true);
+      show(null); $("hud").hidden = true; if (!opt.slow) tvShow(true);
       if (!fake && !opt.silent) { ambience(true); player.start(SCORE.id, { preset: S.preset, swing: true, bpm: Math.round(SCORE.bpm * lv.tempo), at: opt.at || 0 }); }
       return;
     }
@@ -3899,11 +4190,12 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
       setTimeout(() => { try { a.src.stop(); a.lfo.stop(); } catch (e) { /* egal */ } }, 3000);
     }
   }
-  function abortRun() { ambience(false); try { if (window.speechSynthesis) window.speechSynthesis.cancel(); } catch (e) { /* egal */ } if (player && player.playing) player.stop(); run = null; $("hud").hidden = true; show("scrMenu"); }
+  function abortRun() { ambience(false); try { if (window.speechSynthesis) window.speechSynthesis.cancel(); } catch (e) { /* egal */ } if (player && player.playing) player.stop(); const gr = run && run.grp; run = null; $("hud").hidden = true; if (gr) backToGroup(); else show("scrMenu"); }
 
   function addInput(type, dir, tAt) {
     if (run && run.entry) { if (run.entry.t > 0.4 || run.entry.phase) run.entry.skip = true; return; }
     if (run && run.honor) { if (songTime() - run.honor.t0 > 0.6) endHonor(); return; }
+    if (run && run.slow && tAt === undefined) { if (type === "down") endSlow(); return; } // Zeitlupe: Tippen überspringt
     if (run && run.replay && tAt === undefined) { if (type === "down") tvTap(); return; } // beim Ansehen: Tippen zeigt die Leiste
     if (!run || run.finished) return;
     const t = tAt !== undefined ? tAt : songTime() - (run.fake ? 0 : S.lat / 1000);
@@ -3943,7 +4235,8 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
     // Sprung: Absprung merken für das Bild
     if (inp.type === "down") {
       const jm = r.marks.find((m) => m.kind === "hold" && Math.abs(inp.t - m.t) <= K.WIN.jump * k * (m.el.w || 1) && !(r.jump && r.jump.el === m.el));
-      if (jm) r.jump = { el: jm.el, t0: inp.t, t1: null, land: jm.t2 };
+      // Höhe nach dem Absprung: genau auf dem Schlag = hoch und lang in der Luft, daneben flacher
+      if (jm) { const kw0 = k * (jm.el.w || 1); r.jump = { el: jm.el, t0: inp.t, t1: null, land: jm.t2, tk: jm.t, h: 0.7 + 0.55 * clamp(1 - Math.abs(inp.t - jm.t) / (K.WIN.high * kw0 * 1.4), 0, 1) }; }
       const pm = r.marks.find((m) => m.kind === "pose" && Math.abs(inp.t - m.t) <= K.WIN.pose * k);
       if (pm && !r.posed && r.pos) r.paint.marks.push({ x: r.pos[0], y: r.pos[1], kind: "pose", ok: true });
       if (pm) r.posed = true;
@@ -3959,7 +4252,13 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
       const dl = inp.t - r.jump.land, kw = k * (r.jump.el.w || 1);
       if (Math.abs(dl) <= K.WIN.fall * kw && Math.abs(dl) > K.WIN.wobble * kw) r.wobble = { t: inp.t, hand: Math.abs(dl) > K.WIN.hand * kw };
       if (r.pos) r.paint.marks.push({ x: r.pos[0], y: r.pos[1], kind: Math.abs(dl) > K.WIN.fall * kw ? "fall" : "jump", ok: Math.abs(dl) <= K.WIN.wobble * kw });
-      if (Math.abs(dl) > K.WIN.fall * kw && !r.lv.falls) { r.wobble = { t: inp.t, hand: true }; r.landUntil = inp.t + 0.95; sfx("land"); pop("Wackler", "#F0A65A"); }
+      // Wagnis: jede Unsauberkeit (wackelig, zu früh, zu flach abgesprungen) wird zum Sturz – wie in der Wertung
+      const riskFail = r.jump.el.risk && r.lv.falls && (Math.abs(dl) > K.WIN.wobble * kw || dl < -K.WIN.under * kw || Math.abs(r.jump.t0 - r.jump.tk) > K.WIN.high * kw);
+      const dl0Fall = riskFail && Math.abs(dl) <= K.WIN.fall * kw;
+      // perfekt gestanden: kurz hält die Halle den Atem an – Lichtblitz, Glitzer, Bravo
+      if (!riskFail && Math.abs(dl) <= 0.035 * k && Math.abs(r.jump.t0 - r.jump.tk) <= 0.05 * k) { r.perfT = inp.t; r.burstQ += r.jump.el.rot >= 3 ? 50 : 24; sfx("woo", r.jump.el.rot >= 3 ? 0.9 : 0.4); if (r.jump.el.risk) pop("⚡ Wagnis gestanden!", "#FFE7A0"); }
+      if (dl0Fall) { r.wobble = null; r.fallUntil = Infinity; r.down = { t0: inp.t, hits: 0, last: -9, shake: -9 }; sfx("fall"); r.streak = 0; r.intensity = clamp(r.intensity - 0.35, 0, 1); r.burst = 0; pop("Wagnis misslungen", "#E8705A"); }
+      else if (Math.abs(dl) > K.WIN.fall * kw && !r.lv.falls) { r.wobble = { t: inp.t, hand: true }; r.landUntil = inp.t + 0.95; sfx("land"); pop("Wackler", "#F0A65A"); }
       else if (Math.abs(dl) > K.WIN.fall * kw) { r.wobble = null; r.fallUntil = Infinity; r.down = { t0: inp.t, hits: 0, last: -9, shake: -9 }; sfx("fall"); r.streak = 0; r.intensity = clamp(r.intensity - 0.35, 0, 1); r.burst = 0; } else { r.landUntil = inp.t + (r.wobble && r.wobble.t === inp.t ? 0.95 : 0.6); sfx("land"); }
     }
     if (inp.type === "swipe") r.lastSwipe = { dir: inp.dir, t: inp.t };
@@ -3990,6 +4289,13 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
     const miss = r.status === "miss", fall = r.status === "fall";
     run.card = { t: performance.now(), name, pts: miss ? "–" : `+${dec(r.score)}`, word: miss ? "ausgelassen" : fall ? "Sturz · −1" : (r.level ? `Stufe ${r.level} · ` : "") + `GOE ${sg(r.goe)} · ${GOE_W[r.goe]}`,
       st: miss || fall ? 0 : r.goe >= 4 ? 3 : r.goe >= 2 ? 2 : r.goe >= 0 ? 1 : 0, bad: miss || fall || r.status === "under" };
+  }
+  // Zeitspannen der Höhepunkte (aufeinanderfolgende Abschnitte zusammengefasst)
+  function peakSpans() {
+    if (run._peaks) return run._peaks;
+    const sec = PROG.sec, at = (i) => run.bt[Math.min(run.bt.length - 1, (sec.first + sec.len * i) * 3)], out = [];
+    for (const i of (sec.peak || []).slice().sort((a, b) => a - b)) { const last = out[out.length - 1]; if (last && last.i === i - 1) { last[1] = at(i + 1); last.i = i; } else { const o = [at(i), at(i + 1)]; o.i = i; out.push(o); } }
+    return (run._peaks = out);
   }
   function pop(text, col, near) { if (run) run.pops.push({ text: nb(text), col, t: performance.now(), near: !!near }); }
 
@@ -4135,13 +4441,19 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
     // Abstoß nur jeden zweiten Takt, dazwischen ein langer Bogen auf einer Kante: weniger Treten, mehr Gleiten
     const glideBar = bar % 2 === 1, push = !glideBar && inBar < 0.45 ? Math.sin(Math.PI * inBar / 0.45) : 0;
     const boost = r.strokeT !== undefined && t - r.strokeT < 0.9 ? 1 + 0.35 * (1 - (t - r.strokeT) / 0.9) : 1;
-    r.p += dt * speed * fallMul * boost * (glideBar ? 1.12 - 0.22 * inBar : 0.86 + 0.4 * push);
-    const P = r.p, x = WW / 2 + 660 * Math.sin(2 * Math.PI * P / 24), d = 0.52 + 0.3 * Math.sin(2 * Math.PI * P / 9.5 + 1);
-    const vx = Math.cos(2 * Math.PI * P / 24);
+    // Anlauf: in den letzten 1,2 s vor dem Absprung zieht sie an (mehr Tempo, tiefer in die Knie)
+    const nextJ = PROG.elements.find((e) => e.kind === "jump" && e.part !== "b" && bt[e.tk] > t && bt[e.tk] - t < 1.2);
+    const runUp = nextJ ? 1 + 0.45 * Math.sin(Math.PI * clamp(1 - (bt[nextJ.tk] - t) / 1.2, 0, 1)) : 1;
+    const dP = dt * speed * fallMul * boost * runUp * (glideBar ? 1.12 - 0.22 * inBar : 0.86 + 0.4 * push);
+    r.p += dP;
+    // Laufweg: je Abschnitt die gewählte Bahnfigur (gemeinsame Rechnung mit der Choreo-Note in skate.js), 5 m je Einheit
+    const si = Math.floor((bar - PROG.sec.first) / PROG.sec.len), ptype = si >= 0 && si < 8 ? PROG.path[si] : "bogen";
+    const N = r.nav || (r.nav = K.navNew()); K.pathStep(N, ptype, dP * 5);
+    const x = WW / 2 + N.x * 24, d = 0.52 + N.y * 0.024, vx = Math.cos(N.th);
     // Blickrichtung dreht weich (über die Vorderseite) statt umzuklappen
     if (speed > 0 && Math.abs(vx) > 0.05) r.dir = vx > 0 ? 1 : -1;
     // Schwünge: in Bögen zur Kamera hin dreht sich der Körper etwas mit, im Bogen weg wieder ins Profil
-    const dd = Math.cos(2 * Math.PI * P / 9.5 + 1), sw = speed > 0 ? 0.38 * dd : 0;
+    const dd = Math.sin(N.th), sw = speed > 0 ? 0.38 * dd : 0;
     const want = ended ? Math.PI / 2 - 0.5 : r.dir > 0 ? Math.max(0, sw) : Math.PI - Math.max(0, sw), df = want - r.face; // am Ende zum Publikum vor dem Bildschirm
     r.face += Math.sign(df) * Math.min(Math.abs(df), dt * 3.6);
     let pose = F.strokePose(inBar), lift = 0, turn = 0, tilt = 0;
@@ -4173,7 +4485,7 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
         const end = j.t1 !== null ? j.t1 : Math.max(j.land, t);
         if (j.t1 === null || t < j.t1) {
           const u = clamp((t - j.t0) / Math.max(0.3, j.land - j.t0), 0, 1.3);
-          lift = 46 * Math.sin(Math.PI * clamp(u, 0, 1)); turn = u * Math.PI * 2 * (el.rot || 2); pose = F.POSES.air;
+          lift = (el.rot >= 3 ? 58 : 46) * (j.h || 1) * Math.sin(Math.PI * clamp(u, 0, 1)); turn = u * Math.PI * 2 * (el.rot || 2); pose = F.POSES.air;
         } else if (t < end + 0.01) pose = F.POSES.air;
       }
     }
@@ -4243,6 +4555,13 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
     const y0 = 350, h = 34, px = LANE_X, pps = 175;
     ctx.fillStyle = "rgba(20,27,37,0.72)"; ctx.fillRect(0, y0, W, h);
     const bt = run.bt;
+    // Höhepunkte der Musik: goldener Abschnitt im Band, damit man das Schwerste dorthin legt und darauf hinfiebert
+    for (const [a0, b0] of peakSpans()) {
+      const xa = px + (a0 - t) * pps, xb = px + (b0 - t) * pps; if (xb < 0 || xa > W) continue;
+      const gr = ctx.createLinearGradient(0, y0, 0, y0 + h); gr.addColorStop(0, "rgba(243,201,105,0.32)"); gr.addColorStop(1, "rgba(243,201,105,0.06)");
+      ctx.fillStyle = gr; ctx.fillRect(xa, y0, xb - xa, h);
+      ctx.fillStyle = "#F3C969"; ctx.font = "600 9px " + font(); ctx.textAlign = "left"; ctx.textBaseline = "top"; ctx.fillText("♪ HÖHEPUNKT", Math.max(4, xa + 4), y0 + 2);
+    }
     // Schläge
     for (let i = 0; i < bt.length; i++) {
       const x = px + (bt[i] - t) * pps; if (x < -10 || x > W + 10) continue;
@@ -4468,9 +4787,11 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
     if (!run) { idle(dt); return; }
     if (run.entry) { entryFrame(dt); return; }
-    if (run.fake && !run.manual) run.fakeT += dt;
+    const sl = run.slow ? 0.35 : 1;   // Zeitlupe
+    if (run.fake && !run.manual) run.fakeT += dt * sl;
     const t = songTime(); run.lastT = t; run.lastNow = now;
-    render(t, dt);
+    render(t, dt * sl);
+    if (run.slow && t >= run.slow.b) { endSlow(); return; }
     if (!run.finished && t > run.bt[run.bt.length - 1] + 3.8) finish();
   }
   // ------------------------------------------------------------------ Ansehen wie im Fernsehen: volles Bild mit Musik, keine Knöpfe.
@@ -4513,6 +4834,44 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
     ctx.restore();
     if ($("tvBar").classList.contains("on")) tvSync();
   }
+  // Wiederholung vor der Wertung: das beste Element der Kür noch einmal in Zeitlupe, näher dran (aus der Aufzeichnung nachgerechnet)
+  let slowTest = false;
+  function slowPick(res) {
+    let best = -1, bv = -1;
+    res.els.forEach((x, i) => { const e = PROG.elements[i]; if (!e || x.part === "b" || x.status !== "ok" || (e.kind !== "jump" && e.kind !== "spin")) return; const v = (e.kind === "jump" ? 10 : 0) + (x.row || x).score; if (v > bv) { bv = v; best = i; } });
+    return best;
+  }
+  function startSlow(orig, res, board, rank) {
+    if (!orig.rec || orig.replay || orig.honor || (orig.fake && !slowTest)) return false;
+    const i = slowPick(res); if (i < 0) return false;
+    const e = PROG.elements[i], bt = orig.bt, nx = PROG.elements[i + 1];
+    const a = e.kind === "jump" ? bt[e.tk] - 1.4 : bt[e.from] - 0.7;
+    const b = e.kind === "jump" ? bt[e.part === "a" && nx ? nx.land : e.land] + 1.1 : bt[e.from + 6];
+    const keep = { run: orig, PROG, SCORE, res, board, rank, name: e.part === "a" ? e.name : e.name, star: !!(res.els[i] && res.els[i].star) };
+    startRun(orig.rec.mode, { replay: orig.rec, fake: true, silent: true, slow: true });
+    const step = 1 / 30; let t = -0.6;
+    while (t < a) { t = Math.min(a, t + step); feedReplay(t); figureState(t, step); }
+    Object.assign(run, { fakeT: a, lastT: a, manual: false, slow: Object.assign({ a, b }, keep), zoom: 1.2 });
+    sfx("applause", 0.25);
+    return true;
+  }
+  function endSlow() {
+    if (!run || !run.slow) return;
+    const k = run.slow; run = k.run; PROG = k.PROG; SCORE = k.SCORE;
+    showResult(k.res, k.board, k.rank);
+  }
+  function drawSlow(t) {
+    // Kinobalken, Einblendung oben links
+    const u = clamp((t - run.slow.a) / 0.4, 0, 1) * clamp((run.slow.b - t) / 0.3, 0, 1);
+    ctx.fillStyle = "#05070F"; ctx.fillRect(0, 0, W, 26 * u); ctx.fillRect(0, H - 26 * u, W, 26 * u);
+    ctx.save(); ctx.globalAlpha = u; ctx.font = "700 12px " + font(); const txt = "WIEDERHOLUNG · ZEITLUPE", w = ctx.measureText(txt).width + 26;
+    ctx.fillStyle = "rgba(15,23,48,0.8)"; ctx.fillRect(14, 36, w, 24); ctx.fillStyle = "#C23B2A"; ctx.fillRect(14, 36, 3, 24);
+    ctx.fillStyle = "#FFF4D6"; ctx.textAlign = "left"; ctx.textBaseline = "middle"; ctx.fillText(txt, 26, 48);
+    ctx.font = "italic 13px " + getComputedStyle(document.body).getPropertyValue("--font-body"); ctx.fillStyle = "#F3D58A";
+    ctx.fillText(run.slow.name + (run.slow.star ? "  ★ auf dem Höhepunkt" : ""), 18, 74);
+    ctx.font = "10px " + font(); ctx.textAlign = "right"; ctx.fillStyle = "rgba(241,231,210,0.55)"; ctx.fillText("Tippen: weiter zur Wertung", W - 16, H - 36);
+    ctx.restore();
+  }
   function watch(rec) { if (!rec) return; unlock(); if (listenOn) listen(false); startRun(rec.mode, { replay: rec }); }
   $("tvPlay").onclick = (e) => { e.stopPropagation(); tvPause(); };
   $("tvSeek").oninput = (e) => { e.stopPropagation(); clearTimeout(tvTimer); };
@@ -4524,7 +4883,7 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
     for (let i = 0; i < 4; i++) list.push({ kind: "rose", t0: t + i * 0.12, x0: run.camX + Math.random() * W, y0: 200, x1: st.x + (Math.random() - 0.5) * 200, y1: SC.footY(st.d) - 4 + (Math.random() - 0.5) * 40, dur: 0.9, rot: Math.random() * 6, col: ["#C23B2A", "#E07A8B", "#F3C969"][i % 3] });
     sfx("cheer", 0.5); tvTap();
   };
-  $("tvX").onclick = (e) => { e.stopPropagation(); if (player && player.playing) { player.onEnd = null; player.stop(); } ambience(false); tvShow(false); run = null; show("scrMenu"); };
+  $("tvX").onclick = (e) => { e.stopPropagation(); if (player && player.playing) { player.onEnd = null; player.stop(); } ambience(false); tvShow(false); const gr = run && run.replay && run.replay.grp; run = null; if (gr) backToGroup(); else show("scrMenu"); };
   $("tv").addEventListener("pointerdown", (e) => { if (e.target.closest("#tvBar")) return; e.preventDefault(); tvTap(); });
   // Aufzeichnung: Eingaben bis zur Zeit t nachspielen (dieselbe Logik wie beim Laufen)
   function recInputs(rec) { if (!rec._in) rec._in = rec.in.split(";").filter(Boolean).map((x) => { const c = x.slice(-1), ms = parseInt(x, 10); return [ms / 1000].concat(CODE_IN[c] || ["down"]); }); return rec._in; }
@@ -4662,6 +5021,13 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
     const fy = SC.footY(st.d), s = SC.scaleAt(st.d);
     const target = clamp(st.x - W / 2 + Math.cos(run.face) * 60, 0, WW - W);
     run.camX += (target - run.camX) * Math.min(1, dt * 2.2);
+    // Fernsehregie: bei Sprung und Pirouette geht die Kamera näher heran (im Fernsehbild und in der Zeitlupe mehr)
+    const elz = run.honor ? null : phaseAt(t), air = st.lift > 2 || (elz && elz.kind === "jump" && Math.abs(t - run.bt[elz.tk]) < 0.75);
+    const zMax = run.slow ? 1.55 : run.replay ? 1.32 : 1.14, spinZ = elz && elz.kind === "spin" && t > run.bt[elz.from] - 0.3;
+    const zT = air ? zMax : spinZ ? 1 + (zMax - 1) * 0.7 : elz && elz.kind === "steps" ? 1 + (zMax - 1) * 0.3 : 1;
+    run.zoom = run.zoom || 1; run.zoom += (zT - run.zoom) * Math.min(1, dt * (zT > run.zoom ? 2.4 : 1.1));
+    const Z = run.zoom, zcx = clamp(st.x - run.camX, 60, W - 60), zcy = clamp(SC.footY(st.d) - 55 * SC.scaleAt(st.d), 60, H - 60);
+    ctx.save(); if (Z > 1.001) { ctx.translate(zcx, zcy); ctx.scale(Z, Z); ctx.translate(-zcx, -zcy); }
     scene.draw(ctx, run.camX);
     // Publikum: steht bei Serien und gelungenen Elementen auf, klatscht und winkt
     run.burst = Math.max(0, run.burst - dt * 0.45);
@@ -4675,7 +5041,11 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
     scene.snow(ctx, run.camX, now, [0, 1], 0.4 + 0.4 * run.cheer);
     if (run.dim > 0.005) { run.dim *= 1 - Math.min(1, dt * 0.35); ctx.fillStyle = `rgba(8,12,30,${run.dim})`; ctx.fillRect(0, 0, W, H); } // mit der Musik geht das Licht wieder an
     run.intT += dt; if (player && player.playing && run.intT > 0.2) { run.intT = 0; player.setIntensity(run.intensity); if (amb) amb.g.gain.setTargetAtTime(0.03 + 0.05 * run.cheer, ctxA.currentTime, 0.4); }
-    run.intensity += (0.6 - run.intensity) * Math.min(1, dt * 0.05);
+    // Höhepunkt der Musik: Licht und Orchester steigen, das Publikum wird aufmerksam
+    const inPeak = !run.honor && peakSpans().some(([a0, b0]) => t >= a0 && t < b0);
+    if (inPeak && !run.peakOn) { run.peakOn = true; if (!run.replay && !run.slow) pop("♪ Höhepunkt – jetzt das Schwerste!", "#FFE7A0"); run.burst = Math.max(run.burst, 0.35); }
+    if (!inPeak) run.peakOn = false;
+    run.intensity += ((inPeak ? 1 : 0.6) - run.intensity) * Math.min(1, dt * (inPeak ? 0.8 : 0.05));
     const fx = st.x - run.camX;
     // Kür-Bild: Position von oben (x über die Bahn, y = Tiefe), Farbe nach dem letzten Timing; Pirouetten zeichnen Rosetten
     {
@@ -4688,7 +5058,7 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
       }
     }
     // Spotlicht folgt der Läuferin; heller, je besser es läuft, beim Applaus am hellsten
-    run.spotP = (run.spotP || 0.6) + ((run.throws ? 1.25 : 0.55 + 0.45 * run.intensity + 0.25 * run.burst) - (run.spotP || 0.6)) * Math.min(1, dt * 2);
+    run.spotP = (run.spotP || 0.6) + ((run.throws ? 1.25 : 0.55 + 0.45 * run.intensity + 0.25 * run.burst + (inPeak ? 0.3 : 0)) - (run.spotP || 0.6)) * Math.min(1, dt * 2);
     scene.spot(ctx, fx, fy, s, run.spotP);
     ctx.fillStyle = "rgba(20,27,37,0.18)"; ctx.beginPath(); ctx.ellipse(fx, fy + 3, 18 * s * (1 - st.lift / 120), 4 * s, 0, 0, 7); ctx.fill();
     if (!run.replay && (run.lv.cues || run.down)) drawCue(fx, fy, s, t, st.lift);
@@ -4716,8 +5086,15 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
     }
     drawThrows(t, st.x, fy);
     scene.snow(ctx, run.camX, now, [2], 0.4 + 0.4 * run.cheer);
+    ctx.restore();
+    // perfekt gestanden: Lichtblitz und goldener Ring
+    if (run.perfT !== undefined && t - run.perfT >= 0 && t - run.perfT < 0.5) {
+      const u = (t - run.perfT) / 0.5, fyz = zcy + (fy - zcy) * Z;
+      ctx.fillStyle = `rgba(255,248,225,${0.28 * (1 - u) * (1 - u)})`; ctx.fillRect(0, 0, W, H);
+      ctx.strokeStyle = `rgba(243,201,105,${1 - u})`; ctx.lineWidth = 3 * (1 - u) + 1; ctx.beginPath(); ctx.ellipse(zcx + (fx - zcx) * Z, fyz, 30 + 140 * u, 8 + 30 * u, 0, 0, 7); ctx.stroke();
+    }
     scene.vignette(ctx);
-    if (run.honor) drawHonor(t); else if (run.replay) drawTV(t); else { drawLane(t); drawPops(fx, fy, s); }
+    if (run.honor) drawHonor(t); else if (run.slow) drawSlow(t); else if (run.replay) drawTV(t); else { drawLane(t); drawPops(zcx + (fx - zcx) * Z, zcy + (fy - zcy) * Z, s * Z); }
     updateChips(t);
   }
   const IDLE = { face: 0, trail: [], tt: 0 };
@@ -4738,6 +5115,24 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
     scene.snow(ctx, camX, now, [2], 0.5); scene.vignette(ctx);
   }
 
+  // Saison: Punkte nach Platz eintragen, nächster Ort; nach dem Finale Pokal und neue, stärkere Saison
+  function seasonAdd(r, board, rank, res) {
+    if (r.fake && !testMode) return;
+    const z = S.season, ev = SEASON[z.ev];
+    board.forEach((b, i) => { const k = b.me ? "__me" : b.name; z.pts[k] = (z.pts[k] || 0) + (SEASON_PTS[i] || 4); });
+    z.done.push({ id: ev.id, rank, total: res.total });
+    const T = seasonTable(), pos = T.findIndex((x) => x.me) + 1, lead = T[0], me = T[pos - 1];
+    if (ev.finale) {
+      S.trophies.push({ n: z.n, rank: pos, pts: me.pts });
+      r.seasonTxt = pos === 1 ? `★ Saison ${z.n} gewonnen! ${me.pts} Punkte – die nächste Saison wird stärker.` : `Saison ${z.n} beendet: Platz ${pos} mit ${me.pts} Punkten (Siegerin ${lead.name}, ${lead.pts}). Neue Saison, neues Glück.`;
+      r.seasonEnd = pos;
+      S.season = newSeason(z.n + 1);
+    } else {
+      const nx = SEASON[z.ev + 1]; z.ev++;
+      const fresh = !S.places.includes(nx.id); if (fresh) S.places.push(nx.id);
+      r.seasonTxt = `Saison ${z.n}: du ${pos}. mit ${me.pts} Punkten${pos > 1 ? ` (vorn ${lead.name}, ${lead.pts})` : lead === me && T[1] ? ` (vor ${T[1].name}, ${T[1].pts})` : ""}. Weiter ${nx.finale ? "zum Finale: Gala der Eisrevue" : "in " + SC.PLACES[nx.id].name}${fresh ? " · neuer Ort fürs Training frei" : ""}.`;
+    }
+  }
   // ------------------------------------------------------------------ Ergebnis
   function finish() {
     const r = run; r.finished = true; r.finishT = r.lastT; r.finishAt = performance.now(); ambience(false);
@@ -4748,20 +5143,26 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
     const gifts = r.throws || [], fl = gifts.filter((g) => g.kind === "rose").length, toys = gifts.length - fl;
     S.flowers += fl; S.toys += toys; r.gifts = { fl, toys };
     let board = null, rank = 0;
-    if (r.mode === "comp") {
-      board = K.field(r.seed, 5, r.lv.field || 0).map((b) => Object.assign({}, b, { total: Math.round(b.total * r.lv.factor * 100) / 100 })).concat([{ name: S.name || "Du", nat: S.nat, tes: res.tes, pcsTotal: res.pcsTotal, ded: res.ded, total: res.total, me: true }]);
+    if (r.grp) {
+      const gb = grpBoard(r, res); board = gb.board; rank = gb.rank;
+      if (res.total > S.best) S.best = res.total;
+    } else if (r.mode === "comp") {
+      const ev = SEASON[S.season.ev]; r.season = { ev: S.season.ev, n: S.season.n, id: ev.id };
+      board = K.field(r.seed, 5, (r.lv.field || 0) + ev.boost + 3 * (S.season.n - 1)).map((b) => Object.assign({}, b, { total: Math.round(b.total * r.lv.factor * 100) / 100 })).concat([{ name: S.name || "Du", nat: S.nat, tes: res.tes, pcsTotal: res.pcsTotal, ded: res.ded, total: res.total, me: true }]);
       board.sort((a, b) => b.total - a.total); rank = board.findIndex((x) => x.me) + 1;
       if (res.total > S.best) S.best = res.total;
+      seasonAdd(r, board, rank, res);
     } else if (res.total > S.bestTrain) S.bestTrain = res.total;
     // Aufzeichnung behalten (die letzten acht), damit man die Kür ansehen und später in der Gruppe zeigen kann
-    r.rec = cleanRec({ id: Date.now().toString(36), at: Date.now(), mode: r.mode, name: S.name, nat: S.nat, look: S.look, music: SCORE.id, slots: S.prog, fx: S.fx, lvl: S.help, cap: planCap(),
+    r.rec = cleanRec({ id: Date.now().toString(36), at: Date.now(), mode: r.mode, name: S.name, nat: S.nat, look: S.look, music: SCORE.id, place: P().id, slots: S.prog, fx: S.fx, path: S.path, lvl: S.help, cap: planCap(),
       seed: r.seed, in: r.raw.join(";"), total: res.total, rank });
     if (r.rec) { r.rec.board = board ? board.map((b) => ({ name: b.name, nat: b.nat, total: b.total, me: !!b.me })) : null; S.recs.unshift(r.rec); S.recs = S.recs.slice(0, 8); }
     save();
+    if (r.grp && r.rec) grpPost(r, res);   // in der Gruppe melden, mit Aufzeichnung
 
     $("hud").hidden = true;
     makePainting(res, board ? rank : 0);
-    showResult(res, board, rank);
+    if (!startSlow(r, res, board, rank)) showResult(res, board, rank);
     window.__ek.last = res;
   }
   // Kür-Bild malen, ins Album (die letzten 8)
@@ -4770,11 +5171,11 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
     try {
       paintCv = paintCv || document.createElement("canvas"); paintCv.width = 900; paintCv.height = 600;
       const d = new Date(), date = `${d.getDate()}.${d.getMonth() + 1}.${d.getFullYear()}`, score = dec(res.total);
-      window.EKPaint.render(paintCv, { pts: run.paint.pts, marks: run.paint.marks, venue: SC.PLACES.wien.venue, date, name: S.name || "Meine Kür",
+      window.EKPaint.render(paintCv, { pts: run.paint.pts, marks: run.paint.marks, venue: P().venue, date, name: S.name || "Meine Kür",
         score: score + (rank ? ` · ${rank}.` : ""), timing: res.timing ? `Ø ${res.timing.mean} ms vom Takt` : "" });
       const img = paintCv.toDataURL("image/jpeg", 0.72);
       paintShown = img;
-      S.album.unshift({ img, date, score, venue: SC.PLACES.wien.venue, rec: run.rec ? run.rec.id : "" }); S.album = S.album.slice(0, 8); save();
+      S.album.unshift({ img, date, score, venue: P().venue, rec: run.rec ? run.rec.id : "" }); S.album = S.album.slice(0, 8); save();
     } catch (e) { paintShown = null; }
   }
   let paintRec = "";
@@ -4859,7 +5260,8 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
     }
   }
   function showResult(res, board, rank) {
-    $("rKick").textContent = `WIEN · ${run.mode === "comp" ? "KÜR · WETTKAMPF" : "TRAINING"} · ${useMusic().short.toUpperCase()} · ${run.lv.name.toUpperCase()}${run.lv.factor !== 1 ? ` ×${dec(run.lv.factor)}` : ""}`;
+    const gr = run.grp || (run.replay && run.replay.grp);
+    $("rKick").textContent = `${P().name.toUpperCase()} · ${gr ? `GRUPPE · RUNDE ${gr.k}` : run.mode === "comp" ? "KÜR · WETTKAMPF" : "TRAINING"} · ${SCORE.short.toUpperCase()} · ${run.lv.name.toUpperCase()}${run.lv.factor !== 1 ? ` ×${dec(run.lv.factor)}` : ""}`;
     $("rSplit").innerHTML = nb(`Technik ${dec(res.tes)} · Komponenten ${dec(res.pcsTotal)}`) + (res.ded ? ` · <b>Abzug −${res.ded}</b>` : "")
       + `<br><small>${nb(`Komposition ${dec(res.pcs.comp)} · Präsentation ${dec(res.pcs.pres)} (Takt ${dec(res.presParts.takt)}, Ausdruck ${dec(res.presParts.ausdruck)}${res.presParts.expr ? ` ${res.presParts.exprOk}/${res.presParts.expr} ✦` : ""}, Ausstrahlung ${dec(res.presParts.ausstrahlung)}) · Können ${dec(res.pcs.skill)}${res.strokes && res.strokes.n ? ` (Abstöße ${res.strokes.hit}/${res.strokes.n})` : ""} · Choreo-Note ${dec(res.plan.total)}`)}</small>`;
     const tm = res.timing;
@@ -4872,7 +5274,8 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
     }).join("");
     $("rBoard").innerHTML = board ? board.map((b, i) => `<tr class="${b.me ? "me" : ""}"><td class="n">${i + 1}.</td><td class="nm">${esc(b.name)} <small>${b.nat}</small></td><td class="n">${dec(b.total)}</td></tr>`).join("")
       : `<tr><td>Bestes Training</td><td class="n">${dec(S.bestTrain)}</td></tr><tr><td>Bester Wettkampf</td><td class="n">${dec(S.best)}</td></tr>`;
-    $("rTip").textContent = tipFor(res);
+    $("rTip").textContent = run.grpErr ? "Nicht gemeldet: " + run.grpErr : run.seasonTxt || tipFor(res);
+    $("rMenu").textContent = gr ? "Gruppe" : "Menü";
     // Preisgericht
     const J = K.jury(res, run.seed || 7);
     $("rJury").innerHTML = J.map((j, i) => `<div class="judge${j.out ? " out" : ""}" data-j="${i}" style="--d:${i}"><small>J${i + 1} · ${j.nat}</small><b>${dec(j.avg)}</b><i>${esc(j.name.split(" ")[1])}</i></div>`).join("");
@@ -4910,14 +5313,16 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
   }
 
   // ------------------------------------------------------------------ Bildschirme
-  const SCREENS = ["scrMenu", "scrLook", "scrSet", "scrIntro", "scrRes", "scrInfo", "scrProg", "scrPaint", "scrAlbum"];
-  function show(id) { for (const s of SCREENS) $(s).hidden = s !== id; if (id === "scrMenu") fillMenu(); }
+  const SCREENS = ["scrMenu", "scrGrp", "scrLook", "scrSet", "scrIntro", "scrRes", "scrInfo", "scrProg", "scrPaint", "scrAlbum"];
+  function show(id) { for (const s of SCREENS) $(s).hidden = s !== id; if (id === "scrMenu") { grpRun = null; fillMenu(); } }
   function fillMenu() {
-    const P = SC.PLACES.wien;
-    $("mPlace").textContent = `${P.venue} · ${P.name}`; $("mFact").textContent = P.fact;
-    $("mBest").textContent = S.best ? nb(`Bestwert ${dec(S.best)} Punkte`) : `gegen fünf andere, zur Musik „${useMusic().short}“`;
+    const ev = SEASON[S.season.ev], PL = SC.PLACES[ev.id]; usePlace(ev.id); trainPlace = null;
+    $("mPlace").textContent = `${PL.venue} · ${PL.name}`; $("mFact").textContent = PL.fact;
+    const me = seasonTable().find((x) => x.me), pos = seasonTable().findIndex((x) => x.me) + 1;
+    $("mBest").textContent = nb(`Saison ${S.season.n} · ${ev.finale ? "Finale: Gala der Eisrevue" : `Wettbewerb ${S.season.ev + 1} von ${SEASON.length}`}${me ? ` · du ${pos}. mit ${me.pts} Pkt` : ""}`);
     fillPlanCard();
     $("mFoot").textContent = `Version ${VERSION} · inoffizielles Fanspiel`;
+    fillGrpBtn(); loadMy();
   }
   let pendingMode = "comp";
   // Experte choreografiert selbst: erst wenn alle acht Abschnitte belegt sind, geht es aufs Eis
@@ -4925,7 +5330,12 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
   function intro(mode) {
     pendingMode = mode;
     $("iOwn").hidden = !needOwn(); $("iGo").querySelector("span").textContent = needOwn() ? "Zum Kürplan" : "Los";
-    $("iKick").textContent = mode === "comp" ? "KÜR · WETTKAMPF · WIEN" : "TRAINING · WIEN";
+    const ev = SEASON[S.season.ev], pl = SC.PLACES[mode === "comp" ? ev.id : trainPlace || ev.id];
+    $("iKick").textContent = grpRun ? `GRUPPE ${grpRun.name.toUpperCase()} · RUNDE ${grpRun.k} · ${useMusic().short.toUpperCase()}` : mode === "comp" ? `SAISON ${S.season.n} · ${ev.finale ? "FINALE" : `WETTBEWERB ${S.season.ev + 1}/${SEASON.length}`} · ${pl.name.toUpperCase()}` : `TRAINING · ${pl.name.toUpperCase()}`;
+    // Training an jedem erreichten Ort
+    const ip = $("iPlaces"); ip.hidden = mode === "comp" || !!grpRun || S.places.length < 2;
+    ip.innerHTML = `<small>ORT</small>` + S.places.map((id) => `<button class="tg${pl.id === id ? " on" : ""}" data-pl="${id}">${esc(SC.PLACES[id].name)}</button>`).join("");
+    ip.querySelectorAll("[data-pl]").forEach((b) => (b.onclick = () => { trainPlace = b.dataset.pl; intro(mode); }));
     const d = canHover();
     $("hJump").textContent = (d ? "Leertaste bei ● drücken, halten, bei ○ loslassen." : "Bei ● drücken, halten, bei ○ loslassen.") + (PROG.elements.some((e) => e.part) ? " Kombination: gleich das nächste ●." : "");
     $("hSpin").textContent = d ? "Kreisen oder Leertaste auf jedes ⟳ – eine Runde je Takt." : "Mit dem Finger kreisen, jede Runde endet auf einem ⟳.";
@@ -4941,7 +5351,7 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
   $("pWatch").onclick = () => watch(S.recs.find((r) => r.id === paintRec));
   $("rHonor").onclick = () => { if (!run || !run.finished) return; unlock(); startHonor(run); if (run.honor) run.honor.title = run.honorTitle || ""; };
   $("rAgain").onclick = () => { unlock(); startRun(run ? run.mode : "comp"); };
-  $("rMenu").onclick = () => { run = null; show("scrMenu"); };
+  $("rMenu").onclick = () => { const gr = run && (run.grp || (run.replay && run.replay.grp)); run = null; if (gr) backToGroup(); else show("scrMenu"); };
 
   // Gestalten: das Fenster „Deine Figur“ aus dem Pass der Reihe (../pass/pass-ui.js). Person und Farben gelten in allen Spielen;
   // der Reiter Kür zeigt, wie das Kostüm zur gewählten Musik passt (gibt es nur im Eiskunstlauf).
@@ -4949,13 +5359,13 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
   const ONLINE = (() => {
     const sb = SITE.supabase; if (!SITE.web || !sb || !/^https:\/\/[a-z0-9.-]+$/i.test(sb.url || "") || !sb.key || typeof fetch !== "function") return null;
     const base = sb.url + "/rest/v1/rpc/", headers = { "Content-Type": "application/json", apikey: sb.key, Authorization: "Bearer " + sb.key };
-    // nur die geprüften Funktionen des Passes (cm_pass_put, cm_pass_get); der Code geht nie in die Daten
+    // nur geprüfte Funktionen: Pass (cm_pass_put, cm_pass_get) und Gruppen (ek_*); der Code geht nie in die Daten
     return async function rpc(fn, args, ms) {
       const ac = typeof AbortController === "function" ? new AbortController() : null, timer = ac ? setTimeout(() => ac.abort(), ms || 9000) : 0;
       try {
         const r = await fetch(base + fn, { method: "POST", headers, body: JSON.stringify(args || {}), signal: ac ? ac.signal : undefined, cache: "no-store" });
         const text = await r.text(); let j = null; try { j = text ? JSON.parse(text) : null; } catch (e) { /* keine JSON-Antwort */ }
-        if (!r.ok) throw new Error((j && (j.message || j.hint)) || "Hat nicht geklappt (HTTP " + r.status + ").");
+        if (!r.ok) { const e = new Error((j && (j.message || j.hint)) || "Hat nicht geklappt (HTTP " + r.status + ")."); e.status = r.status; e.code = (j && j.code) || ""; throw e; }
         return j;
       } catch (e) { if (e && e.name === "AbortError") throw new Error("Keine Verbindung. Bitte später noch einmal."); throw e; } finally { if (timer) clearTimeout(timer); }
     };
@@ -4982,6 +5392,262 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
   $("bLook").onclick = () => openLook();
   $("mCodeW").hidden = !ONLINE;
   $("bCode").onclick = () => openLook(null, { tab: "code" }); // Code steht absichtlich nicht offen auf der Hauptseite (Bildschirmfotos)
+
+  // ------------------------------------------------------------------ Gruppen online (Schema ek, wie die Gruppen im Skispringen):
+  // ein Link je Gruppe, Runden mit fester Musik (alle laufen dasselbe Stück am selben Ort), Gespräch, „neu“-Zähler.
+  // Spieler über den Code aus dem Pass der Reihe (nie ein eigener Code); jede gemeldete Kür bringt ihre Aufzeichnung mit.
+  let NET = ONLINE;                       // Tests setzen hier einen Server zum Nachspielen ein
+  const GRP_RE = /^[A-HJ-NP-Z2-9]{7}$/;
+  let G = null, gSel = 0, gSide = "talk", gTalk = [], gTimer = 0, gBusy = false, gView = "list", gMyAt = 0, gLeaveArm = 0, gForgetArm = 0;
+  const gName = (k) => (k && k.name) || "Gruppe ohne Namen";
+  const mShort = (id) => (M.SCORES[id] || M.SCORES.donau).short;
+  const dot = (l) => { const s = l && l.suit; return typeof s === "string" && /^#[0-9a-f]{6}$/i.test(s) ? s : F.SUIT[+s] || F.SUIT[0]; };
+  const ago = (at) => { const s = Math.max(0, (Date.now() - Date.parse(at)) / 1000); return s < 90 ? "gerade" : s < 3600 ? `vor ${Math.round(s / 60)} Min` : s < 86400 ? `vor ${Math.round(s / 3600)} Std` : `vor ${Math.round(s / 86400)} Tg`; };
+  const meArgs = () => ({ p_code: PASS.ensureCode(), p_name: S.name || "", p_nation: S.nat, p_look: lookToPass(S.look) });
+  function netMsg(e) {
+    const st = e && e.status;
+    if (e && /PGRST202/.test(e.code || "")) return "Gruppen sind online noch nicht eingerichtet.";
+    if (st === 404) return "Gruppe nicht gefunden (60 Tage ohne Lauf werden Gruppen gelöscht).";
+    if (st === 409) return "Das geht nicht: die Gruppe ist voll (200) oder hat schon 24 Runden.";
+    if (st === 429) return "Zu viele Anfragen, kurz warten.";
+    if (st === 403) return "Nur wer die Gruppe gegründet hat, darf das.";
+    if (st === 400) return "Ungültige Angaben.";
+    return st ? "Server gerade nicht erreichbar." : "Keine Verbindung.";
+  }
+  const gTxt = (id, s) => { $(id).textContent = s; };
+  function gNote(t) { const e = $("gNote"); e.textContent = t || ""; e.hidden = !t; }
+  const myNew = () => S.grps.reduce((a, x) => a + (x.nw || 0), 0);
+  function fillGrpBtn() { $("bGrp").hidden = !NET; const n = myNew(); $("mGrpNw").hidden = !n; $("mGrpNw").textContent = n > 99 ? "99+" : n; }
+
+  async function loadMy(force) {
+    if (!NET || !S.onOk || !PASS.get().code || (!force && Date.now() - gMyAt < 30000)) return;
+    gMyAt = Date.now();
+    try {
+      const L = await NET("ek_my_groups", { p_code: PASS.get().code, p_seen: S.gseen }, 8000);
+      if (!Array.isArray(L)) return;
+      S.grps = L.slice(0, 16).map((x) => ({ c: x.c, name: x.name || null, k: +x.k || 1, m: x.m, nm: +x.nm || 0, nr: +x.nr || 0, rk: +x.rk || 0, nw: +x.nw || 0, own: !!x.own, mem: (x.mem || []).slice(0, 6).map((y) => ({ n: y.n, l: y.l })) }));
+      save(); fillGrpBtn();
+      if (!$("scrGrp").hidden && gView === "list") grpRender();
+    } catch (e) { /* still: alte Liste bleibt */ }
+  }
+  function openGroups() { clearTimeout(gTimer); gView = "list"; G = null; grpRun = null; gNote(""); show("scrGrp"); grpRender(); loadMy(true); }
+  async function openGroup(code, keep) {
+    if (!NET || !GRP_RE.test(code || "")) { gNote("Ungültiger Gruppen-Code."); return; }
+    if (!S.onOk) { gView = "ok"; gPending = code; show("scrGrp"); grpRender(); return; }
+    if (gBusy) return; gBusy = true; gNote("");
+    try {
+      let b = await NET("ek_group_get", { p_group: code, p_code: PASS.get().code || null }, 8000);
+      if (!b) { const e = new Error("fehlt"); e.status = 404; throw e; }
+      if (!b.in) b = await NET("ek_group_join", Object.assign(meArgs(), { p_group: code }), 8000) || b;
+      const same = G && G.c === b.c;
+      G = b; gView = "group";
+      if (!same) { gSel = Math.max(0, b.legs.length - 1); gSide = "talk"; gTalk = []; gLeaveArm = 0; }
+      if (!keep) show("scrGrp");
+      grpRender(); gSeen(); talkLoad(); gPoll();
+    } catch (e) {
+      gNote(netMsg(e));
+      if (e && e.status === 404) { S.grps = S.grps.filter((x) => x.c !== code); save(); }
+      if (gView !== "group") { show("scrGrp"); grpRender(); }
+    } finally { gBusy = false; }
+  }
+  let gPending = null;
+  function gSeen() {
+    if (!G) return;
+    S.gseen[G.c] = [+G.tk || 0, G.jt ? Date.parse(G.jt) : 0];
+    const ks = Object.keys(S.gseen); if (ks.length > 40) delete S.gseen[ks[0]];
+    const e = S.grps.find((x) => x.c === G.c); if (e) e.nw = 0;
+    save();
+  }
+  function gPoll() {
+    clearTimeout(gTimer);
+    gTimer = setTimeout(async () => {
+      if (!G || gView !== "group" || $("scrGrp").hidden) return;
+      if (!document.hidden) {
+        try {
+          const b = await NET("ek_group_get", { p_group: G.c, p_code: PASS.get().code || null }, 6000);
+          if (b && G && b.c === G.c && gView === "group") {
+            const changed = JSON.stringify([b.legs, b.mem, b.tot, b.name]) !== JSON.stringify([G.legs, G.mem, G.tot, G.name]), talk = (+b.tk || 0) !== (+G.tk || 0);
+            G = b; if (changed) grpRender(); if (talk) await talkLoad(); gSeen();
+          }
+        } catch (e) { /* nächstes Mal */ }
+      }
+      gPoll();
+    }, 8000);
+  }
+  async function talkLoad() {
+    if (!G) return;
+    try {
+      const after = gTalk.length ? gTalk[gTalk.length - 1].id : 0;
+      const L = await NET("ek_talk_get", { p_group: G.c, p_code: PASS.get().code || null, p_after: after }, 6000);
+      if (Array.isArray(L) && L.length) { gTalk = gTalk.concat(L.filter((x) => !gTalk.some((y) => y.id === x.id))).slice(-80); if (gSide === "talk") gFeed(); }
+    } catch (e) { /* still */ }
+  }
+  async function talkSend() {
+    const inp = $("gTalkIn"), t = (inp.value || "").trim(); if (!t || !G || gBusy) return;
+    gBusy = true;
+    try {
+      const after = gTalk.length ? gTalk[gTalk.length - 1].id : 0;
+      const L = await NET("ek_talk", Object.assign(meArgs(), { p_group: G.c, p_text: t.slice(0, 280), p_after: after }), 8000);
+      inp.value = "";
+      if (Array.isArray(L)) gTalk = gTalk.concat(L.filter((x) => !gTalk.some((y) => y.id === x.id))).slice(-80);
+      G.tk = gTalk.length ? gTalk[gTalk.length - 1].id : G.tk; gSeen(); gSide = "talk"; gFeed();
+    } catch (e) { gNote(netMsg(e)); } finally { gBusy = false; }
+  }
+  async function talkDel(id) {
+    try { await NET("ek_talk_del", { p_code: PASS.get().code, p_group: G.c, p_id: id }, 6000); gTalk = gTalk.filter((x) => x.id !== id); gFeed(); } catch (e) { gNote(netMsg(e)); }
+  }
+  async function grpNew() {
+    if (gBusy) return; gBusy = true; gNote("");
+    try {
+      const b = await NET("ek_group_new", Object.assign(meArgs(), { p_title: ($("gNewName").value || "").trim().slice(0, 24), p_music: $("gNewMusic").value }), 8000);
+      G = null; gBusy = false; await openGroup(b.c);
+    } catch (e) { gNote(netMsg(e)); } finally { gBusy = false; }
+  }
+  async function grpRound() {
+    if (!G || gBusy) return; gBusy = true;
+    try { G = await NET("ek_group_round", Object.assign(meArgs(), { p_group: G.c, p_music: $("gRoundMusic").value }), 8000); gSel = G.legs.length - 1; grpRender(); }
+    catch (e) { gNote(netMsg(e)); } finally { gBusy = false; }
+  }
+  async function grpLeave() {
+    if (!G) return;
+    if (!gLeaveArm || Date.now() - gLeaveArm > 4000) { gLeaveArm = Date.now(); grpRender(); return; }
+    try { await NET("ek_group_leave", { p_code: PASS.get().code, p_group: G.c }, 6000); S.grps = S.grps.filter((x) => x.c !== G.c); delete S.gseen[G.c]; save(); openGroups(); }
+    catch (e) { gNote(netMsg(e)); }
+  }
+  async function grpForget() {
+    if (!gForgetArm || Date.now() - gForgetArm > 4000) { gForgetArm = Date.now(); grpRender(); return; }
+    gForgetArm = 0;
+    try { if (PASS.get().code) await NET("ek_forget", { p_code: PASS.get().code }, 8000); S.grps = []; S.gseen = {}; S.onOk = 0; save(); gNote("Deine Gruppen-Daten sind gelöscht."); openGroups(); }
+    catch (e) { gNote(netMsg(e)); }
+  }
+  async function grpShare() {
+    if (!G) return;
+    const url = `${location.origin}${location.pathname}?g=${G.c}`, leg = G.legs[G.legs.length - 1];
+    const text = `${S.name || "Jemand"} lädt dich in die Gruppe „${gName(G)}“ ein (Cold Medal Eiskunstlauf): Runde ${leg.k} zu „${mShort(leg.m)}“.`;
+    try { if (navigator.share) { await navigator.share({ title: "Cold Medal Eiskunstlauf", text, url }); return; } } catch (e) { if (e && e.name === "AbortError") return; }
+    try { await navigator.clipboard.writeText(`${text} ${url}`); gNote("Link kopiert."); } catch (e) { gNote(url); }
+  }
+  function grpRunStart() {
+    if (!G) return;
+    const L = G.legs[gSel]; if (!L) return;
+    grpRun = { c: G.c, k: L.k, m: L.m, s: (+L.s >>> 0) || 7, name: gName(G) };
+    clearTimeout(gTimer); unlock();
+    if (!S.name) { openLook(() => intro("comp"), { ask: true, title: "Wie heißt du?" }); return; }
+    intro("comp");
+  }
+  // Rangliste der Runde mit dir (für Kiss & Cry), bevor der Server antwortet
+  function grpBoard(r, res) {
+    const L = G && G.c === r.grp.c ? G.legs.find((x) => x.k === r.grp.k) : null;
+    const others = L ? L.b.filter((x) => !x.me).map((x) => ({ name: x.n || "?", nat: x.c || "", total: +x.p || 0 })) : [];
+    const mine = L && L.b.find((x) => x.me), best = mine ? Math.max(+mine.p || 0, res.total) : res.total;
+    const b = others.concat([{ name: S.name || "Du", nat: S.nat, tes: res.tes, pcsTotal: res.pcsTotal, ded: res.ded, total: res.total, me: true }]);
+    b.sort((a, c) => c.total - a.total);
+    return { board: b, rank: b.findIndex((x) => x.me) + 1, best };
+  }
+  async function grpPost(r, res) {
+    const g = r.grp, rec = Object.assign({}, r.rec); delete rec.board; delete rec.rank;
+    try {
+      const b = await NET("ek_group_post", Object.assign(meArgs(), { p_group: g.c, p_leg: g.k, p_total: res.total, p_lvl: S.help, p_ms: res.timing ? Math.round(res.timing.mean) : null, p_rec: rec }), 9000);
+      if (b && b.c === g.c) { G = b; gSeen(); }
+      r.grpSent = true;
+    } catch (e) { r.grpErr = netMsg(e); if (!$("scrRes").hidden) $("rTip").textContent = "Nicht gemeldet: " + r.grpErr; }
+  }
+  async function grpWatch(i, id) {
+    const L = G && G.legs[i]; if (!L || gBusy) return;
+    gBusy = true;
+    try {
+      const raw = await NET("ek_rec_get", { p_group: G.c, p_leg: L.k, p_id: id }, 9000);
+      const rec = cleanRec(raw); if (!rec) throw new Error("leer");
+      const row = L.b.find((x) => x.id === id);
+      rec.board = L.b.slice(0, 8).map((x) => ({ name: x.n || "?", nat: x.c || "", total: +x.p || 0, me: x.id === id }));
+      rec.rank = row ? row.r : 0; rec.grp = { c: G.c, k: L.k };
+      clearTimeout(gTimer); grpRun = null; watch(rec);
+    } catch (e) { gNote(e && e.message === "leer" ? "Diese Kür lässt sich nicht abspielen." : netMsg(e)); } finally { gBusy = false; }
+  }
+  function backToGroup() { if (G) { gView = "group"; show("scrGrp"); grpRender(); talkLoad(); gPoll(); } else openGroups(); }
+
+  const musicOpts = (sel) => M.KUER.map((id) => `<option value="${id}"${id === sel ? " selected" : ""}>${esc(M.SCORES[id].short)}</option>`).join("");
+  function grpRender() {
+    const B = $("gBody");
+    if (gView === "ok") {
+      gTxt("gKick", "GRUPPEN"); gTxt("gName", "Mit Freunden laufen"); gTxt("gSub", "");
+      $("gActs").innerHTML = `<button class="mid" data-g="menu">Zurück</button>`;
+      B.innerHTML = `<div class="gCol"><div class="gBox gOk"><div class="gLbl">Gruppen sind online</div>
+        <p>In einer Gruppe laufen alle dieselbe Musik am selben Ort; jede Kür wird mit ihrer Aufzeichnung gemeldet, damit die anderen sie ansehen können.</p>
+        <p>Dafür speichern wir bei Supabase (Server in Frankfurt): Name, Land und Aussehen deiner Figur, deine Küren mit Aufzeichnung und was du ins Gespräch schreibst – unter dem Prüfwert deines Codes aus „Figur → Code“, nie den Code selbst. Löschen kannst du alles unter Gruppen.</p>
+        <div class="gRow"><button class="mid red" data-g="ok">Einverstanden</button><button class="mid" data-g="menu">Lieber nicht</button></div></div></div><div class="gCol"></div>`;
+      return;
+    }
+    if (gView === "list") {
+      gTxt("gKick", "GRUPPEN"); gTxt("gName", "Mit Freunden laufen"); gTxt("gSub", "Link schicken, dieselbe Musik laufen, Küren der anderen ansehen.");
+      $("gActs").innerHTML = `<button class="mid" data-g="menu">Menü</button>`;
+      const rows = S.grps.length ? S.grps.map((x) => `<button class="gItem" data-open="${x.c}"><span class="gDots">${x.mem.map((m) => `<i style="background:${dot(m.l)}"></i>`).join("")}</span>
+        <span class="gT"><b>${esc(gName(x))}</b><small>${esc(nb(`Runde ${x.k} · ${mShort(x.m)} · ${x.nm} dabei${x.rk ? ` · du Platz ${x.rk} von ${x.nr}` : ""}`))}</small></span>${x.nw ? `<b class="nw">${x.nw > 99 ? "99+" : x.nw} neu</b>` : ""}</button>`).join("")
+        : `<p class="gEmpty">Noch keine Gruppe. Leg eine an und schick den Link – oder öffne einen Link, den du bekommen hast.</p>`;
+      B.innerHTML = `<div class="gCol"><div class="gBox"><div class="gLbl">Neue Gruppe</div>
+          <div class="gRow"><input id="gNewName" maxlength="24" placeholder="Name, z. B. „Eisclub Mia“"></div>
+          <div class="gRow"><select id="gNewMusic" aria-label="Musik der ersten Runde">${musicOpts(S.music)}</select><button class="mid red" data-g="new">Anlegen</button></div></div>
+        <div class="gBox"><div class="gLbl">Gruppe mit Code öffnen</div><div class="gRow"><input id="gJoinCode" maxlength="7" placeholder="7 Zeichen aus dem Link" autocapitalize="characters"><button class="mid" data-g="join">Öffnen</button></div></div>
+        <p class="gFine">${S.onOk ? `Online mit deinem Code aus „Figur → Code“. <button class="lnk" data-g="forget">${gForgetArm ? "Wirklich alles löschen? Nochmal tippen" : "Meine Gruppen-Daten löschen"}</button>` : ""}</p></div>
+        <div class="gCol"><div class="gBox grow"><div class="gLbl">Deine Gruppen</div><div class="gList">${rows}</div></div></div>`;
+      return;
+    }
+    const n = G.legs.length; gSel = clamp(gSel, 0, n - 1);
+    const L = G.legs[gSel], last = gSel === n - 1;
+    gTxt("gKick", `GRUPPE · ${G.nm} DABEI`); gTxt("gName", gName(G)); gTxt("gSub", nb(`gegründet von ${G.on || "?"} · Code ${G.c}`));
+    $("gActs").innerHTML = `<button class="mid red" data-g="share">Link teilen</button><button class="mid" data-g="list">Gruppen</button>`;
+    const rows = L.b.length ? L.b.map((x) => `<tr class="${x.me ? "me" : ""}"><td class="n">${x.r}.</td><td class="nm">${esc(x.n || "?")} <small>${esc(x.c || "")}</small></td>
+        <td><small>${esc((LEVELS[x.lv] || LEVELS.norm).name)}</small></td><td class="n"><small>${x.ms != null ? `Ø ${x.ms} ms` : ""}</small></td><td class="n">${dec(+x.p)}</td>
+        <td><button class="play" data-watch="${esc(x.id)}" aria-label="Kür von ${esc(x.n || "")} ansehen">▶</button></td></tr>`).join("")
+      : `<tr><td class="gEmpty">Noch niemand gelaufen – lauf als Erste!</td></tr>`;
+    const mine = L.b.find((x) => x.me);
+    B.innerHTML = `<div class="gCol"><div class="gBox grow">
+        <div class="gNav"><button class="pill" data-g="prev"${gSel ? "" : " disabled"}>‹</button><b>RUNDE ${L.k}${n > 1 ? ` VON ${n}` : ""}</b><button class="pill" data-g="next"${last ? " disabled" : ""}>›</button></div>
+        <div class="gPiece"><i>♪ ${esc(M.SCORES[L.m].title)}</i> · ${esc((SC.PLACES[L.pl] || SC.PLACES.wien).venue)}${L.on ? ` · gestartet von ${esc(L.on)}` : ""}</div>
+        <div class="gList"><table class="gTab">${rows}</table></div>
+        <div class="gRow"><button class="mid red" data-g="run">${mine ? "Nochmal laufen" : "Laufen"}</button>${last ? `<select id="gRoundMusic" aria-label="Musik der neuen Runde">${musicOpts(M.KUER[(M.KUER.indexOf(L.m) + 1) % M.KUER.length])}</select><button class="mid" data-g="round">Neue Runde</button>` : ""}</div>
+      </div></div>
+      <div class="gCol"><div class="gBox grow"><div class="gTabs"><button data-side="talk" class="${gSide === "talk" ? "on" : ""}">Gespräch</button><button data-side="mem" class="${gSide === "mem" ? "on" : ""}">Mitglieder</button>${n > 1 ? `<button data-side="tot" class="${gSide === "tot" ? "on" : ""}">Gesamt</button>` : ""}</div>
+        <div class="gFeed" id="gFeed"></div>
+        <div class="gRow"><input id="gTalkIn" maxlength="280" placeholder="Schreib der Gruppe …" enterkeyhint="send"><button class="mid" data-g="send">Senden</button></div>
+        <p class="gFine"><button class="lnk" data-g="leave">${gLeaveArm ? "Wirklich verlassen? Nochmal tippen" : "Gruppe verlassen"}</button></p></div></div>`;
+    gFeed();
+  }
+  function gFeed() {
+    const f = $("gFeed"); if (!f || !G) return;
+    if (gSide === "mem") { f.innerHTML = G.mem.map((m) => `<div class="gMsg"><b>${esc(m.n || "?")}</b> <small>${esc(m.c || "")}${m.own ? " · gegründet" : ""}${m.k ? ` · ${m.k} ${m.k === 1 ? "Runde" : "Runden"} · ${dec(+m.p)} Pkt` : ""}</small></div>`).join(""); return; }
+    if (gSide === "tot") { f.innerHTML = `<table class="gTab">${G.tot.map((t) => `<tr class="${t.me ? "me" : ""}"><td class="n">${t.r}.</td><td class="nm">${esc(t.n || "?")} <small>${esc(t.c || "")} · ${t.k}×</small></td><td class="n">${dec(+t.p)}</td></tr>`).join("")}</table>`; return; }
+    // Gespräch: Einträge und Läufe aller Runden, nach Zeit
+    const runs = [];
+    G.legs.forEach((L) => L.b.forEach((x) => runs.push({ at: x.at, run: true, html: `<b>${esc(x.n || "?")}</b> läuft in Runde ${L.k} ${dec(+x.p)} Punkte (${x.r}.)` })));
+    const all = gTalk.map((t) => ({ at: t.at, html: `<b>${esc(t.n || "?")}</b> ${esc(t.t)}${t.me ? ` <button class="del" data-del="${t.id}" aria-label="Löschen">✕</button>` : ""}` })).concat(runs)
+      .sort((a, b) => Date.parse(a.at) - Date.parse(b.at)).slice(-60);
+    const atEnd = f.scrollTop + f.clientHeight >= f.scrollHeight - 8;
+    f.innerHTML = all.length ? all.map((m) => `<div class="gMsg${m.run ? " run" : ""}">${m.html} <small>${ago(m.at)}</small></div>`).join("") : `<p class="gEmpty">Noch still hier.</p>`;
+    if (atEnd || !f.dataset.seen) { f.scrollTop = f.scrollHeight; f.dataset.seen = 1; }
+  }
+  $("scrGrp").addEventListener("click", (e) => {
+    const t = e.target.closest("[data-g],[data-open],[data-watch],[data-side],[data-del]"); if (!t || t.disabled) return;
+    if (t.dataset.open) { openGroup(t.dataset.open); return; }
+    if (t.dataset.watch) { grpWatch(gSel, t.dataset.watch); return; }
+    if (t.dataset.side) { gSide = t.dataset.side; grpRender(); return; }
+    if (t.dataset.del) { talkDel(+t.dataset.del); return; }
+    const a = t.dataset.g;
+    if (a === "menu") { clearTimeout(gTimer); G = null; show("scrMenu"); }
+    else if (a === "ok") { S.onOk = 1; save(); const c = gPending; gPending = null; if (c) openGroup(c); else openGroups(); }
+    else if (a === "list") openGroups();
+    else if (a === "new") grpNew();
+    else if (a === "join") { const c = ($("gJoinCode").value || "").toUpperCase().replace(/[^A-Z0-9]/g, "").slice(-7); openGroup(c); }
+    else if (a === "forget") grpForget();
+    else if (a === "share") grpShare();
+    else if (a === "prev" || a === "next") { gSel += a === "prev" ? -1 : 1; grpRender(); }
+    else if (a === "run") grpRunStart();
+    else if (a === "round") grpRound();
+    else if (a === "send") talkSend();
+    else if (a === "leave") grpLeave();
+  });
+  $("scrGrp").addEventListener("keydown", (e) => { if (e.key === "Enter" && e.target.id === "gTalkIn") { e.preventDefault(); talkSend(); } if (e.key === "Enter" && e.target.id === "gJoinCode") { e.preventDefault(); $("scrGrp").querySelector('[data-g="join"]').click(); } });
+  $("bGrp").onclick = () => { unlock(); if (!S.onOk) { gView = "ok"; gPending = null; show("scrGrp"); grpRender(); return; } openGroups(); };
 
   // Meine Kür: acht Abschnitte der Musik, je ein Element (Schrittfolge zwei)
   let pSel = 0, pRot = 2, pCombo = "";
@@ -5047,6 +5713,7 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
   const JN = { T: "Toeloop", S: "Salchow", Lo: "Rittberger", F: "Flip", Lz: "Lutz", A: "Axel" };
   function slotName(c) {
     const jn = (id) => `${id[0]}× ${JN[id.slice(1)]}`;
+    if (c.kind === "jump" && c.risk) return "⚡ " + jn(Object.keys(CAT).find((k) => CAT[k] === c));
     if (c.kind === "jump") return c.combo ? `${jn(c.combo[0])}<br>+ ${jn(c.combo[1])}` : jn(c.combo ? c.combo[0] : Object.keys(CAT).find((k) => CAT[k] === c));
     if (c.kind === "spin") return esc(c.name).replace("pirouette", "&shy;pirouette");
     return esc(c.name);
@@ -5056,7 +5723,7 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
     useMusic();
     const bt = M.grid(SCORE, SCORE.bpm, true), sl = S.prog, sec = K.SECTIONS[SCORE.id], moods = K.MOODS[SCORE.id];
     if (sl[pSel] === "~") pSel--;
-    const pl = K.plan(sl, S.look, SCORE.id, S.fx, planCap()), cur = sl[pSel], curC = cur ? CAT[cur] : null, fit = moods[pSel][1], peak = (sec.peak || []).includes(pSel);
+    const pl = K.plan(sl, S.look, SCORE.id, S.fx, planCap(), S.path), cur = sl[pSel], curC = cur ? CAT[cur] : null, fit = moods[pSel][1], peak = (sec.peak || []).includes(pSel);
     if (!pCat) { // beim Wechsel des Abschnitts: Art und Sprung-Einstellungen vom gewählten Element übernehmen
       pCat = curC ? (curC.kind === "glide" ? "none" : curC.kind) : fit[0];
       if (curC && curC.kind === "jump") { pRot = curC.rot; pCombo = curC.combo ? curC.combo[1].replace(/^\d/, "") : ""; }
@@ -5077,7 +5744,12 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
     $("pSec").innerHTML = `<small>ABSCHNITT ${pSel + 1} · AB ${mmss(bt[secBar(pSel) * 3])}</small><h3>${esc(moods[pSel][0])}</h3>`
       + `<p>passt: <b>${fit.map((k) => KIND[k][1]).join(" oder ")}</b></p>` + (peak ? `<p class="pk">♪ Höhepunkt der Musik – ein sauberes Element bekommt +1</p>` : "")
       + `<p class="now">${curC ? `gewählt: <b>${slotName(curC).replace("<br>", " ")}</b>${fitK(curC.kind, fit) ? " ✓" : " – passt kaum"}` : "noch frei"}</p>`
-      + `<p class="hint2">Art wählen, dann Element – weiter geht es von selbst. ★ passt zur Musik.</p>`;
+      + `<div class="way"><small>WEG ÜBERS EIS</small><span>${Object.keys(K.PATHS).map((k) => `<button class="tg${S.path[pSel] === k ? " on" : ""}" data-way="${k}">${K.PATHS[k][0]} ${K.PATHS[k][1]}</button>`).join("")}</span><canvas id="pWay"></canvas></div>`;
+    $("pSec").querySelectorAll("[data-way]").forEach((b) => (b.onclick = () => {
+      const a = S.path.slice(); a[pSel] = b.dataset.way; if (sl[pSel] === "StSq" && pSel < 7) a[pSel + 1] = b.dataset.way;
+      S.path = a; S.progAuto = false; save(); fillProg();
+    }));
+    drawWay($("pWay"), S.path, SCORE.id, pSel);
     const nfx = S.fx.filter(Boolean).length;
     $("pShow").innerHTML = `<small>SHOW IN ABSCHNITT ${pSel + 1}</small>${Object.keys(K.FX).map((f) => { const on = S.fx[pSel] === f, full = !on && !S.fx[pSel] && nfx >= K.FX_MAX; return `<button class="tg${on ? " on" : ""}" data-fx="${f}"${full ? " disabled" : ""}>${FXI[f]} ${K.FX[f]}</button>`; }).join("")}<em>${nfx} von ${K.FX_MAX}</em>`;
     $("pShow").querySelectorAll("[data-fx]").forEach((b) => (b.onclick = () => {
@@ -5098,9 +5770,10 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
     };
     let o = "", tw = "";
     if (pCat === "jump") {
-      o = ["T", "S", "Lo", "F", "Lz", "A"].map((f) => { const id = pRot + f + (pCombo ? "+" + pRot + pCombo : ""); return opt(id, CAT["1" + f].name, dec(CAT[id].base) + " P."); }).join("");
-      tw = `<span>Drehungen</span><button class="tg${pRot === 1 ? " on" : ""}" data-rot="1">einfach</button><button class="tg${pRot === 2 ? " on" : ""}" data-rot="2">doppelt</button>`
-        + `<span>danach</span><button class="tg${!pCombo ? " on" : ""}" data-combo="">nichts</button><button class="tg${pCombo === "T" ? " on" : ""}" data-combo="T">+ Toeloop</button><button class="tg${pCombo === "Lo" ? " on" : ""}" data-combo="Lo">+ Rittberger</button>`;
+      const rk = pRot === 3; if (rk) pCombo = "";
+      o = ["T", "S", "Lo", "F", "Lz", "A"].map((f) => { const id = pRot + f + (pCombo ? "+" + pRot + pCombo : ""); return opt(id, (rk ? "⚡ " : "") + CAT["1" + f].name, dec(CAT[id].base) + " P." + (rk ? " · Wagnis" : "")); }).join("");
+      tw = `<button class="tg${pRot === 1 ? " on" : ""}" data-rot="1">einfach</button><button class="tg${pRot === 2 ? " on" : ""}" data-rot="2">doppelt</button><button class="tg risk${rk ? " on" : ""}" data-rot="3" title="Wagnis: nur ganz sauber steht er, sonst Sturz">⚡ dreifach</button>`
+        + (rk ? `<span>Wagnis: unsauber = Sturz</span>` : `<span>+</span><button class="tg${!pCombo ? " on" : ""}" data-combo="">allein</button><button class="tg${pCombo === "T" ? " on" : ""}" data-combo="T">+ Toeloop</button><button class="tg${pCombo === "Lo" ? " on" : ""}" data-combo="Lo">+ Rittberger</button>`);
     } else if (pCat === "spin") { o = ["USp", "SSp", "CSp"].map((id) => opt(id, CAT[id].name, `bis ${dec(CAT[id].levels[3])} P.`)).join(""); tw = `<span>Mit dem Finger kreisen, jede Runde auf den Schlag.</span>`; }
     else if (pCat === "steps") { o = opt("StSq", "Schrittfolge", "zwei Abschnitte"); tw = `<span>Wischen in Pfeilrichtung – braucht zwei Abschnitte.</span>`; }
     else if (pCat === "choreo") { o = ["ChSp", "ChIB", "ChPB", "ChTw"].map((id) => opt(id, CAT[id].name, "Ausdruck")).join(""); tw = `<span>Tippen, wenn die Figur kommt – zählt zur Präsentation.</span>`; }
@@ -5110,7 +5783,7 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
     }
     const ids = sl.filter((x) => x && x !== "~");
     const cnt = { jump: ids.filter((x) => CAT[x].kind === "jump").length, spin: ids.filter((x) => CAT[x].kind === "spin").length };
-    if (pCat === "jump") tw += `<em>${cnt.jump} von ${K.RULES.jumps} Sprüngen</em>`; else if (pCat === "spin") tw += `<em>${cnt.spin} von ${K.RULES.spins}</em>`;
+    if (pCat === "jump") tw += `<em>${cnt.jump}/${K.RULES.jumps}</em>`; else if (pCat === "spin") tw += `<em>${cnt.spin} von ${K.RULES.spins}</em>`;
     $("pOpts").innerHTML = o; $("pTweak").innerHTML = tw;
     $("pOpts").querySelectorAll(".el").forEach((b) => (b.onclick = () => {
       const a = assign(S.prog, pSel, b.dataset.id || null); if (!a) return;
@@ -5123,6 +5796,26 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
     fillSheet(pl);
     playUI();
     requestAnimationFrame(drawBand);
+  }
+  // Laufweg von oben: die Eisfläche, der ganze Weg blass, der gewählte Abschnitt in Gold
+  function drawWay(cv, path, music, sel) {
+    if (!cv) return;
+    const w = cv.offsetWidth || 200, h = cv.offsetHeight || 64, d = dpr;
+    cv.width = Math.round(w * d); cv.height = Math.round(h * d);
+    const g = cv.getContext("2d"); g.setTransform(d, 0, 0, d, 0, 0);
+    const R = K.RINK, sx = (w - 8) / (2 * R.x + 2), sy = (h - 8) / (2 * R.y + 1), X = (x) => w / 2 + x * sx, Y = (y) => h / 2 + y * sy;
+    g.fillStyle = "rgba(220,232,244,0.14)"; g.strokeStyle = "rgba(241,231,210,0.45)"; g.lineWidth = 1;
+    g.beginPath(); if (g.roundRect) g.roundRect(X(-R.x - 1), Y(-R.y - 0.5), (2 * R.x + 2) * sx, (2 * R.y + 1) * sy, 8); else g.rect(X(-R.x - 1), Y(-R.y - 0.5), (2 * R.x + 2) * sx, (2 * R.y + 1) * sy); g.fill(); g.stroke();
+    g.beginPath(); g.moveTo(X(0), Y(-R.y)); g.lineTo(X(0), Y(R.y)); g.strokeStyle = "rgba(241,231,210,0.15)"; g.stroke();
+    const tr = K.pathTrack(path, music);
+    g.lineCap = "round"; g.lineJoin = "round";
+    tr.pts.forEach((seg, i) => {
+      g.strokeStyle = i === sel ? "#F3C969" : "rgba(241,231,210,0.38)"; g.lineWidth = i === sel ? 2.4 : 1.2;
+      g.beginPath(); const p0 = i ? tr.pts[i - 1][tr.pts[i - 1].length - 1] : [0, 11.4]; g.moveTo(X(p0[0]), Y(p0[1]));
+      for (const [x, y] of seg) g.lineTo(X(x), Y(y)); g.stroke();
+    });
+    g.fillStyle = "#C23B2A"; g.beginPath(); g.arc(X(0), Y(11.4), 2.5, 0, 7); g.fill();
+    g.fillStyle = "rgba(241,231,210,0.6)"; g.font = "9px " + font(); g.textAlign = "right"; g.fillText(`Fläche ${Math.round(tr.cover * 100)} %`, w - 6, 11);
   }
   // Blätter über dem Kürplan: Musik wählen, Choreo-Note mit Kostüm
   function fillSheet(pl) {
@@ -5137,13 +5830,13 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
     } else if (pSheet === "saved") {
       const d = new Date(), date = `${d.getDate()}.${d.getMonth() + 1}.${d.getFullYear()}`;
       C.innerHTML = `<div class="kicker">MEINE KÜREN</div><div class="svNew"><input id="svName" maxlength="24" placeholder="Name, z. B. „Winterball“" value="${esc(nb(SCORE.short))}"><button class="mid gold" id="svSave">Aktuellen Plan speichern</button></div>`
-        + `<div class="svList">${S.saved.length ? S.saved.map((x, i) => { const pl2 = K.plan(x.prog, S.look, x.music, x.fx, x.auto ? 8 : LV().own ? 10 : 9); return `<div class="svC"><b>${esc(x.name)}</b><small>${esc(M.SCORES[x.music].short)} · ${esc(x.date)}${x.auto ? " · Vorschlag" : ""}</small><span class="svStrip">${x.prog.map((id) => { if (id === "~") return ""; const c = CAT[id]; return `<i class="ms ${c ? c.kind : "empty"}">${c ? KIND[c.kind][0] : ""}</i>`; }).join("")}</span><em>Choreo-Note ${dec(pl2.total)}</em><span class="svB"><button class="mid red" data-load="${i}">Laden</button><button class="mid" data-del="${i}">✕</button></span></div>`; }).join("") : `<div class="empty">Noch keine Kür gespeichert. Oben einen Namen geben und speichern – bis zu acht Küren.</div>`}</div>`
+        + `<div class="svList">${S.saved.length ? S.saved.map((x, i) => { const pl2 = K.plan(x.prog, S.look, x.music, x.fx, x.auto ? 8 : LV().own ? 10 : 9, x.path); return `<div class="svC"><b>${esc(x.name)}</b><small>${esc(M.SCORES[x.music].short)} · ${esc(x.date)}${x.auto ? " · Vorschlag" : ""}</small><span class="svStrip">${x.prog.map((id) => { if (id === "~") return ""; const c = CAT[id]; return `<i class="ms ${c ? c.kind : "empty"}">${c ? KIND[c.kind][0] : ""}</i>`; }).join("")}</span><em>Choreo-Note ${dec(pl2.total)}</em><span class="svB"><button class="mid red" data-load="${i}">Laden</button><button class="mid" data-del="${i}">✕</button></span></div>`; }).join("") : `<div class="empty">Noch keine Kür gespeichert. Oben einen Namen geben und speichern – bis zu acht Küren.</div>`}</div>`
         + `<div class="shFoot"><span>Gespeichert werden Elemente, Show-Effekte und Musik. Laden ersetzt den aktuellen Plan.</span></div>`;
       $("svSave").onclick = () => {
         const name = ($("svName").value || "Kür").replace(/[<>&"]/g, "").trim().slice(0, 24) || "Kür";
-        S.saved.unshift({ name, prog: S.prog.slice(), fx: S.fx.slice(), music: S.music, auto: !!S.progAuto, date }); S.saved = S.saved.slice(0, 8); save(); fillProg();
+        S.saved.unshift({ name, prog: S.prog.slice(), fx: S.fx.slice(), path: S.path.slice(), music: S.music, auto: !!S.progAuto, date }); S.saved = S.saved.slice(0, 8); save(); fillProg();
       };
-      C.querySelectorAll("[data-load]").forEach((b) => (b.onclick = () => { const x = S.saved[+b.dataset.load]; S.prog = x.prog.slice(); S.fx = x.fx.slice(); S.music = x.music; S.progAuto = x.auto; if (listenOn) listen(false); save(); pSheet = null; pCat = null; fillProg(); }));
+      C.querySelectorAll("[data-load]").forEach((b) => (b.onclick = () => { const x = S.saved[+b.dataset.load]; S.prog = x.prog.slice(); S.fx = x.fx.slice(); S.path = K.cleanPath(x.path); S.music = x.music; S.progAuto = x.auto; if (listenOn) listen(false); save(); pSheet = null; pCat = null; fillProg(); }));
       C.querySelectorAll("[data-del]").forEach((b) => (b.onclick = () => { S.saved.splice(+b.dataset.del, 1); save(); fillProg(); }));
     } else {
       C.innerHTML = `<div class="kicker">CHOREO-NOTE ${dec(pl.total)} · HÖCHSTENS ${pl.cap}</div><div class="noteTab"><div class="lookBox"><canvas id="pFig" width="180" height="220"></canvas><button class="mid" id="pLook">Kostüm ändern</button></div><div class="plList">`
@@ -5183,13 +5876,13 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
   // Kürplan im Menü: das Herz der Kür – Stück, Choreo-Note und die acht Abschnitte auf einen Blick
   function fillPlanCard() {
     useMusic();
-    const sl = K.cleanSlots(S.prog), pl = K.plan(sl, S.look, SCORE.id, S.fx, planCap());
+    const sl = K.cleanSlots(S.prog), pl = K.plan(sl, S.look, SCORE.id, S.fx, planCap(), S.path);
     $("mPiece").textContent = `♪ ${SCORE.short}`; $("mNote").textContent = `Choreo-Note ${dec(pl.total)}`;
     $("mStrip").innerHTML = sl.map((id) => { if (id === "~") return ""; const c = CAT[id]; return `<span class="ms ${c ? c.kind : "empty"}">${c ? KIND[c.kind][0] : ""}</span>`; }).join("");
   }
   $("bProg").onclick = () => { if (listenOn) listen(false); pSel = 0; pCat = null; pSheet = null; const c = CAT[S.prog[0]]; if (c && c.kind === "jump") { pRot = c.rot; pCombo = c.combo ? c.combo[1].slice(1) : ""; } fillProg(); show("scrProg"); };
-  $("pDef").onclick = () => { if (LV().own) return; useMusic(); S.prog = K.suggest(SCORE.id, S.look, Math.random, S.prog); S.progAuto = true; save(); fillProg(); }; // jedes Mal ein anderer Plan, passend zum Stück
-  $("pDone").onclick = () => { if (listenOn) listen(false); fillPlanCard(); show("scrMenu"); };
+  $("pDef").onclick = () => { if (LV().own) return; useMusic(); S.prog = K.suggest(SCORE.id, S.look, Math.random, S.prog); S.path = K.suggestPath(S.prog); S.progAuto = true; save(); fillProg(); }; // jedes Mal ein anderer Plan, passend zum Stück
+  $("pDone").onclick = () => { if (listenOn) listen(false); fillPlanCard(); if (grpRun) { intro("comp"); return; } show("scrMenu"); };
 
   // Einstellungen
   function fillSet() {
@@ -5215,9 +5908,9 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
 
   // Info: Fanspiel, Musik, Ort mit Quelle, Datenschutz, Impressum
   function openInfo() {
-    const P = SC.PLACES.wien, im = SITE.impressum || {};
+    const im = SITE.impressum || {};
     $("ifKick").textContent = `COLD MEDAL · EISKUNSTLAUF · VERSION ${VERSION}`;
-    $("ifPlace").textContent = `${P.venue}: ${P.fact} Quelle: ${P.src}. Die Kulisse ist frei nachempfunden.`;
+    $("ifPlace").textContent = Object.values(SC.PLACES).map((P) => `${P.venue} (${P.name}): ${P.fact} Quelle: ${P.src}.`).join(" ") + " Die Kulissen sind frei nachempfunden.";
     const lines = [im.name, im.adresse, im.mail].filter((x) => typeof x === "string" && x.trim());
     $("ifImp").innerHTML = lines.length ? lines.map(esc).join("<br>") : "Privates Spieleprojekt, nicht kommerziell.";
     const hoster = typeof SITE.hoster === "string" && SITE.hoster.trim() ? SITE.hoster.trim() : "";
@@ -5253,9 +5946,16 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
     seek(t) { tvSeekTo(t); },
     honor() { if (run) { run.manual = false; startHonor(run); if (run.honor) run.honor.title = run.honorTitle || ""; } return !!(run && run.honor); },
     screen() { return SCREENS.find((s) => !$(s).hidden) || (run ? "run" : ""); },
+    net(fn) { NET = fn; fillGrpBtn(); },
+    slowTest(on) { slowTest = !!on; },
+    get slow() { return !!(run && run.slow); },                    // Tests: Server der Gruppen nachspielen
+    group(c) { return c ? openGroup(c) : G; },
+    get grpRun() { return grpRun; },
   };
 
   fillMenu(); show("scrMenu");
+  // Link einer Gruppe (?g=…): gleich die Gruppe öffnen (vorher einmal fragen, ob online)
+  { const g = new URLSearchParams(location.search).get("g"); if (NET && g && GRP_RE.test(g.toUpperCase())) openGroup(g.toUpperCase()); }
   requestAnimationFrame(frame);
 })();
 </script>
