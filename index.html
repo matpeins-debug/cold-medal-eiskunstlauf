@@ -104,15 +104,6 @@ h2 { font-family: var(--font-display); font-size: 22px; text-transform: uppercas
 .ibtn { position: absolute; right: 10px; top: 8px; width: 34px; height: 34px; border: 2px solid var(--ink-deep); background: rgba(241,231,210,0.9); font-size: 22px; line-height: 1; pointer-events: auto; font-family: var(--font-display); }
 
 /* Ergebnis */
-.card.res { width: 100%; height: 100%; display: grid; grid-template-columns: 1.25fr 1fr; gap: 14px; padding: 10px 14px; }
-.resL, .resR { display: flex; flex-direction: column; gap: 5px; min-height: 0; }
-.rTot { display: flex; align-items: baseline; gap: 10px; }
-.rTot b { font-size: 40px; line-height: 1; font-weight: 700; }
-.rTot span { font-family: var(--font-display); font-size: 17px; font-weight: 600; letter-spacing: 0.04em; text-transform: uppercase; color: var(--red); }
-.rSplit { font-size: 12.5px; color: var(--muted); }
-.rTime { display: flex; align-items: center; gap: 10px; background: var(--ink); color: var(--paper); padding: 5px 10px; }
-.rTime b { font-family: var(--font-display); font-size: 24px; color: var(--gold); white-space: nowrap; }
-.rTime span { font-size: 12px; line-height: 1.25; }
 table { border-collapse: collapse; width: 100%; font-size: 12.5px; }
 td { padding: 2px 4px; border-bottom: 1px solid rgba(30,39,52,0.15); vertical-align: top; }
 td.n { text-align: right; font-family: var(--font-display); font-variant-numeric: tabular-nums; white-space: nowrap; }
@@ -121,8 +112,6 @@ td.why { color: var(--muted); font-size: 11.5px; }
 tr.fall td.e, tr.miss td.e { color: var(--red); }
 .board tr.me td { background: var(--gold); font-weight: 700; }
 .board td.nm { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 150px; }
-.rTip { font-size: 12.5px; line-height: 1.3; margin-top: auto; }
-.resR .row2 { margin-top: 6px; }
 
 /* Info */
 .lnk { text-decoration: underline; font-size: 11px; color: var(--ink); padding: 0; }
@@ -294,6 +283,78 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
 .choose .showRow small { font-family: var(--font-display); font-size: 10px; letter-spacing: 0.12em; color: #F3C969; margin-right: 4px; }
 .choose .showRow .tg { font-size: 11px; padding: 3px 9px; }
 .choose .showRow em { margin-left: auto; font-style: normal; font-family: var(--font-display); font-size: 11px; color: rgba(241,231,210,0.6); }
+
+/* Ergebnis: Kiss & Cry links, rechts Punkte, Preisgericht, Elemente und Rangliste – Abendbühne in Blau und Gold */
+.card.res { width: 100%; height: 100%; display: flex; gap: 12px; padding: 10px 12px; }
+.kc { flex: none; width: 172px; border: 1px solid rgba(243,201,105,0.35); overflow: hidden; }
+.kc canvas { width: 100%; height: 100%; display: block; object-fit: cover; }
+.rMain { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 6px; }
+.rHead { display: flex; gap: 10px; align-items: stretch; }
+.rHeadL { flex: 1; min-width: 0; }
+.rTot { display: flex; align-items: baseline; gap: 12px; white-space: nowrap; }
+.rTot b { font-family: var(--font-display); font-size: 40px; line-height: 1; font-weight: 700; color: var(--paper); font-variant-numeric: tabular-nums; }
+.rTot span { font-family: var(--font-display); font-size: 16px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: #F3C969; }
+.card.done .rTot b { text-shadow: 0 0 18px rgba(243,201,105,0.55); }
+.rSplit { font-size: 12px; color: rgba(241,231,210,0.85); line-height: 1.3; }
+.rSplit small { font-size: 10.5px; color: rgba(241,231,210,0.6); }
+.rTime { flex: none; display: flex; align-items: center; gap: 8px; border: 1px solid rgba(243,201,105,0.5); background: rgba(10,16,34,0.5); padding: 4px 10px; }
+.rTime b { font-family: var(--font-display); font-size: 24px; color: #F3C969; white-space: nowrap; }
+.rTime span { font-size: 10.5px; line-height: 1.25; color: rgba(241,231,210,0.8); }
+.jury { border-top: 1px solid rgba(243,201,105,0.3); border-bottom: 1px solid rgba(243,201,105,0.3); padding: 4px 0; }
+.jHead { display: flex; align-items: baseline; gap: 10px; font-size: 11px; color: rgba(241,231,210,0.85); white-space: nowrap; overflow: hidden; height: 16px; }
+.jHead small { font-family: var(--font-display); font-size: 10px; letter-spacing: 0.14em; color: #F3C969; }
+.jHead span { overflow: hidden; text-overflow: ellipsis; }
+.jHead span small { color: rgba(241,231,210,0.55); letter-spacing: 0; font-family: inherit; }
+.jRow { display: grid; grid-template-columns: repeat(9, 1fr); gap: 4px; margin-top: 3px; }
+.judge { position: relative; display: flex; flex-direction: column; align-items: center; padding: 2px 0 3px; background: rgba(255,255,255,0.05); border: 1px solid rgba(241,231,210,0.2); cursor: pointer; opacity: 0.25; transform: rotateX(70deg); transition: opacity 0.25s, transform 0.35s, background 0.2s; }
+.judge.on { opacity: 1; transform: none; }
+.judge small { font-family: var(--font-display); font-size: 8.5px; color: rgba(241,231,210,0.6); white-space: nowrap; }
+.judge b { font-family: var(--font-display); font-size: 15px; color: var(--paper); font-variant-numeric: tabular-nums; }
+.judge i { font-style: normal; font-size: 9px; color: rgba(241,231,210,0.55); white-space: nowrap; }
+.judge.out b { text-decoration: line-through; color: rgba(241,231,210,0.45); }
+.judge.sel { border-color: #F3C969; background: rgba(243,201,105,0.14); }
+.rBody { flex: 1; min-height: 0; display: flex; gap: 12px; }
+.rElsWrap { flex: 1.3; min-width: 0; overflow-y: auto; }
+.card.res .els { width: 100%; border-collapse: collapse; font-size: 12px; color: var(--paper); }
+.card.res .els td { padding: 3px 4px; border-bottom: 1px solid rgba(241,231,210,0.12); vertical-align: top; }
+.card.res .els td.e { font-family: var(--font-display); font-weight: 700; }
+.card.res .els td.e small { font-weight: 400; color: rgba(241,231,210,0.6); }
+.card.res .els td.e i { display: block; font-family: var(--font-body); font-weight: 400; font-style: normal; font-size: 10px; color: rgba(241,231,210,0.55); }
+.card.res .els td.n { text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.card.res .els td.s { color: #F3C969; font-family: var(--font-display); font-weight: 700; }
+.card.res .els tr.fall td.e, .card.res .els tr.miss td.e { color: #E8A07A; }
+.rSide { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 6px; }
+.card.res .board { width: 100%; border-collapse: collapse; font-size: 12px; color: var(--paper); }
+.card.res .board td { padding: 2px 4px; border-bottom: 1px solid rgba(241,231,210,0.12); }
+.card.res .board tr.me td { background: rgba(243,201,105,0.9); color: #141B25; font-weight: 700; }
+.card.res .board td.nm small { color: inherit; opacity: 0.6; }
+.rTip { font-size: 11px; line-height: 1.3; color: rgba(241,231,210,0.7); margin-top: auto; }
+.rBtns { display: flex; gap: 5px; }
+.rBtns .mid { flex: 1; padding: 7px 4px; font-size: 11.5px; }
+.card.wait .rSplit, .card.wait .rTime, .card.wait .rBody, .card.count .rBody { opacity: 0; }
+.card.done .rSplit, .card.done .rTime, .card.done .rBody { opacity: 1; transition: opacity 0.6s; }
+.card.wait .rTot b { color: rgba(241,231,210,0.5); }
+.rHead { align-items: flex-start; }
+.rTime { align-self: flex-start; }
+.rMain { min-height: 0; }
+.card.res { overflow: hidden; }
+.rHeadL .kicker { white-space: nowrap; }
+.rTot b { font-size: 36px; }
+.kc { position: relative; }
+.kc canvas { position: absolute; inset: 0; width: 100%; height: 100%; }
+.card.res { box-sizing: border-box; max-height: 100%; }
+.card.res { width: auto; height: auto; max-height: none; flex: 1; align-self: stretch; min-width: 0; }
+.rSplit small { display: block; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.card.res .board { font-size: 11.5px; }
+.card.res .board td { padding: 1px 4px; }
+.rTip { font-size: 10.5px; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+.rSide { min-height: 0; overflow: hidden; }
+.rTot b { font-size: 34px; }
+.rTime b { font-size: 21px; }
+.rTime { padding: 3px 8px; }
+.judge { padding: 1px 0 2px; }
+.judge b { font-size: 14px; }
+.card.res { position: absolute; inset: 12px 16px; flex: none; }
 </style>
 </head>
 <body>
@@ -430,21 +491,18 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
   </section>
 
   <section class="scr" id="scrRes" hidden>
-    <div class="card res">
-      <div class="resL">
-        <div class="kicker" id="rKick"></div>
-        <div class="rTot"><b class="num" id="rTotal"></b><span id="rRank"></span></div>
-        <div class="rSplit" id="rSplit"></div>
-        <div class="rTime" id="rTime"></div>
-        <table class="els" id="rEls"></table>
-      </div>
-      <div class="resR">
-        <table class="board" id="rBoard"></table>
-        <div class="rTip" id="rTip"></div>
-        <div class="row2">
-          <button class="mid red" id="rAgain">Nochmal</button>
-          <button class="mid" id="rPaint">Kür-Bild</button>
-          <button class="mid" id="rMenu">Menü</button>
+    <div class="card res studio" id="rCard">
+      <div class="kc"><canvas id="rKC" width="360" height="560"></canvas></div>
+      <div class="rMain">
+        <div class="rHead">
+          <div class="rHeadL"><div class="kicker" id="rKick"></div><div class="rTot"><b class="num" id="rTotal"></b><span id="rRank"></span></div><div class="rSplit" id="rSplit"></div></div>
+          <div class="rTime" id="rTime"></div>
+        </div>
+        <div class="jury"><div class="jHead"><small>PREISGERICHT</small><span id="rJsay"></span></div><div class="jRow" id="rJury"></div></div>
+        <div class="rBody">
+          <div class="rElsWrap"><table class="els" id="rEls"></table></div>
+          <div class="rSide"><table class="board" id="rBoard"></table><div class="rTip" id="rTip"></div>
+            <div class="rBtns"><button class="mid red" id="rAgain">Nochmal</button><button class="mid" id="rPaint">Kür-Bild</button><button class="mid" id="rMenu">Menü</button></div></div>
         </div>
       </div>
     </div>
@@ -1288,7 +1346,38 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
     });
   }
 
-  root.EKSkate = { PROGRAMS, CATALOG, RULES, SECTIONS, DEFAULT_SLOTS, check, cleanSlots, buildProgram, plan, MOODS, COSTUME, MUSIC_NAME, FX, FX_MAX, cleanFx, maxBase, WIN, judge, goeFrom, perfectInputs, field, PCS_FACTOR };
+  // Preisgericht: neun erfundene Richterinnen und Richter. Jede gibt die drei Komponenten mit eigener kleiner Abweichung;
+  // wie im echten Sport fallen die höchste und die niedrigste Wertung weg. Dazu ein kurzer Satz, was ihr aufgefallen ist.
+  const JUDGES = [["Ilse Gruber", "AUT"], ["Pierre Moreau", "FRA"], ["Hanna Lindqvist", "SWE"], ["Kenji Sato", "JPN"], ["Maria Novak", "CZE"],
+    ["Tom Bradley", "GBR"], ["Elena Rossi", "ITA"], ["Jakob Brandt", "GER"], ["Ingrid Solberg", "NOR"]];
+  function jury(res, seed) {
+    const R = rng(seed || 7), NO = [-0.5, -0.25, -0.25, 0, 0, 0, 0.25, 0.25, 0.5];
+    const perm = () => { const a = NO.slice(); for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(R() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; };
+    const nc = perm(), np = perm(), ns = perm(), q = (v) => clamp(Math.round(v * 4) / 4, 0.25, 10);
+    const tm = res.timing, pp = res.presParts || {}, pl = res.plan, els = res.els || [];
+    const said = [];
+    if (tm && tm.mean <= 40) said.push("Wunderbar im Takt.");
+    if (els.some((e) => e.peak)) said.push("Der Höhepunkt der Musik saß genau.");
+    if (pp.expr && pp.exprOk === pp.expr) said.push("Die Choreo-Figuren hatten Ausdruck.");
+    if (els.some((e) => /Einlauf/.test(e.note || ""))) said.push("Was für ein Einlauf in die Pirouette!");
+    if (pl && pl.total >= 8) said.push("Eine durchdachte Choreografie.");
+    if (pl && pl.parts && pl.parts.find((x) => x.id === "kostuem").v >= 8) said.push("Das Kostüm passt zur Musik.");
+    if (res.falls) said.push("Schade um den Sturz.");
+    if (els.some((e) => e.status === "under")) said.push("Ein Sprung war nicht ganz gedreht.");
+    if (tm && tm.mean > 120) said.push("Oft neben dem Takt.");
+    if (pp.expr === 0) said.push("Mir fehlte eine Choreo-Figur.");
+    if (!said.length) said.push("Solide gelaufen.");
+    const list = JUDGES.map(([name, nat], i) => {
+      const c = q(res.pcs.comp + nc[i]), p = q(res.pcs.pres + np[i]), sk = q(res.pcs.skill + ns[i]);
+      return { name, nat, c, p, s: sk, avg: (c + p + sk) / 3, say: said[(i + Math.floor(R() * said.length)) % said.length] };
+    });
+    let hi = 0, lo = 0; list.forEach((j, i) => { if (j.avg > list[hi].avg) hi = i; if (j.avg < list[lo].avg) lo = i; });
+    if (hi === lo) lo = (hi + 1) % list.length;
+    list[hi].out = "hoch"; list[lo].out = "tief";
+    return list;
+  }
+
+  root.EKSkate = { jury, JUDGES, PROGRAMS, CATALOG, RULES, SECTIONS, DEFAULT_SLOTS, check, cleanSlots, buildProgram, plan, MOODS, COSTUME, MUSIC_NAME, FX, FX_MAX, cleanFx, maxBase, WIN, judge, goeFrom, perfectInputs, field, PCS_FACTOR };
 })(typeof window !== "undefined" ? window : globalThis);
 
 /* Cold Medal Games · gemeinsame Figur (figur/figur.js, global CMFigur)
@@ -1318,7 +1407,7 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
   const GLOVE = "#2B3442", VISOR = "#4FC3F7", BOOT = "#1E2734", WOOD = "#8E5A34";
   const POLE = 56, GROUND = 4.7;   // Stocklänge; Boden unter dem Knöchel des Standbeins (Unterkante Langlaufski)
 
-  // Kleidung und Ausrüstung je Sportart. head: hair | helmet | cap; feet: skates | jumpSki | xcSki | woodSki | shoes | skiBoots
+  // Kleidung und Ausrüstung je Sportart. head: hair | helmet | cap; feet: skates | jumpSki | xcSki | woodSki | xcWood | shoes | skiBoots
   // (Skischuhe ohne Ski, z. B. Ski in der Hand); torso: sash (Schrägstreifen) | bib (Startnummer) | sweater (Pullover mit Bordüre) | plain;
   // legs: knickers (Kniebundhose und Wollstrümpfe); back: rifle; hands: poles; glove: Handschuhe statt Haut ("suit" = Fäustlinge in der Anzugfarbe);
   // bootC Farbe der Schuhe; pants Hose [nah, fern]
@@ -1329,12 +1418,16 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
     plain: { head: "hair", feet: "shoes", torso: "plain" },   // Siegerehrung, Pass, Menü
     // wie 1928 (Nostalgie): Strickmütze, Pullover mit Bordüre, Kniebundhose, Wollstrümpfe, Lederschuhe, Holzski
     skispringen1928: { head: "cap", feet: "woodSki", torso: "sweater", legs: "knickers", glove: "suit", bootC: "#4A2F1F", pants: ["#4D4237", "#3A3129"] },
+    // Biathlon wie um 1960 (Jagd 1960): Strickmütze, Pullover mit Bordüre, Kniebundhose, Wollstrümpfe, Holzski, Gewehr, Stöcke (Biathlon-Chat, 12.11.2026)
+    biathlon1960: { head: "cap", feet: "xcWood", torso: "sweater", legs: "knickers", back: "rifle", hands: "poles", glove: "suit", bootC: "#4A2F1F", pants: ["#4D4237", "#3A3129"] },
   };
   // Ski in Einheiten der Figur: hinter und vor dem Knöchel, Breite, Spitze (Länge, Höhe), Farbe nah und fern, Kante
   const SKI = {
     jumpSki: { back: 46, front: 60, w: 2.6, tipL: 8, tipH: 4.5, col: "#E4EAF2", colF: "#A9B5C6" },
     xcSki: { back: 36, front: 44, w: 1.5, tipL: 5, tipH: 2.6, col: "#2B3442", colF: "#4A5568" },
     woodSki: { back: 44, front: 56, w: 3.0, tipL: 10, tipH: 6.5, col: "#A8763F", colF: "#7C5430", edge: "#3A2A1C" },
+    // Langlaufski aus Holz (wie um 1960): schmaler und kürzer als der Sprungski von 1928 (Biathlon-Chat, 12.11.2026)
+    xcWood: { back: 38, front: 46, w: 2.0, tipL: 7, tipH: 4.2, col: "#A8763F", colF: "#7C5430", edge: "#3A2A1C" },
   };
   const SOCK = ["#E7DECB", "#C9BEA6"];
 
@@ -1951,6 +2044,10 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
     // Einlauf und Auslauf der Pirouette: Mond (Fersen zueinander, Beine weit, Arme offen) und Auslauf auf der Rückwärts-Auswärtskante
     moon: { lean: -6, crouch: 2, sL: [-16, 4], fL: [38, 2], aF: [118, -10], aB: [-118, -10], hd: -10 },
     exitEdge: { lean: 4, crouch: 3, sL: [4, 10], fL: [-88, 0], aF: [132, -6], aB: [-150, -6], hd: -8 },
+    // Kiss & Cry: sitzen auf der Bank, winken
+    kcSit: { lean: -6, crouch: 0, sL: [88, 90], fL: [84, 92], aF: [30, 60], aB: [14, 60], hd: -4 },
+    kcWave: { lean: -6, crouch: 0, sL: [88, 88], fL: [80, 84], aF: [150, 40], aB: [14, 60], hd: -8 },
+    kcCheer: { lean: -8, crouch: 0, sL: [88, 88], fL: [80, 84], aF: [168, 10], aB: [-168, -10], hd: -12 },
     fallen: { lean: 10, crouch: 2, sL: [30, 60], fL: [-10, 50], aF: [60, 30], aB: [-30, 40] },
   };
 
@@ -2054,12 +2151,33 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
     }
     // Publikum hinter der Bande: Köpfe und Schultern, gedeckte Farben
     const COATS = ["#5B3A2E", "#2F3E55", "#4C5A3E", "#6E2F2A", "#3C3240", "#7A6A50"], SK = ["#E6C2A0", "#C9966C", "#9C6644", "#F0D5BC"];
+    const JX = w / 2, JW = 150; // Preisgericht in der Mitte der Längsseite
     for (let row = 0; row < 3; row++) for (let x = -10; x < w; x += 15 + R() * 8) {
       const y = 186 + row * 7 + R() * 3, s = 0.85 + row * 0.12, coat = COATS[Math.floor(R() * COATS.length)];
+      if (Math.abs(x - JX) < JW + 12) { R(); R(); continue; }
       people.push([x, y, s, coat, R()]);
       g.fillStyle = coat; g.beginPath(); g.ellipse(x, y + 12 * s, 8 * s, 9 * s, 0, Math.PI, 0); g.fill();
       g.fillStyle = SK[Math.floor(R() * SK.length)]; g.beginPath(); g.arc(x, y, 4.2 * s, 0, 7); g.fill();
       if (R() < 0.5) { g.fillStyle = COATS[Math.floor(R() * COATS.length)]; g.beginPath(); g.arc(x, y - 2 * s, 4.4 * s, Math.PI, 0); g.fill(); } // Mütze
+    }
+    // Preisgericht: erhöhter Tisch an der Bande, neun Richterinnen und Richter mit leuchtenden Bildschirmen, darüber ein Schild
+    {
+      const x0 = JX - JW, x1 = JX + JW;
+      g.fillStyle = "#1B2440"; g.fillRect(x0 - 6, 160, x1 - x0 + 12, 44);
+      const cols = ["#2F3E55", "#3C3240", "#1E2734", "#4C5A3E", "#2F3E55", "#5B3A2E", "#1E2734", "#3C3240", "#2F3E55"], skins = ["#E6C2A0", "#C9966C", "#F0D5BC", "#9C6644", "#E6C2A0", "#F0D5BC", "#C9966C", "#E6C2A0", "#9C6644"];
+      for (let i = 0; i < 9; i++) {
+        const x = x0 + 18 + i * ((x1 - x0 - 36) / 8), y = 182;
+        g.fillStyle = cols[i]; g.beginPath(); g.ellipse(x, y + 13, 9, 10, 0, Math.PI, 0); g.fill();
+        g.fillStyle = skins[i]; g.beginPath(); g.arc(x, y, 4.6, 0, 7); g.fill();
+        g.fillStyle = i % 3 === 1 ? "#B0A79A" : "#3A2A1E"; g.beginPath(); g.arc(x, y - 1.6, 4.8, Math.PI, 0); g.fill();
+        // Bildschirm: kaltes Licht von unten
+        const sg = g.createRadialGradient(x, y + 12, 1, x, y + 12, 14); sg.addColorStop(0, "rgba(160,210,255,0.55)"); sg.addColorStop(1, "rgba(160,210,255,0)"); g.fillStyle = sg; g.fillRect(x - 14, y - 2, 28, 28);
+        g.fillStyle = "#CFE3FF"; g.fillRect(x - 5, y + 9, 10, 6);
+      }
+      g.fillStyle = "#23466B"; g.fillRect(x0, 192, x1 - x0, 12);
+      g.fillStyle = "#DDA43B"; g.fillRect(x0, 192, x1 - x0, 2);
+      g.fillStyle = "#1B2440"; g.fillRect(JX - 48, 146, 96, 14); g.strokeStyle = "#DDA43B"; g.lineWidth = 1; g.strokeRect(JX - 48, 146, 96, 14);
+      g.fillStyle = "#F3C969"; g.font = "bold 8px sans-serif"; g.textAlign = "center"; g.textBaseline = "middle"; g.fillText("PREISGERICHT", JX, 153.5);
     }
     // Bande: Papierweiß mit farbigen Feldern, keine Schrift
     g.fillStyle = "#F1E7D2"; g.fillRect(0, 204, w, ICE_TOP - 204);
@@ -2293,7 +2411,7 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
 /* COLD MEDAL EISKUNSTLAUF – Ablauf, Bildschirme, Eingabe, Taktband, Ergebnis, Spielstand. */
 (function () {
   "use strict";
-  const VERSION = "0.16";
+  const VERSION = "0.17";
   // Seiten-Einstellungen aus dem Build (eigenes Hosting: Adresse, Hoster, Impressum); im claude.ai-Artefakt leer
   const SITE = Object.assign({ web: false, url: "", impressum: null }, {"web": true, "url": "https://matpeins-debug.github.io/cold-medal-eiskunstlauf/", "hoster": "GitHub Pages (GitHub Inc., USA)", "drittland": "GitHub ist nach dem EU-US Data Privacy Framework zertifiziert; die Übermittlung in die USA stützt sich auf den Angemessenheitsbeschluss der EU-Kommission dazu.", "impressum": {"name": "", "adresse": "", "mail": ""}} || {});
   const M = window.EKMusic, K = window.EKSkate, F = window.EKFig, SC = window.EKScene;
@@ -3268,29 +3386,80 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
     if (weak.length) return `Am meisten Punkte liegen noch in: ${weak.map((e) => e.name).join(", ")}.`;
     return tm.mean <= 60 ? "Stark im Takt. Probier „Experte“ in den Einstellungen: ohne Ring und mit engerem Fenster." : "Gut. Je näher an der Linie, desto mehr Ausführungspunkte (GOE).";
   }
+  // Ergebnis wie im Fernsehen: Kiss & Cry mit Trainerin, das Preisgericht gibt nacheinander seine Wertungen,
+  // dann zählt die Punktzahl hoch und der Platz erscheint. Tippen zeigt alles sofort.
+  let kc = null;
+  function kcDraw() {
+    if (!kc || $("scrRes").hidden) { kc = null; return; }
+    requestAnimationFrame(kcDraw);
+    const cv = $("rKC"), g = cv.getContext("2d"), w = 180, h = 280, T = (performance.now() - kc.t0) / 1000;
+    g.setTransform(2, 0, 0, 2, 0, 0); g.clearRect(0, 0, w, h);
+    // Rückwand mit Vorhang und goldenem Schild, Bank, Blumen
+    const bg = g.createLinearGradient(0, 0, 0, h); bg.addColorStop(0, "#2B3B66"); bg.addColorStop(1, "#141C33"); g.fillStyle = bg; g.fillRect(0, 0, w, h);
+    for (let x = 0; x < w; x += 12) { g.fillStyle = x % 24 ? "rgba(255,255,255,0.03)" : "rgba(0,0,0,0.12)"; g.fillRect(x, 0, 12, h * 0.72); }
+    const sp = g.createRadialGradient(w / 2, h * 0.6, 10, w / 2, h * 0.6, 120); sp.addColorStop(0, "rgba(255,236,190,0.35)"); sp.addColorStop(1, "rgba(255,236,190,0)"); g.fillStyle = sp; g.fillRect(0, 0, w, h);
+    g.fillStyle = "#F3C969"; g.font = "bold 13px " + font(); g.textAlign = "center"; g.fillText("KISS & CRY", w / 2, 28);
+    g.fillStyle = "rgba(243,201,105,0.6)"; g.fillRect(w / 2 - 40, 34, 80, 1.5);
+    // Herz aus Lichtpunkten
+    for (let i = 0; i < 26; i++) { const a = (i / 26) * Math.PI * 2, x = 16 * Math.pow(Math.sin(a), 3), y = -(13 * Math.cos(a) - 5 * Math.cos(2 * a) - 2 * Math.cos(3 * a) - Math.cos(4 * a)); g.fillStyle = `rgba(255,170,190,${0.5 + 0.5 * Math.sin(T * 3 + i)})`; g.beginPath(); g.arc(w / 2 + x * 1.3, 66 + y * 1.3, 1.5, 0, 7); g.fill(); }
+    g.fillStyle = "#4A2F1F"; g.fillRect(14, h * 0.72, w - 28, 10); g.fillStyle = "#6B4A33"; g.fillRect(14, h * 0.72 - 4, w - 28, 5);
+    g.fillStyle = "#1B2440"; g.fillRect(0, h * 0.82, w, h);
+    // Blumen auf der Bank
+    for (let i = 0; i < Math.min(5, kc.fl); i++) { const x = 26 + i * 9, y = h * 0.72 - 6; g.strokeStyle = "#3F6B55"; g.lineWidth = 1.2; g.beginPath(); g.moveTo(x, y); g.lineTo(x + 2, y - 12); g.stroke(); g.fillStyle = ["#C23B2A", "#F3C969", "#E9C8EE"][i % 3]; g.beginPath(); g.arc(x + 2, y - 13, 3, 0, 7); g.fill(); }
+    if (kc.toys) { g.fillStyle = "#B07A4A"; g.beginPath(); g.arc(w - 34, h * 0.72 - 9, 6, 0, 7); g.arc(w - 34, h * 0.72 - 18, 4.5, 0, 7); g.fill(); g.beginPath(); g.arc(w - 37.5, h * 0.72 - 22, 1.8, 0, 7); g.arc(w - 30.5, h * 0.72 - 22, 1.8, 0, 7); g.fill(); }
+    // Läuferin sitzt, Trainerin daneben; bei der Wertung Winken, bei Platz 1 Jubel
+    const st = kc.stage, sit = F.POSES.kcSit, wave = F.POSES.kcWave, cheer = F.POSES.kcCheer;
+    let pose = sit; if (st >= 2) pose = kc.rank === 1 ? F.mix(sit, cheer, smooth(clamp((T - kc.t2) / 0.5, 0, 1))) : F.mix(sit, wave, 0.5 + 0.5 * Math.sin(T * 5));
+    else pose = F.mix(sit, F.POSES.kcSit, 1);
+    const breath = Math.sin(T * 2.2) * 1.2;
+    F.draw(g, { x: w * 0.42, y: h * 0.82 - 2, s: 1.15, dir: 1, pose: Object.assign({}, pose, { lean: pose.lean + breath }), turn: 0.7, look: kc.look, kit: "eiskunstlauf" });
+    const coachP = st >= 2 ? F.mix(F.POSES.stand, F.POSES.cheer, kc.rank <= 3 ? 0.6 + 0.4 * Math.sin(T * 4) : 0.15) : F.POSES.stand;
+    CMFigur.draw(g, { x: w * 0.8, y: h * 0.82 + 4, s: 1.05, dir: -1, pose: coachP, turn: 0.6, look: { hair: 6, hairC: 4, skin: 0, suit: 5, accent: 3 }, kit: "plain" });
+  }
   function showResult(res, board, rank) {
-    $("rKick").textContent = `${SC.PLACES.wien.venue.toUpperCase()} · ${run.mode === "comp" ? "KÜR · WETTKAMPF" : "TRAINING"}`;
-    $("rTotal").textContent = dec(res.total);
-    $("rRank").textContent = board ? nb(`Platz ${rank} von ${board.length}`) : "Punkte";
-    $("rSplit").innerHTML = nb(`Technik ${dec(res.tes)} · Komponenten ${dec(res.pcsTotal)} (Komposition ${dec(res.pcs.comp)}, Präsentation ${dec(res.pcs.pres)}, Können ${dec(res.pcs.skill)})`)
-      + (res.presParts ? nb(` · Präsentation: Takt ${dec(res.presParts.takt)}, Ausdruck ${dec(res.presParts.ausdruck)}${res.presParts.expr ? ` (${res.presParts.exprOk}/${res.presParts.expr} ✦)` : " (keine Choreo-Figur)"}, Ausstrahlung ${dec(res.presParts.ausstrahlung)}`) : "")
-      + (res.ded ? ` · <b>Abzug −${res.ded}</b>` : "")
-      + (run.gifts ? nb(` · aufs Eis: ${run.gifts.fl} Blumen, ${run.gifts.toys} Stofftiere`) : "")
-      + (run.bestStreak >= 3 ? nb(` · längste Serie ${run.bestStreak}`) : "")
-      + (res.plan ? nb(` · Choreo-Note ${dec(res.plan.total)}/10`) : "");
+    $("rKick").textContent = `WIEN · ${run.mode === "comp" ? "KÜR · WETTKAMPF" : "TRAINING"} · ${useMusic().short.toUpperCase()}`;
+    $("rSplit").innerHTML = nb(`Technik ${dec(res.tes)} · Komponenten ${dec(res.pcsTotal)}`) + (res.ded ? ` · <b>Abzug −${res.ded}</b>` : "")
+      + `<br><small>${nb(`Komposition ${dec(res.pcs.comp)} · Präsentation ${dec(res.pcs.pres)} (Takt ${dec(res.presParts.takt)}, Ausdruck ${dec(res.presParts.ausdruck)}${res.presParts.expr ? ` ${res.presParts.exprOk}/${res.presParts.expr} ✦` : ""}, Ausstrahlung ${dec(res.presParts.ausstrahlung)}) · Können ${dec(res.pcs.skill)} · Choreo-Note ${dec(res.plan.total)}`)}</small>`;
     const tm = res.timing;
-    $("rTime").innerHTML = tm ? `<b>Ø ${tm.mean}&nbsp;ms</b><span>durchschnittliche Abweichung vom Takt: ${tm.word}<br>Tendenz ${sg(tm.bias)}&nbsp;ms (${tm.tend}) · ${tm.perfect} von ${tm.n} perfekt</span>`
-      : `<b>–</b><span>keine Eingabe im Takt</span>`;
+    $("rTime").innerHTML = tm ? `<b>Ø ${tm.mean}&nbsp;ms</b><span>Abweichung vom Takt<br>${tm.word} · ${tm.perfect} von ${tm.n} perfekt<br>Tendenz ${sg(tm.bias)}&nbsp;ms</span>` : `<b>–</b><span>keine Eingabe im Takt</span>`;
     $("rEls").innerHTML = res.els.filter((e) => !e.inCombo && e.kind !== "expr" && e.kind !== "glide" && (e.kind !== "pose" || e.status === "ok")).map((e0) => {
       const e = e0.row ? Object.assign({}, e0, e0.row) : e0;
       const lv = e.level ? ` <small>Stufe ${e.level}</small>` : "";
-      const goe = e.status === "miss" || e.kind === "pose" || e.kind === "expr" ? "" : sg(e.goe);
-      return `<tr class="${e.status}"><td class="e">${esc(e.name)}${lv}</td><td class="n">${e.kind === "pose" || e.kind === "expr" ? "" : dec(e.status === "miss" ? 0 : (e.base || 0))}</td><td class="n">${goe}</td><td class="n">${e.kind === "pose" || e.kind === "expr" ? "✓" : dec(e.score)}</td><td class="why">${esc(nb(e.note || ""))}</td></tr>`;
+      const goe = e.status === "miss" || e.kind === "pose" ? "" : sg(e.goe);
+      return `<tr class="${e.status}"><td class="e">${esc(e.name)}${lv}<i>${esc(nb(e.note || ""))}</i></td><td class="n">${e.kind === "pose" ? "" : dec(e.status === "miss" ? 0 : (e.base || 0))}</td><td class="n g">${goe}</td><td class="n s">${e.kind === "pose" ? "✓" : dec(e.score)}</td></tr>`;
     }).join("");
     $("rBoard").innerHTML = board ? board.map((b, i) => `<tr class="${b.me ? "me" : ""}"><td class="n">${i + 1}.</td><td class="nm">${esc(b.name)} <small>${b.nat}</small></td><td class="n">${dec(b.total)}</td></tr>`).join("")
       : `<tr><td>Bestes Training</td><td class="n">${dec(S.bestTrain)}</td></tr><tr><td>Bester Wettkampf</td><td class="n">${dec(S.best)}</td></tr>`;
     $("rTip").textContent = tipFor(res);
+    // Preisgericht
+    const J = K.jury(res, run.seed || 7);
+    $("rJury").innerHTML = J.map((j, i) => `<div class="judge${j.out ? " out" : ""}" data-j="${i}" style="--d:${i}"><small>J${i + 1} · ${j.nat}</small><b>${dec(j.avg)}</b><i>${esc(j.name.split(" ")[1])}</i></div>`).join("");
+    const sayIdx = J.findIndex((j) => !j.out);
+    const setSay = (i) => { $("rJsay").innerHTML = `<b>${esc(J[i].name)}</b> (${J[i].nat}): „${esc(J[i].say)}“ <small>K ${dec(J[i].c)} · P ${dec(J[i].p)} · L ${dec(J[i].s)}${J[i].out ? ` · ${J[i].out === "hoch" ? "höchste" : "niedrigste"} Wertung, fällt weg` : ""}</small>`; $("rJury").querySelectorAll(".judge").forEach((x) => x.classList.toggle("sel", +x.dataset.j === i)); };
+    $("rJury").querySelectorAll(".judge").forEach((x) => (x.onclick = () => setSay(+x.dataset.j)));
+    // Ablauf: warten, Richter nacheinander, hochzählen, Platz
+    const card = $("rCard"); card.classList.remove("done"); card.classList.add("wait");
+    $("rTotal").textContent = "…"; $("rRank").textContent = "Die Wertung kommt";
+    kc = { t0: performance.now(), stage: 0, rank: board ? rank : 9, look: S.look, fl: run.gifts ? run.gifts.fl : 0, toys: run.gifts ? run.gifts.toys : 0, t2: 0 };
+    requestAnimationFrame(kcDraw);
+    const timers = []; let finished = false;
+    const finish = () => {
+      if (finished) return; finished = true; timers.forEach(clearTimeout);
+      card.classList.remove("wait", "count"); card.classList.add("done"); $("rJury").querySelectorAll(".judge").forEach((x) => x.classList.add("on"));
+      $("rTotal").textContent = dec(res.total); $("rRank").textContent = board ? nb(`Platz ${rank} von ${board.length}`) : "Punkte";
+      kc.stage = 2; kc.t2 = (performance.now() - kc.t0) / 1000; setSay(sayIdx);
+      if (board && rank <= 3) sfx("cheer", rank === 1 ? 1 : 0.6);
+      card.onclick = null;
+    };
+    J.forEach((j, i) => timers.push(setTimeout(() => { $("rJury").querySelector(`[data-j="${i}"]`).classList.add("on"); sfx("land", 0.2); }, 700 + i * 170)));
+    timers.push(setTimeout(() => {
+      card.classList.add("count"); kc.stage = 1; const t0 = performance.now();
+      const tick = () => { if (finished) return; const u = clamp((performance.now() - t0) / 1100, 0, 1); $("rTotal").textContent = dec(res.total * (1 - Math.pow(1 - u, 3))); if (u < 1) requestAnimationFrame(tick); else finish(); };
+      tick();
+    }, 700 + J.length * 170 + 300));
+    card.onclick = (ev) => { if (!finished && !ev.target.closest("button")) finish(); };
     show("scrRes");
+    if (run.fake && run.manual) finish(); // Tests: sofort alles zeigen
   }
 
   // ------------------------------------------------------------------ Bildschirme
