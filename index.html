@@ -427,6 +427,22 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
 #scrSet .note { padding-right: 130px; }
 .card.res .els tr.hd td { position: sticky; top: 0; background: #1A2340; font-family: var(--font-display); font-size: 9px; letter-spacing: 0.12em; text-transform: uppercase; color: #E3B860; font-weight: 600; padding-top: 2px; padding-bottom: 3px; z-index: 1; }
 .card.res .els tr.hd td.e i { text-transform: none; letter-spacing: 0; font-size: 9.5px; color: rgba(241,231,210,0.6); }
+/* Meine Küren */
+.svNew { display: flex; gap: 8px; margin: 8px 0; }
+.svNew input { flex: 1; min-width: 0; font: inherit; font-size: 13px; padding: 6px 10px; background: rgba(255,255,255,0.06); border: 1px solid rgba(227,184,96,0.5); color: var(--paper); }
+.mid.gold { background: linear-gradient(180deg, #F3D58A, #DDA43B); color: #141B25; border-color: #8C6A2A; }
+.svList { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 6px; overflow-y: auto; min-height: 0; }
+.svC { display: flex; flex-direction: column; gap: 3px; padding: 7px 8px; border: 1px solid rgba(241,231,210,0.3); background: rgba(255,255,255,0.05); color: var(--paper); }
+.svC b { font-family: var(--font-display); font-size: 13.5px; }
+.svC small { font-size: 10px; color: rgba(241,231,210,0.65); }
+.svC em { font-style: normal; font-family: var(--font-display); font-size: 11px; color: #F3C969; }
+.svStrip { display: flex; gap: 2px; }
+.svStrip i { font-style: normal; width: 16px; height: 16px; font-size: 9px; display: flex; align-items: center; justify-content: center; background: rgba(243,201,105,0.18); color: #F3C969; }
+.svStrip i.empty { background: rgba(241,231,210,0.08); }
+.svB { display: flex; gap: 4px; margin-top: 2px; }
+.svB .mid { padding: 4px 8px; font-size: 10.5px; flex: 1; }
+.svB .mid:last-child { flex: none; }
+.svList .empty { grid-column: 1 / -1; font-style: italic; opacity: 0.7; padding: 10px 0; }
 </style>
 </head>
 <body>
@@ -482,7 +498,7 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
     <div class="card wide prog studio">
       <div class="sHead">
         <div class="sTitle"><div class="kicker">MEINE KÜR</div><button class="piece" id="pPiece"></button><button class="playBtn" id="pPlay" aria-label="Musik anhören"><svg viewBox="0 0 44 44"><circle class="trk" cx="22" cy="22" r="19.5"/><circle class="prg" id="pPrg" cx="22" cy="22" r="19.5"/><path class="ico" id="pIco" d="M18 14 L31 22 L18 30 Z"/></svg></button><span class="ptime" id="pTime"></span></div>
-        <div class="sActs"><button class="noteBtn" id="pNoteBtn"><small>CHOREO-NOTE</small><b id="pNote"></b></button><button class="mid" id="pDef">Vorschlag</button><button class="mid red" id="pDone">Fertig</button></div>
+        <div class="sActs"><button class="noteBtn" id="pNoteBtn"><small>CHOREO-NOTE</small><b id="pNote"></b></button><button class="mid" id="pSaved">Meine Küren</button><button class="mid" id="pDef">Vorschlag</button><button class="mid red" id="pDone">Fertig</button></div>
       </div>
       <div class="progWrap">
         <div class="band"><canvas id="pBand"></canvas></div>
@@ -2845,7 +2861,7 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
 /* COLD MEDAL EISKUNSTLAUF – Ablauf, Bildschirme, Eingabe, Taktband, Ergebnis, Spielstand. */
 (function () {
   "use strict";
-  const VERSION = "0.33";
+  const VERSION = "0.34";
   // Seiten-Einstellungen aus dem Build (eigenes Hosting: Adresse, Hoster, Impressum); im claude.ai-Artefakt leer
   const SITE = Object.assign({ web: false, url: "", impressum: null }, {"web": true, "url": "https://matpeins-debug.github.io/cold-medal-eiskunstlauf/", "hoster": "GitHub Pages (GitHub Inc., USA)", "drittland": "GitHub ist nach dem EU-US Data Privacy Framework zertifiziert; die Übermittlung in die USA stützt sich auf den Angemessenheitsbeschluss der EU-Kommission dazu.", "impressum": {"name": "", "adresse": "", "mail": ""}} || {});
   const M = window.EKMusic, K = window.EKSkate, F = window.EKFig, SC = window.EKScene;
@@ -2865,7 +2881,7 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
 
   // ------------------------------------------------------------------ Spielstand (nur auf diesem Gerät; Aussehen zieht später in pass/ um)
   const KEY = "coldmedal-eiskunstlauf";
-  const DEF = { v: 1, prog: null, name: "", nat: "AUT", look: F.DEF_LOOK, help: "norm", lv3: 1, progAuto: true, sound: 1, preset: "salon", lat: 0, music: "donau", fx: [null, null, null, null, null, null, null, null], best: 0, bestTrain: 0, runs: 0, flowers: 0, toys: 0, album: [] };
+  const DEF = { v: 1, prog: null, name: "", nat: "AUT", look: F.DEF_LOOK, help: "norm", lv3: 1, progAuto: true, saved: [], sound: 1, preset: "salon", lat: 0, music: "donau", fx: [null, null, null, null, null, null, null, null], best: 0, bestTrain: 0, runs: 0, flowers: 0, toys: 0, album: [] };
   function sanitize(o) {
     const S = Object.assign({}, DEF, { look: F.cleanLook(null), prog: K.DEFAULT_SLOTS.slice(), album: [] });
     if (o && typeof o === "object") {
@@ -2878,6 +2894,8 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
       if (M.PRESETS[o.preset]) S.preset = o.preset;
       if (Number.isFinite(o.lat)) S.lat = clamp(Math.round(o.lat / 10) * 10, -200, 400);
       S.prog = K.cleanSlots(o.prog);
+      // gespeicherte Küren (höchstens 8): Name, Plan, Show, Musik, ob es ein Vorschlag war
+      if (Array.isArray(o.saved)) S.saved = o.saved.slice(0, 8).filter((x) => x && Array.isArray(x.prog)).map((x) => ({ name: String(x.name || "Kür").replace(/[<>&"]/g, "").slice(0, 24), prog: K.cleanSlots(x.prog), fx: K.cleanFx(x.fx), music: M.KUER.includes(x.music) ? x.music : "donau", auto: !!x.auto, date: String(x.date || "").slice(0, 12) }));
       S.progAuto = typeof o.progAuto === "boolean" ? o.progAuto : S.prog.join() === K.DEFAULT_SLOTS.join();
       if (M.KUER.includes(o.music)) S.music = o.music;
       S.fx = K.cleanFx(o.fx);
@@ -3275,6 +3293,7 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
   });
   const KEYDIR = { ArrowLeft: "l", ArrowRight: "r", ArrowUp: "u", ArrowDown: "d" };
   window.addEventListener("keydown", (e) => {
+    if (e.target && e.target.tagName === "INPUT") return; // Namen tippen (Meine Küren)
     if (!run) { if (e.key === "Escape" && !$("scrMenu").hidden) return; return; }
     if (e.key === "Escape") { abortRun(); return; }
     if (e.repeat) { e.preventDefault(); return; }
@@ -4296,6 +4315,17 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
         + `<div class="shFoot"><span>Karte antippen = wählen und zurück · ▶ = anhören. Jedes Stück hat eigene Stimmungen und Höhepunkte.</span></div>`;
       C.querySelectorAll(".muC").forEach((b) => (b.onclick = () => { const was = SCORE.id; S.music = b.dataset.mu; save(); if (listenOn && was !== S.music) listen(true); pCat = null; pSheet = null; fillProg(); }));
       C.querySelectorAll(".muPlay").forEach((b) => (b.onclick = (ev) => { ev.stopPropagation(); const same = listenOn && SCORE.id === b.dataset.mu; S.music = b.dataset.mu; save(); pCat = null; listen(!same); }));
+    } else if (pSheet === "saved") {
+      const d = new Date(), date = `${d.getDate()}.${d.getMonth() + 1}.${d.getFullYear()}`;
+      C.innerHTML = `<div class="kicker">MEINE KÜREN</div><div class="svNew"><input id="svName" maxlength="24" placeholder="Name, z. B. „Winterball“" value="${esc(nb(SCORE.short))}"><button class="mid gold" id="svSave">Aktuellen Plan speichern</button></div>`
+        + `<div class="svList">${S.saved.length ? S.saved.map((x, i) => { const pl2 = K.plan(x.prog, S.look, x.music, x.fx, LV().own ? 10 : x.auto ? 8 : 9); return `<div class="svC"><b>${esc(x.name)}</b><small>${esc(M.SCORES[x.music].short)} · ${esc(x.date)}${x.auto ? " · Vorschlag" : ""}</small><span class="svStrip">${x.prog.map((id) => { if (id === "~") return ""; const c = CAT[id]; return `<i class="ms ${c ? c.kind : "empty"}">${c ? KIND[c.kind][0] : ""}</i>`; }).join("")}</span><em>Choreo-Note ${dec(pl2.total)}</em><span class="svB"><button class="mid red" data-load="${i}">Laden</button><button class="mid" data-del="${i}">✕</button></span></div>`; }).join("") : `<div class="empty">Noch keine Kür gespeichert. Oben einen Namen geben und speichern – bis zu acht Küren.</div>`}</div>`
+        + `<div class="shFoot"><span>Gespeichert werden Elemente, Show-Effekte und Musik. Laden ersetzt den aktuellen Plan.</span></div>`;
+      $("svSave").onclick = () => {
+        const name = ($("svName").value || "Kür").replace(/[<>&"]/g, "").trim().slice(0, 24) || "Kür";
+        S.saved.unshift({ name, prog: S.prog.slice(), fx: S.fx.slice(), music: S.music, auto: !!S.progAuto, date }); S.saved = S.saved.slice(0, 8); save(); fillProg();
+      };
+      C.querySelectorAll("[data-load]").forEach((b) => (b.onclick = () => { const x = S.saved[+b.dataset.load]; S.prog = x.prog.slice(); S.fx = x.fx.slice(); S.music = x.music; S.progAuto = x.auto; if (listenOn) listen(false); save(); pSheet = null; pCat = null; fillProg(); }));
+      C.querySelectorAll("[data-del]").forEach((b) => (b.onclick = () => { S.saved.splice(+b.dataset.del, 1); save(); fillProg(); }));
     } else {
       C.innerHTML = `<div class="kicker">CHOREO-NOTE ${dec(pl.total)} · HÖCHSTENS ${pl.cap}</div><div class="noteTab"><div class="lookBox"><canvas id="pFig" width="180" height="220"></canvas><button class="mid" id="pLook">Kostüm ändern</button></div><div class="plList">`
         + pl.parts.map((x) => `<div class="plRow"><span>${esc(x.name)}</span><i style="--v:${x.v * 10}%"></i><b>${dec(x.v)}</b><em>${esc(x.why)}</em></div>`).join("") + `</div></div>`
@@ -4306,6 +4336,7 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
   }
   $("pPiece").onclick = () => { pSheet = "musik"; fillProg(); };
   $("pNoteBtn").onclick = () => { pSheet = "note"; fillProg(); };
+  $("pSaved").onclick = () => { pSheet = "saved"; fillProg(); };
   $("pSheetX").onclick = () => { pSheet = null; fillProg(); };
   // Musik im Editor anhören
   function listen(on) {
@@ -4344,7 +4375,7 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
   // Einstellungen
   function fillSet() {
     const pills = (id, list, cur, set) => { const el = $(id); el.innerHTML = ""; for (const [v, t] of list) { const b = document.createElement("button"); b.className = "pill" + (v === cur ? " on" : ""); b.textContent = t; b.onclick = () => { set(v); save(); fillSet(); }; el.appendChild(b); } };
-    pills("sHelp", [["anf", "Anfänger"], ["norm", "Normal"], ["pro", "Experte"]], S.help, (v) => (S.help = v));
+    pills("sHelp", [["anf", "Anfänger"], ["norm", "Normal"], ["pro", "Experte"]], S.help, (v) => { S.help = v; if (v === "pro" && S.progAuto) { S.prog = [null, null, null, null, null, null, null, null]; S.fx = K.cleanFx(null); S.progAuto = false; } });
     $("sHelpTxt").textContent = { anf: "langsamer, weite Fenster, kein Sturz, Hinweise immer · Wertung ×0,8", norm: "Original-Tempo, Hinweise am Anfang, Vorschlag im Kürplan · Wertung ×1", pro: "schneller, enge Fenster, keine Zeichen über der Läuferin; Kür selbst choreografieren, Choreo-Note zählt doppelt · Wertung ×1,15" }[S.help] || "";
     pills("sPreset", Object.entries(M.PRESETS).map(([k, v]) => [k, v.name]), S.preset, (v) => (S.preset = v));
     pills("sSound", [[1, "An"], [0, "Aus"]], S.sound, (v) => { S.sound = v; applySound(); });
