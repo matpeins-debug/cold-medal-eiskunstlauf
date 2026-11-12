@@ -2196,15 +2196,47 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
       g.fillStyle = lit ? "#F7D27A" : "#5E5440";
       g.beginPath(); g.moveTo(x, y + 18); g.lineTo(x, y + 6); g.arc(x + 6, y + 6, 6, Math.PI, 0); g.lineTo(x + 12, y + 18); g.closePath(); g.fill();
     }
-    // Bäume des Stadtparks, winterlich kahl
-    g.strokeStyle = "#1B2423"; g.lineCap = "round";
-    const tree = (x, s) => {
-      g.lineWidth = 5 * s; g.beginPath(); g.moveTo(x, ICE_TOP); g.lineTo(x, ICE_TOP - 70 * s); g.stroke();
-      const br = (x0, y0, a, l, d) => { if (d > 4) return; const x1 = x0 + Math.sin(a) * l, y1 = y0 - Math.cos(a) * l; g.lineWidth = Math.max(0.6, (4 - d) * s); g.beginPath(); g.moveTo(x0, y0); g.lineTo(x1, y1); g.stroke(); br(x1, y1, a - 0.45 - R() * 0.2, l * 0.72, d + 1); br(x1, y1, a + 0.45 + R() * 0.2, l * 0.72, d + 1); };
-      br(x, ICE_TOP - 60 * s, -0.3, 32 * s, 0); br(x, ICE_TOP - 60 * s, 0.35, 30 * s, 0);
+    // Stadtpark im Winter: verschneite Tannen und Laubbäume, in die warme Lichterketten gewickelt (wie beim Wiener Eistraum)
+    g.lineCap = "round";
+    const glow = (x, y, r, a) => { const gl = g.createRadialGradient(x, y, 0, x, y, r); gl.addColorStop(0, `rgba(255,214,140,${a})`); gl.addColorStop(1, "rgba(255,214,140,0)"); g.fillStyle = gl; g.fillRect(x - r, y - r, 2 * r, 2 * r); };
+    const bulb = (x, y) => { glow(x, y, 6, 0.55); g.fillStyle = R() < 0.3 ? "#FFF1C8" : "#FFD98A"; g.beginPath(); g.arc(x, y, 1.3, 0, 7); g.fill(); };
+    const lightTree = (x, s) => {
+      const tips = [];
+      g.strokeStyle = "#232A3A"; g.lineWidth = 5 * s; g.beginPath(); g.moveTo(x, ICE_TOP); g.lineTo(x, ICE_TOP - 62 * s); g.stroke();
+      const br = (x0, y0, a, l, d) => {
+        const x1 = x0 + Math.sin(a) * l, y1 = y0 - Math.cos(a) * l; g.strokeStyle = "#232A3A"; g.lineWidth = Math.max(0.7, (4.2 - d) * s);
+        g.beginPath(); g.moveTo(x0, y0); g.lineTo(x1, y1); g.stroke();
+        if (d < 3) { g.strokeStyle = "rgba(236,242,250,0.85)"; g.lineWidth = Math.max(0.6, (2.2 - d * 0.5) * s); g.beginPath(); g.moveTo(x0, y0 - 1.2 * s); g.lineTo(x0 + (x1 - x0) * 0.7, y0 + (y1 - y0) * 0.7 - 1.2 * s); g.stroke(); } // Schnee auf den Ästen
+        tips.push([x0 + (x1 - x0) * 0.5, y0 + (y1 - y0) * 0.5]);
+        if (d >= 4) { tips.push([x1, y1]); return; }
+        br(x1, y1, a - 0.42 - R() * 0.22, l * 0.72, d + 1); br(x1, y1, a + 0.42 + R() * 0.22, l * 0.72, d + 1);
+      };
+      // weicher, warmer Schein in der Krone
+      glow(x, ICE_TOP - 92 * s, 52 * s, 0.16);
+      br(x, ICE_TOP - 56 * s, -0.32, 32 * s, 0); br(x, ICE_TOP - 56 * s, 0.36, 30 * s, 0); br(x, ICE_TOP - 62 * s, 0.02, 26 * s, 1);
+      for (const [tx, ty] of tips) if (R() < 0.55) bulb(tx + (R() - 0.5) * 3, ty + (R() - 0.5) * 3);
+      // Lichterkette ums Stammende gewickelt
+      for (let k = 0; k < 7; k++) bulb(x + (k % 2 ? 3 : -3) * s, ICE_TOP - 8 * s - k * 7 * s);
     };
-    for (let x = 20; x < kx - 30; x += 60 + R() * 50) tree(x, 0.8 + R() * 0.5);
-    for (let x = kx + kw + 40; x < w; x += 60 + R() * 50) tree(x, 0.8 + R() * 0.5);
+    const fir = (x, s) => {
+      const hh = 96 * s, bw = 30 * s;
+      g.fillStyle = "#3A2A22"; g.fillRect(x - 2.5 * s, ICE_TOP - 10 * s, 5 * s, 10 * s);
+      for (let k = 0; k < 4; k++) {
+        const y0 = ICE_TOP - 8 * s - k * hh * 0.21, ww = bw * (1 - k * 0.2), top = y0 - hh * 0.36;
+        g.fillStyle = k % 2 ? "#1E3A3A" : "#1A3233"; g.beginPath(); g.moveTo(x - ww, y0); g.lineTo(x, top); g.lineTo(x + ww, y0); g.closePath(); g.fill();
+        // Schnee auf den Zweigen: helle Wellenkante
+        g.fillStyle = "#E6EDF6"; g.beginPath(); g.moveTo(x - ww, y0);
+        for (let i = 0; i <= 6; i++) { const t = i / 6, xx = x - ww + 2 * ww * t; g.quadraticCurveTo(xx - ww / 6, y0 - 4 * s, xx, y0 - (i % 2 ? 1 : 2.5) * s); }
+        g.lineTo(x + ww * 0.55, y0 - (y0 - top) * 0.45); g.lineTo(x, top + 2); g.lineTo(x - ww * 0.55, y0 - (y0 - top) * 0.45); g.closePath(); g.globalAlpha = 0.85; g.fill(); g.globalAlpha = 1;
+        for (let i = 0; i < 3; i++) if (R() < 0.6) bulb(x - ww * 0.7 + R() * ww * 1.4, y0 - 2 - R() * 6 * s);
+      }
+      g.fillStyle = "#F3C969"; g.beginPath(); g.arc(x, ICE_TOP - 8 * s - hh * 0.63 - hh * 0.36 + 2, 1.8 * s, 0, 7); g.fill(); glow(x, ICE_TOP - 8 * s - hh * 0.99, 8, 0.5);
+    };
+    const plant = (x) => { const sc = 0.8 + R() * 0.45; if (R() < 0.45) fir(x, sc * 0.95); else lightTree(x, sc); };
+    for (let x = 20; x < kx - 30; x += 60 + R() * 50) plant(x);
+    for (let x = kx + kw + 40; x < w; x += 60 + R() * 50) plant(x);
+    // Schnee am Boden vor der Bande
+    g.fillStyle = "rgba(230,236,246,0.9)"; for (let x = 0; x < w; x += 6) { g.beginPath(); g.ellipse(x, ICE_TOP - 1, 6 + R() * 4, 2.5 + R() * 2, 0, Math.PI, 0); g.fill(); }
     return c;
   }
 
@@ -2488,7 +2520,7 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
 /* COLD MEDAL EISKUNSTLAUF – Ablauf, Bildschirme, Eingabe, Taktband, Ergebnis, Spielstand. */
 (function () {
   "use strict";
-  const VERSION = "0.20";
+  const VERSION = "0.21";
   // Seiten-Einstellungen aus dem Build (eigenes Hosting: Adresse, Hoster, Impressum); im claude.ai-Artefakt leer
   const SITE = Object.assign({ web: false, url: "", impressum: null }, {"web": true, "url": "https://matpeins-debug.github.io/cold-medal-eiskunstlauf/", "hoster": "GitHub Pages (GitHub Inc., USA)", "drittland": "GitHub ist nach dem EU-US Data Privacy Framework zertifiziert; die Übermittlung in die USA stützt sich auf den Angemessenheitsbeschluss der EU-Kommission dazu.", "impressum": {"name": "", "adresse": "", "mail": ""}} || {});
   const M = window.EKMusic, K = window.EKSkate, F = window.EKFig, SC = window.EKScene;
