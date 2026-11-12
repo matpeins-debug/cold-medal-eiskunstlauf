@@ -276,6 +276,7 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
 .piece { flex: 0 1 auto; }
 .piece b { overflow: visible; }
 .piece i { font-size: 13px; }
+#oHair .pill, #oBeard .pill { font-size: 10.5px; padding: 4px 6px; letter-spacing: 0.03em; }
 </style>
 </head>
 <body>
@@ -317,6 +318,7 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
           <div class="lrow">Land <select id="lNat"></select></div>
           <div class="lrow">Frisur <span class="opts" id="oHair"></span></div>
           <div class="lrow">Haare <span class="opts" id="oHairC"></span></div>
+          <div class="lrow">Bart <span class="opts" id="oBeard"></span></div>
           <div class="lrow">Haut <span class="opts" id="oSkin"></span></div>
           <div class="lrow">Kostüm <span class="opts" id="oSuit"></span></div>
           <div class="lrow">Streifen <span class="opts" id="oAcc"></span></div>
@@ -945,7 +947,7 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
       ["steigt auf", ["jump", "steps"]], ["sinkt zurück", ["steps", "spin"]], ["steigt noch einmal", ["jump", "steps"]], ["gute Nacht", ["steps", "spin", "choreo"]],
     ],
   };
-  // Kostüm zur Musik (Index wie EKFigure.SUIT: Rot, Blau, Grün, Gold, Violett, Nachtblau): Wert 0 … 10 und ein Wort dazu
+  // Kostüm zur Musik (Index wie CMFigur.SUIT: Rot, Blau, Grün, Gold, Violett, Nachtblau): Wert 0 … 10 und ein Wort dazu
   const COSTUME = {
     donau: { fit: [5, 10, 4, 8, 7, 6], best: "Blau wie die Donau, Gold oder Violett für den Ballsaal" },
     skaters: { fit: [7, 9, 5, 7, 6, 10], best: "Winterfarben: Nachtblau, Eisblau, dazu Rot oder Gold" },
@@ -1212,17 +1214,57 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
   root.EKSkate = { PROGRAMS, CATALOG, RULES, SECTIONS, DEFAULT_SLOTS, check, cleanSlots, buildProgram, plan, MOODS, COSTUME, MUSIC_NAME, maxBase, WIN, judge, goeFrom, perfectInputs, field, PCS_FACTOR };
 })(typeof window !== "undefined" ? window : globalThis);
 
-/* Cold Medal · Eiskunstlauf – Figur im Plakatstil (Canvas). Gleicher Körper und gleiche Posen für alle; erkennbar nur an Frisur,
-   Hautton und Farben, die man selbst wählt (Gesamtkonzept: kein Rock als Zeichen für „Frau“). Aussehen später aus pass/ (look). */
+/* Cold Medal Games · gemeinsame Figur (figur/figur.js, global CMFigur)
+ *
+ * Ein Körper für alle Spiele der Reihe, im Plakatstil: gleicher Körperbau und gleiche Posen für alle, erkennbar nur an Frisur,
+ * Hautton und Farben aus dem Pass (Gesamtkonzept; kein Rock als Zeichen für „Frau“). Grundlage ist die Figur des Eiskunstlaufs
+ * (eiskunstlauf/src/figure.js, Stand 0.2.3), von Mat am 11.11.2026 als gemeinsame Figur gewählt; die Arme hat Mat danach
+ * überarbeiten lassen (länger nach menschlichen Maßen, kräftiger, runde Schulter unter dem Hals, größere Hände). Jede Sportart bringt nur ihre
+ * Kleidung und Ausrüstung (KITS) und ihre eigenen Posen und Abläufe mit.
+ *
+ * Pose: Winkel in Grad ab senkrecht nach unten, + = nach vorn (Blickrichtung). sL Standbein, fL Spielbein [Hüfte, Knie],
+ * aF/aB Arm vorn/hinten [Schulter, Ellbogen], lean Rumpfneigung, hd Kopf gegen den Rumpf (− = Kopf hoch), crouch frei fürs Spiel.
+ * Der Knöchel des Standbeins liegt im Ursprung; die Figur ist aufrecht rund 80 Einheiten hoch (Knöchel bis Scheitel).
+ * Braucht nichts außer Canvas 2D.
+ */
 (function (root) {
   "use strict";
-  const INK = "#141B25";
+  const INK = "#141B25", PAPER = "#F1E7D2";
   const SKIN = ["#F2D3B8", "#E2B48F", "#C98E66", "#9C6644", "#6B4430"];
   const HAIRC = ["#3A2A1E", "#7A4A22", "#C9A060", "#1A1A1A", "#B0A79A"];
   const SUIT = ["#C23B2A", "#23466B", "#3F6B55", "#DDA43B", "#6B3F7A", "#1E2734"];
-  const HAIRS = ["Dutt", "Kurz", "Zopf", "Locken"];
-  const DEF_LOOK = { hair: 0, hairC: 0, skin: 1, suit: 0, accent: 3 };
+  // Frisuren und Bart: ohne Körperunterschied lässt sich damit alles zwischen männlich und weiblich darstellen (Mat, 11.11.2026)
+  const HAIRS = ["Dutt", "Kurz", "Zopf", "Locken", "Bubikopf", "Lang", "Scheitel", "Stoppeln", "Afro"];
+  const BEARDS = ["ohne", "Schnurrbart", "Vollbart", "Dreitagebart"];
+  const PATTERNS = ["uni", "stripe", "split"];   // einfarbig, Längsstreifen, Beine in der Zweitfarbe
+  const DEF_LOOK = { hair: 0, hairC: 0, beard: 0, skin: 1, suit: 0, accent: 3, pattern: "uni" };
+  const GLOVE = "#2B3442", VISOR = "#4FC3F7", BOOT = "#1E2734", WOOD = "#8E5A34";
+  const POLE = 56, GROUND = 4.7;   // Stocklänge; Boden unter dem Knöchel des Standbeins (Unterkante Langlaufski)
 
+  // Kleidung und Ausrüstung je Sportart. head: hair | helmet | cap; feet: skates | jumpSki | xcSki | woodSki | shoes | skiBoots
+  // (Skischuhe ohne Ski, z. B. Ski in der Hand); torso: sash (Schrägstreifen) | bib (Startnummer) | sweater (Pullover mit Bordüre) | plain;
+  // legs: knickers (Kniebundhose und Wollstrümpfe); back: rifle; hands: poles; glove: Handschuhe statt Haut ("suit" = Fäustlinge in der Anzugfarbe);
+  // bootC Farbe der Schuhe; pants Hose [nah, fern]
+  const KITS = {
+    eiskunstlauf: { head: "hair", feet: "skates", torso: "sash" },
+    skispringen: { head: "helmet", feet: "jumpSki", torso: "plain", glove: true },
+    biathlon: { head: "cap", feet: "xcSki", torso: "bib", back: "rifle", hands: "poles", glove: true },
+    plain: { head: "hair", feet: "shoes", torso: "plain" },   // Siegerehrung, Pass, Menü
+    // wie 1928 (Nostalgie): Strickmütze, Pullover mit Bordüre, Kniebundhose, Wollstrümpfe, Lederschuhe, Holzski
+    skispringen1928: { head: "cap", feet: "woodSki", torso: "sweater", legs: "knickers", glove: "suit", bootC: "#4A2F1F", pants: ["#4D4237", "#3A3129"] },
+  };
+  // Ski in Einheiten der Figur: hinter und vor dem Knöchel, Breite, Spitze (Länge, Höhe), Farbe nah und fern, Kante
+  const SKI = {
+    jumpSki: { back: 46, front: 60, w: 2.6, tipL: 8, tipH: 4.5, col: "#E4EAF2", colF: "#A9B5C6" },
+    xcSki: { back: 36, front: 44, w: 1.5, tipL: 5, tipH: 2.6, col: "#2B3442", colF: "#4A5568" },
+    woodSki: { back: 44, front: 56, w: 3.0, tipL: 10, tipH: 6.5, col: "#A8763F", colF: "#7C5430", edge: "#3A2A1C" },
+  };
+  const SOCK = ["#E7DECB", "#C9BEA6"];
+
+  // Farben im Aussehen: Nummer in der Liste des Passes oder eigene Farbe #rrggbb (Spiele mit eigener Farbauswahl)
+  const isHex = (v) => typeof v === "string" && /^#[0-9a-f]{6}$/i.test(v);
+  const pal = (v, list, d) => (isHex(v) ? v : list[v] || list[d]);
+  const HEXKEYS = ["suitD", "accentD", "helmet", "visor", "ski", "skiFar", "cap", "pom", "bib"];
   function shade(hex, f) {
     const n = parseInt(hex.slice(1), 16), c = [(n >> 16) & 255, (n >> 8) & 255, n & 255].map((v) => Math.round(Math.max(0, Math.min(255, v * f))));
     return "#" + c.map((v) => v.toString(16).padStart(2, "0")).join("");
@@ -1231,20 +1273,585 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
     const L = Object.assign({}, DEF_LOOK);
     if (o && typeof o === "object") {
       const pick = (k, n) => { if (Number.isInteger(o[k]) && o[k] >= 0 && o[k] < n) L[k] = o[k]; };
-      pick("hair", HAIRS.length); pick("hairC", HAIRC.length); pick("skin", SKIN.length); pick("suit", SUIT.length); pick("accent", SUIT.length);
+      pick("hair", HAIRS.length); pick("hairC", HAIRC.length); pick("beard", BEARDS.length); pick("skin", SKIN.length); pick("suit", SUIT.length); pick("accent", SUIT.length);
+      for (const k of ["skin", "hairC", "suit", "accent"]) if (isHex(o[k])) L[k] = o[k];
+      for (const k of HEXKEYS) if (isHex(o[k])) L[k] = o[k];
+      if (PATTERNS.includes(o.pattern)) L.pattern = o.pattern;
     }
     return L;
   }
 
-  // Posen: Winkel in Grad ab senkrecht nach unten, + = nach vorn (Laufrichtung). sL Standbein, fL Spielbein [Hüfte, Knie],
-  // aF/aB Arm vorn/hinten [Schulter, Ellbogen], lean Rumpfneigung, crouch Kniebeuge in Pixeln
+  // ------------------------------------------------------------------ Posen und Abläufe
+  // Gemeinsame Posen aller Spiele; die Posen der Sportarten liegen im Spiel.
+  const POSES = {
+    stand: { lean: 2, crouch: 0, sL: [2, 3], fL: [-3, 3], aF: [8, -10], aB: [-6, -8], hd: 0 },
+    cheer: { lean: -4, crouch: 0, sL: [2, 3], fL: [-4, 3], aF: [164, 10], aB: [-164, -10], hd: -10, mood: "froh" },   // Jubel: Arme hoch
+    bow: { lean: 48, crouch: 0, sL: [0, 2], fL: [-6, 2], aF: [6, -6], aB: [-2, -6], hd: 12 },          // Verbeugung
+    wave: { lean: 2, crouch: 0, sL: [2, 3], fL: [-3, 3], aF: [120, 48], aB: [-6, -8], hd: -4 },        // Winken
+  };
+  // Abläufe als Schlüsselbilder [Zeitpunkt 0 … 1, Pose]; seq() mischt weich dazwischen
+  const ABLAEUFE = {
+    jubel: [[0, POSES.stand], [0.35, POSES.cheer], [0.6, { lean: -2, crouch: 0, sL: [6, 14], fL: [0, 14], aF: [150, 26], aB: [-150, -26], hd: -14 }], [1, POSES.cheer]],
+    winken: [[0, POSES.wave], [0.5, Object.assign({}, POSES.wave, { aF: [112, 66] })], [1, POSES.wave]],
+  };
+  const KEYS = ["lean", "crouch", "hd"], PAIRS = ["sL", "fL", "aF", "aB"];
+  const val = (o, k) => (o[k] == null ? 0 : o[k]);
+  function mix(a, b, t) {
+    const o = {};
+    for (const k of KEYS) o[k] = val(a, k) + (val(b, k) - val(a, k)) * t;
+    for (const k of PAIRS) o[k] = [a[k][0] + (b[k][0] - a[k][0]) * t, a[k][1] + (b[k][1] - a[k][1]) * t];
+    return o;
+  }
+  // Posen als Zahlenreihe (für weiche Kurven durch Schlüsselbilder); lift = Höhe über dem Boden (Sprung)
+  const CH = 12;
+  const toVec = (p, lift) => [val(p, "lean"), val(p, "crouch"), val(p, "hd"), p.sL[0], p.sL[1], p.fL[0], p.fL[1], p.aF[0], p.aF[1], p.aB[0], p.aB[1], lift || 0];
+  const toPose = (v) => ({ lean: v[0], crouch: v[1], hd: v[2], sL: [v[3], v[4]], fL: [v[5], v[6]], aF: [v[7], v[8]], aB: [v[9], v[10]] });
+  // Weiche Kurve durch Schlüsselbilder K = [[t, Zahlenreihe], …]: Geschwindigkeit ohne Sprung (Hermite-Kurve), aber kein
+  // Überschwingen: an Umkehrpunkten und Haltepunkten steht die Bewegung kurz (Steigung 0). loop: zyklisch, letztes = erstes Bild.
+  function spline(K, t, loop) {
+    const n = K.length, D = K[n - 1][0] - K[0][0];
+    t = loop ? K[0][0] + ((((t - K[0][0]) % D) + D) % D) : Math.max(K[0][0], Math.min(K[n - 1][0], t));
+    let i = 0; while (i < n - 2 && t > K[i + 1][0]) i++;
+    const nb = (j, d) => {
+      let k = j + d, off = 0;
+      if (k < 0 || k > n - 1) { if (!loop) return null; if (k < 0) { k = n - 2; off = -D; } else { k = 1; off = D; } }
+      return [K[k][0] + off, K[k][1]];
+    };
+    const tan = (j) => {
+      const a = nb(j, -1), b = nb(j, 1), c = K[j][1];
+      return c.map((v, ch) => {
+        if (!a || !b) return 0;
+        const d1 = v - a[1][ch], d2 = b[1][ch] - v;
+        return d1 * d2 <= 0 ? 0 : (b[1][ch] - a[1][ch]) / (b[0] - a[0]);
+      });
+    };
+    const [ta, A] = K[i], [tb, B] = K[i + 1], h = tb - ta || 1e-9, u = Math.max(0, Math.min(1, (t - ta) / h));
+    const mA = tan(i), mB = tan(i + 1), u2 = u * u, u3 = u2 * u;
+    const h00 = 2 * u3 - 3 * u2 + 1, h10 = u3 - 2 * u2 + u, h01 = -2 * u3 + 3 * u2, h11 = u3 - u2;
+    return A.map((x, ch) => h00 * x + h10 * h * mA[ch] + h01 * B[ch] + h11 * h * mB[ch]);
+  }
+  // Schlüsselbild-Ablauf abtasten: keys [[t, pose], …] aufsteigend, u in 0 … 1 (loop: zyklisch, Ende = Anfang); weich wie spline()
+  function seq(keys, u, loop) {
+    const K = keys._v || (keys._v = keys.map(([t, q]) => [t, toVec(q)]));
+    return toPose(spline(K, u, loop));
+  }
+
+  // Gesten für Sieg, knappe Ergebnisse, Niederlage und Warten: gleich in allen Spielen, eine davon wählt man im Pass als Jubel.
+  // keys: [Sekunde, Pose, { lift, mood }]; mood steuert das Gesicht (froh, traurig, ruhig, staunen), lift die Höhe beim Sprung.
+  const S0 = POSES.stand, g = (o) => Object.assign({}, S0, o);
+  const UP = g({ lean: -2, sL: [8, 18], fL: [2, 18], aF: [150, 26], aB: [-150, -26], hd: -14 });
+  const HIGH = g({ lean: -5, sL: [2, 3], fL: [-4, 3], aF: [168, 6], aB: [-168, -6], hd: -12 });
+  const PULL = g({ lean: 12, sL: [14, 30], fL: [6, 30], aF: [-22, 128], aB: [-14, -24], hd: -2 });
+  const FIST = g({ lean: 1, sL: [4, 8], fL: [-4, 8], aF: [80, 100], aB: [-10, -20], hd: -6 });
+  const HEAD = g({ lean: -5, sL: [2, 4], fL: [-4, 4], aF: [150, 120], aB: [-150, -120], hd: -10 });
+  const SAD = g({ lean: 16, sL: [8, 14], fL: [0, 14], aF: [2, -4], aB: [-4, -4], hd: 24 });
+  const FACE = g({ lean: 24, sL: [12, 24], fL: [6, 24], aF: [90, 103], aB: [86, 106], hd: 22 });
+  const HIPS = g({ lean: 4, sL: [2, 4], fL: [-8, 4], aF: [-26, 96], aB: [-30, 100], hd: 14 });
+  const KNEES = g({ lean: 58, sL: [28, 46], fL: [22, 44], aF: [10, 8], aB: [6, 8], hd: 8 });
+  const CLAP_A = g({ aF: [40, 62], aB: [54, 56] }), CLAP_B = g({ aF: [46, 66], aB: [44, 66] });
+  const F = (m) => ({ mood: m });
+  const GESTEN = {
+    jubel: { name: "Arme hoch", art: "sieg", dauer: 2.4, keys: [[0, S0, F("ruhig")], [0.35, POSES.cheer, F("froh")], [0.7, UP, F("froh")], [1.05, HIGH, F("froh")], [1.4, UP, F("froh")], [1.8, POSES.cheer, F("froh")], [2.4, POSES.cheer, F("froh")]] },
+    faust: { name: "Faust", art: "sieg", dauer: 1.8, keys: [[0, S0, F("ruhig")], [0.3, FIST, F("froh")], [0.55, PULL, F("froh")], [0.85, FIST, F("froh")], [1.1, PULL, F("froh")], [1.8, g({ lean: 4, sL: [3, 5], fL: [-3, 5], aF: [24, 80], aB: [-6, -10], hd: -6 }), F("froh")]] },
+    sprung: { name: "Freudensprung", art: "sieg", dauer: 1.6, keys: [[0, S0, { lift: 0, mood: "froh" }],
+      [0.3, g({ lean: 20, sL: [44, 88], fL: [40, 88], aF: [-34, 24], aB: [-40, 24], hd: -10 }), { lift: 0, mood: "froh" }],
+      [0.55, g({ lean: -6, sL: [-2, 8], fL: [-14, 36], aF: [170, 6], aB: [-170, -6], hd: -14 }), { lift: 16, mood: "froh" }],
+      [0.8, g({ lean: -2, sL: [4, 18], fL: [-20, 50], aF: [160, 12], aB: [-160, -12], hd: -12 }), { lift: 9, mood: "froh" }],
+      [1.0, g({ lean: 12, sL: [34, 66], fL: [28, 64], aF: [120, 30], aB: [-120, -30], hd: -6 }), { lift: 0, mood: "froh" }],
+      [1.6, POSES.cheer, { lift: 0, mood: "froh" }]] },
+    siegerpose: { name: "Siegerpose", art: "sieg", dauer: 1.8, keys: [[0, S0, F("ruhig")], [0.5, g({ lean: -8, fL: [-10, 4], aF: [132, -12], aB: [-132, 12], hd: -18 }), F("froh")], [1.8, g({ lean: -9, fL: [-10, 4], aF: [136, -10], aB: [-136, 10], hd: -20 }), F("froh")]] },
+    zeigen: { name: "Nach oben zeigen", art: "sieg", dauer: 1.6, keys: [[0, S0, F("ruhig")], [0.45, g({ lean: -4, aF: [172, -2], aB: [-24, 60], hd: -16 }), F("froh")], [1.6, g({ lean: -5, aF: [176, -2], aB: [-24, 60], hd: -18 }), F("froh")]] },
+    winken: { name: "Winken", art: "sieg", dauer: 1.6, loop: true, keys: [[0, POSES.wave, F("froh")], [0.4, g({ lean: 2, aF: [112, 66], hd: -4 }), F("froh")], [0.8, POSES.wave, F("froh")], [1.2, g({ lean: 2, aF: [112, 66], hd: -4 }), F("froh")], [1.6, POSES.wave, F("froh")]] },
+    verbeugung: { name: "Verbeugung", art: "sieg", dauer: 2.2, keys: [[0, S0, F("froh")], [0.6, POSES.bow, F("froh")], [1.3, POSES.bow, F("froh")], [2.2, S0, F("froh")]] },
+    erleichtert: { name: "Hände an den Kopf", art: "knapp", dauer: 2.6, keys: [[0, S0, F("staunen")], [0.45, HEAD, F("staunen")], [1.4, g({ lean: -4, sL: [2, 4], fL: [-4, 4], aF: [152, 118], aB: [-152, -118], hd: -12 }), F("staunen")],
+      [1.9, g({ lean: 12, sL: [6, 12], fL: [0, 12], aF: [8, -6], aB: [-2, -6], hd: 8 }), F("froh")], [2.6, S0, F("froh")]] },
+    nicken: { name: "Nicken", art: "knapp", dauer: 1.4, keys: [[0, S0, F("froh")], [0.25, g({ hd: 14 }), F("froh")], [0.5, g({ hd: -4 }), F("froh")], [0.75, g({ hd: 12 }), F("froh")], [1.0, g({ hd: -2 }), F("froh")], [1.4, S0, F("froh")]] },
+    enttaeuscht: { name: "Kopf hängen", art: "niederlage", dauer: 2.4, keys: [[0, S0, F("ruhig")], [0.7, SAD, F("traurig")], [1.5, g({ lean: 18, sL: [8, 16], fL: [0, 16], aF: [0, -4], aB: [-6, -4], hd: 26 }), F("traurig")], [2.4, g({ lean: 14, sL: [8, 14], fL: [0, 14], aF: [2, -4], aB: [-4, -4], hd: 22 }), F("traurig")]] },
+    gesicht: { name: "Hände vors Gesicht", art: "niederlage", dauer: 2.6, keys: [[0, S0, F("ruhig")], [0.5, FACE, F("traurig")], [1.8, g({ lean: 28, sL: [14, 28], fL: [8, 28], aF: [92, 102], aB: [88, 104], hd: 26 }), F("traurig")], [2.6, g({ lean: 20, sL: [10, 20], fL: [4, 20], aF: [30, 70], aB: [34, 60], hd: 18 }), F("traurig")]] },
+    abwinken: { name: "Abwinken", art: "niederlage", dauer: 1.6, keys: [[0, S0, F("ruhig")], [0.35, g({ lean: 4, aF: [56, 84], hd: 6 }), F("traurig")], [0.6, g({ lean: 8, aF: [20, -14], hd: 16 }), F("traurig")], [1.6, g({ lean: 10, sL: [6, 10], fL: [0, 10], aF: [6, -8], aB: [-4, -6], hd: 18 }), F("traurig")]] },
+    hueften: { name: "Hände in die Hüften", art: "niederlage", dauer: 2.2, keys: [[0, S0, F("ruhig")], [0.6, HIPS, F("traurig")], [1.4, g({ lean: 2, sL: [2, 4], fL: [-8, 4], aF: [-24, 94], aB: [-28, 98], hd: 8 }), F("traurig")], [2.2, HIPS, F("traurig")]] },
+    knie: { name: "Hände auf die Knie", art: "niederlage", dauer: 2.4, keys: [[0, S0, F("ruhig")], [0.8, KNEES, F("traurig")], [1.6, g({ lean: 62, sL: [30, 50], fL: [24, 48], aF: [8, 8], aB: [4, 8], hd: 14 }), F("traurig")], [2.4, KNEES, F("traurig")]] },
+    warten: { name: "Warten", art: "neutral", dauer: 4, loop: true, keys: [[0, S0, F("ruhig")], [1, g({ lean: 3, sL: [4, 6], fL: [-6, 10], aF: [10, -12], aB: [-8, -10] }), F("ruhig")], [2, g({ lean: 1, sL: [1, 2], fL: [-2, 4], aF: [6, -8], aB: [-4, -6] }), F("ruhig")], [3, g({ lean: 2, sL: [3, 5], fL: [-5, 8], aF: [9, -10], aB: [-7, -9] }), F("ruhig")], [4, S0, F("ruhig")]] },
+    applaus: { name: "Applaus", art: "neutral", dauer: 0.8, loop: true, keys: [[0, CLAP_A, F("froh")], [0.2, CLAP_B, F("froh")], [0.4, CLAP_A, F("froh")], [0.6, CLAP_B, F("froh")], [0.8, CLAP_A, F("froh")]] },
+    daumen: { name: "Daumen hoch", art: "neutral", dauer: 1.4, keys: [[0, S0, F("ruhig")], [0.45, g({ lean: 0, aF: [96, 76], hd: -6 }), F("froh")], [1.4, g({ lean: 0, aF: [98, 74], hd: -6 }), F("froh")]] },
+  };
+  // Tänze im Stil der 1920er und 30er Jahre, passend zu den Plakaten der Reihe: eigene kurze Choreografien nach den alten
+  // Grundschritten, keine Kopien heutiger Trend-Tänze. takt = Sekunden je Schlag (für Musik oder Klatschen im Spiel).
+  const CH_DOWN = g({ lean: 5, sL: [8, 18], fL: [-2, 18], aF: [16, -8], aB: [-18, -8], hd: -4 });
+  const CH_FWD = g({ lean: -4, sL: [3, 6], fL: [58, 10], aF: [54, -10], aB: [-46, -10], hd: -8 });
+  const CH_BACK = g({ lean: 12, sL: [5, 10], fL: [-44, 74], aF: [-42, -10], aB: [50, -10], hd: 0 });
+  const CH_FWD2 = g({ lean: -6, sL: [3, 6], fL: [62, 8], aF: [96, -16], aB: [-70, -14], hd: -12 });
+  const CH_BACK2 = g({ lean: 14, sL: [5, 10], fL: [-48, 80], aF: [-66, -14], aB: [92, -16], hd: 2 });
+  const shimmy = [];
+  for (let i = 0; i <= 16; i++) {
+    const sh = i % 2 ? 1 : -1, b = Math.cos((i / 16) * Math.PI * 4);
+    shimmy.push([i * 0.06, g({ lean: -7 + 4 * sh, sL: [5, 12 + 5 * b], fL: [-8, 12 + 5 * b], aF: [62 + 9 * sh, 78 - 8 * sh], aB: [48 - 9 * sh, 84 + 8 * sh], hd: -10 - 4 * sh }), F("froh")]);
+  }
+  const TR_A = g({ lean: 10, sL: [10, 22], fL: [-6, 22], aF: [150, 32], aB: [-30, -20], hd: -2 });
+  const TR_B = g({ lean: 6, sL: [4, 10], fL: [-14, 30], aF: [146, 4], aB: [-20, -14], hd: -6 });
+  const PE_A = g({ lean: 4, sL: [6, 14], fL: [-4, 14], aF: [-28, 100], aB: [-32, 104], hd: -6 });
+  const PE_B = g({ lean: 16, sL: [10, 22], fL: [0, 22], aF: [-18, 90], aB: [-22, 94], hd: 26 });
+  Object.assign(GESTEN, {
+    charleston: { name: "Charleston", art: "tanz", dauer: 1.68, loop: true, takt: 0.42, keys: [[0, CH_DOWN, F("froh")], [0.21, CH_FWD, F("froh")], [0.42, CH_DOWN, F("froh")], [0.63, CH_BACK, F("froh")],
+      [0.84, CH_DOWN, F("froh")], [1.05, CH_FWD2, F("froh")], [1.26, CH_DOWN, F("froh")], [1.47, CH_BACK2, F("froh")], [1.68, CH_DOWN, F("froh")]] },
+    shimmy: { name: "Shimmy", art: "tanz", dauer: 0.96, loop: true, takt: 0.48, keys: shimmy },
+    truckin: { name: "Truckin\u2019", art: "tanz", dauer: 1.2, loop: true, takt: 0.3, keys: [[0, TR_A, F("froh")], [0.3, TR_B, F("froh")], [0.6, g({ lean: 10, sL: [12, 26], fL: [-2, 26], aF: [152, 36], aB: [-34, -22], hd: 0 }), F("froh")], [0.9, TR_B, F("froh")], [1.2, TR_A, F("froh")]] },
+    peckin: { name: "Peckin\u2019", art: "tanz", dauer: 1.2, loop: true, takt: 0.3, keys: [[0, PE_A, F("froh")], [0.15, PE_B, F("staunen")], [0.3, PE_A, F("froh")], [0.45, PE_B, F("staunen")], [0.6, PE_A, F("froh")], [0.9, g({ lean: 2, sL: [4, 10], fL: [-8, 12], aF: [-34, 108], aB: [-38, 110], hd: -10 }), F("froh")], [1.2, PE_A, F("froh")]] },
+  });
+  const ARTEN = { sieg: "Sieg", knapp: "Knapp", niederlage: "Niederlage", neutral: "Neutral", tanz: "Tanz" };
+  // Geste zur Zeit t (Sekunden seit dem Start): { pose, lift, mood, done }; Schleifen laufen weiter, sonst bleibt das letzte Bild
+  function gesture(id, t) {
+    const G = GESTEN[id];
+    if (!G) return null;
+    const K = G._v || (G._v = G.keys.map(([tk, q, e]) => [tk, toVec(q, e && e.lift)]));
+    const v = spline(K, t, !!G.loop), tt = G.loop ? ((t % G.dauer) + G.dauer) % G.dauer : t;
+    let mood = "ruhig";
+    for (const [tk, , e] of G.keys) if (tk <= tt + 1e-9 && e && e.mood) mood = e.mood;
+    return { pose: toPose(v), lift: Math.max(0, v[11]), mood, done: !G.loop && t >= G.dauer };
+  }
+  // Atmen und leichtes Verlagern beim Stehen, damit die Figur nie starr wirkt (k = Stärke, 1 = normal)
+  function idle(p, t, k) {
+    k = k == null ? 1 : k;
+    const b = Math.sin(t * 1.75), w = Math.sin(t * 0.86 + 1.3), o = mix(p, p, 0);
+    o.lean += 0.9 * b * k; o.hd -= 0.7 * b * k;
+    o.aF = [o.aF[0] + 1.6 * b * k, o.aF[1] + 1.2 * b * k]; o.aB = [o.aB[0] - 1.3 * b * k, o.aB[1] - b * k];
+    o.sL = [o.sL[0] + 0.7 * w * k, o.sL[1] + 1.2 * Math.max(0, w) * k];
+    return o;
+  }
+  // weich nachführen: Rumpf und Beine zügig, Arme etwas später (fließender Armzug); fast = Sprung, Sturz
+  const RATE = { lean: 9, crouch: 9, hd: 8, sL: 13, fL: 11, aF: 6.5, aB: 6 };
+  function ease(cur, tgt, dt, fast) {
+    if (!cur) return tgt;
+    const o = {}, m = fast ? 2.4 : 1, a = (k) => 1 - Math.exp(-RATE[k] * m * dt);
+    for (const k of KEYS) o[k] = val(cur, k) + (val(tgt, k) - val(cur, k)) * a(k);
+    for (const k of PAIRS) { const f = a(k); o[k] = [cur[k][0] + (tgt[k][0] - cur[k][0]) * f, cur[k][1] + (tgt[k][1] - cur[k][1]) * f]; }
+    return o;
+  }
+
+  const rad = (d) => d * Math.PI / 180, deg = (r) => r * 180 / Math.PI;
+  const vec = (d, L) => [Math.sin(rad(d)) * L, Math.cos(rad(d)) * L];
+  // Gliedlängen: Arme nach den Maßen des Menschen (Oberarm knapp 19 %, Unterarm 15 % der Größe), Schultergelenk 4,5 unter dem Hals
+  const LEN = { thigh: 19, shin: 18, torso: 26, ua: 14, fa: 12.5, shDrop: 4.5 };
+
+  // Gelenke einer Pose im Profil (x vorn, y unten), Knöchel des Standbeins im Ursprung
+  function joints(p) {
+    const sHip = p.sL[0], sKn = p.sL[0] - p.sL[1];
+    const t1 = vec(sHip, LEN.thigh), t2 = vec(sKn, LEN.shin);
+    const hip = [-(t1[0] + t2[0]), -(t1[1] + t2[1])];
+    const knee = [hip[0] + t1[0], hip[1] + t1[1]], ank = [0, 0];
+    const fSh = p.fL[0] - p.fL[1], fK = vec(p.fL[0], LEN.thigh), fKn = [hip[0] + fK[0], hip[1] + fK[1]], fS = vec(fSh, LEN.shin), fAn = [fKn[0] + fS[0], fKn[1] + fS[1]];
+    const nk = [hip[0] + Math.sin(rad(p.lean)) * LEN.torso, hip[1] - Math.cos(rad(p.lean)) * LEN.torso];
+    const sh = [hip[0] + Math.sin(rad(p.lean)) * (LEN.torso - LEN.shDrop), hip[1] - Math.cos(rad(p.lean)) * (LEN.torso - LEN.shDrop)];
+    const arm = (a) => { const u = vec(a[0], LEN.ua), e = [sh[0] + u[0], sh[1] + u[1]], f = vec(a[0] + a[1], LEN.fa); return [sh, e, [e[0] + f[0], e[1] + f[1]]]; };
+    return { hip, knee, ank, fKn, fAn, nk, sh, aF: arm(p.aF), aB: arm(p.aB), sKn, fSh };
+  }
+
+  // Umrechnung aus Gelenkpunkten (beliebige Einheit, y unten) in eine Pose. Damit lassen sich bestehende Posen der Spiele übernehmen.
+  // J: hip, sh, kneeN/ankN (nahes Bein = Standbein), kneeF/ankF, handN/handF, elbN/elbF, face (Blickrichtung). Fehlt der Ellbogen,
+  // landet die Hand trotzdem an derselben Stelle (Maßstab aus dem Standbein): der Arm beugt sich so weit wie nötig, Ellbogen unten.
+  const dirOf = (a, b) => deg(Math.atan2(b[0] - a[0], b[1] - a[1]));
+  const wrap = (d) => ((((d + 180) % 360) + 360) % 360) - 180;
+  function fromPoints(J) {
+    // Knie beugen nur nach vorn: eine Beugung unter 0 (überstreckt) wird gerade
+    const leg = (kn, an) => { const t = dirOf(J.hip, kn); return [t, Math.max(0, wrap(t - dirOf(kn, an)))]; };
+    const legIn = Math.hypot(J.kneeN[0] - J.hip[0], J.kneeN[1] - J.hip[1]) + Math.hypot(J.ankN[0] - J.kneeN[0], J.ankN[1] - J.kneeN[1]);
+    const k = (LEN.thigh + LEN.shin) / (legIn || 1);
+    const arm = (el, ha) => {
+      if (el) { const u = dirOf(J.sh, el); return [u, wrap(dirOf(el, ha) - u)]; }
+      const phi = dirOf(J.sh, ha), d = Math.min(LEN.ua + LEN.fa - 1e-6, Math.max(Math.abs(LEN.ua - LEN.fa) + 1e-6, Math.hypot(ha[0] - J.sh[0], ha[1] - J.sh[1]) * k));
+      const al = deg(Math.acos((LEN.ua ** 2 + d ** 2 - LEN.fa ** 2) / (2 * LEN.ua * d))), el2 = deg(Math.acos((LEN.ua ** 2 + LEN.fa ** 2 - d ** 2) / (2 * LEN.ua * LEN.fa)));
+      return [phi - al, 180 - el2];
+    };
+    // Rumpf von der Hüfte zur Schulter (die Schulter liegt wie in joints() auf der Rumpfachse)
+    const lean = deg(Math.atan2(J.sh[0] - J.hip[0], -(J.sh[1] - J.hip[1])));
+    const p = { lean, crouch: 0, sL: leg(J.kneeN, J.ankN), fL: leg(J.kneeF, J.ankF), aF: arm(J.elbN, J.handN), aB: arm(J.elbF, J.handF), hd: 0 };
+    if (J.face) p.hd = Math.max(-80, Math.min(60, wrap(deg(Math.atan2(J.face[1], J.face[0])) - lean)));
+    const r1 = (v) => Math.round(v * 10) / 10;
+    for (const k of KEYS) p[k] = r1(p[k]);
+    for (const k of PAIRS) p[k] = p[k].map(r1);
+    return p;
+  }
+
+  // Frisuren als SVG-Pfade, Ursprung = Kopfmitte, Hinterkopf bei +x (wird beim Zeichnen gespiegelt)
+  const HAIRP = [
+    { back: ["C 5.5 -4.5 3.4"], top: ["M-6.1 -0.5 C-6 -7 6 -8 6.3 0 C3 -3 -2 -3.5 -6.1 -0.5 Z"] },
+    { back: [], top: ["M-6.3 -1.3 C-7 -8 6.5 -8.5 6.6 1 L5.2 2.5 C4 -1.5 -2 -3.6 -6.3 -1.3 Z"] },
+    { back: ["M4.5 -3 C10 -3 13 1 15 6 C12 3.5 9 2 5 1.5 Z"], top: ["M-6.1 -0.5 C-6 -7 6 -8 6.3 0 C3 -3 -2 -3.5 -6.1 -0.5 Z"], under: true, hang: [4.8, -2.4] },
+    { back: ["C 6.4 0.5 2.9", "C 5 -4.8 3.1"], top: ["M-6.3 -1.3 C-7 -8 6.5 -8.5 6.6 1 L5.2 2.5 C4 -1.5 -2 -3.6 -6.3 -1.3 Z", "C -4.6 -4.6 2.4", "C 0.5 -7.2 2.5"] },
+    // Bubikopf: kinnlang, Pony über der Stirn
+    { back: [], top: ["M-6.6 -0.6 C-7.3 -8.4 7.3 -9.6 7.7 0.2 L7.9 5.4 C6.7 6.5 4.7 6.7 3.2 6.1 C3.9 3.2 2.9 0.1 0.6 -1.5 C-1.7 -2.9 -4.7 -2.4 -6.6 -0.6 Z"] },
+    // Lang: offen bis auf den Rücken
+    { back: ["M2.8 -4.6 C8.4 -4.8 9.4 2 9.2 9 C9 13.4 7.4 15.6 4.4 15.8 C5.8 11.2 5.2 6.2 2.4 2.2 Z"], top: ["M-6.1 -0.5 C-6 -7 6 -8 6.3 0 C3 -3 -2 -3.5 -6.1 -0.5 Z"], under: true, hang: [3.2, -3.6] },
+    // Scheitel: kurz, vorn etwas Fülle
+    { back: [], top: ["M-6.5 -0.4 C-7.4 -7.2 -2.2 -9.2 1.8 -8.5 C5.9 -7.9 7.2 -4.4 6.8 1.0 L5.8 2.0 C5.4 -1.8 3.4 -4.6 0.2 -5.1 C-2.6 -5.6 -5 -3.4 -6.5 -0.4 Z"] },
+    // Stoppeln: ganz kurz, liegt eng am Kopf
+    { back: [], top: ["M-5.9 -1.6 C-5.6 -6.9 5.7 -8.1 6.4 0.4 L5.7 1.6 C5.2 -4.6 -4.2 -5.6 -5.9 -1.6 Z"] },
+    // Afro: rund und voll
+    { back: [], behind: ["C 2.0 -3.6 8.2"], top: [] },
+  ];
+  // Bart auf der Gesichtsseite (+x), Farbe wie das Haar; Dreitagebart = Vollbart blass und innerhalb des Kopfes
+  const BEARDP = [null,
+    "M6.6 0.9 C6.7 2.0 6.3 2.9 5.6 3.2 C5.0 2.7 4.2 2.6 3.6 2.8 C3.8 1.7 4.9 0.9 6.6 0.9 Z",
+    "M-0.8 -1.2 C-1.2 2.6 0 6.2 3.2 7.2 C5.2 7.8 6.9 6.2 6.9 4.0 L6.4 2.0 C5.4 2.6 4.2 2.4 3.8 1.6 C2.6 1.4 1.2 0.6 -0.8 -1.2 Z",
+    "M-0.8 -1.2 C-1.2 2.6 0 6.2 3.2 7.2 C5.2 7.8 6.9 6.2 6.9 4.0 L6.4 2.0 C5.4 2.6 4.2 2.4 3.8 1.6 C2.6 1.4 1.2 0.6 -0.8 -1.2 Z"];
+  const pathCache = {};
+  function shape(ctx, s, fill) {
+    ctx.beginPath();
+    if (s[0] === "C") { const [, x, y, r] = s.split(" "); ctx.arc(+x, +y, +r, 0, Math.PI * 2); }
+    else { const p = pathCache[s] || (pathCache[s] = new Path2D(s)); ctx.fillStyle = fill; ctx.fill(p); ctx.stroke(p); return; }
+    ctx.fillStyle = fill; ctx.fill(); ctx.stroke();
+  }
+
+  // Vieleck mit abgerundeten Ecken (Kleidung): r je Ecke oder für alle, höchstens die halbe Kantenlänge
+  function roundPoly(ctx, pts, r) {
+    const n = pts.length, rr = (i) => (Array.isArray(r) ? r[i] : r);
+    const cut = (p, q, d) => { const dx = q[0] - p[0], dy = q[1] - p[1], l = Math.hypot(dx, dy) || 1, t = Math.min(d / l, 0.5); return [p[0] + dx * t, p[1] + dy * t]; };
+    ctx.beginPath();
+    for (let i = 0; i < n; i++) {
+      const p0 = pts[(i + n - 1) % n], p1 = pts[i], p2 = pts[(i + 1) % n], a = cut(p1, p0, rr(i)), b = cut(p1, p2, rr(i));
+      if (i === 0) ctx.moveTo(a[0], a[1]); else ctx.lineTo(a[0], a[1]);
+      ctx.quadraticCurveTo(p1[0], p1[1], b[0], b[1]);
+    }
+    ctx.closePath();
+  }
+
+  // Glied als weich gebogene, sich verjüngende Form (Oberschenkel kräftig, Knöchel und Handgelenk schmal); lw 0 = ohne Kontur;
+  // taper: wie stark es zum Ende schmaler wird; cap: runder Anfang (Schulter), damit der Arm nicht abgeschnitten am Rumpf klebt
+  function limb(ctx, pts, w, col, lw, taper, cap) {
+    const tp = taper == null ? 0.42 : taper;
+    const [A, B, C] = pts, smp = [];
+    const P0 = [2 * A[0] - B[0], 2 * A[1] - B[1]], P3 = [2 * C[0] - B[0], 2 * C[1] - B[1]];
+    const cr = (p0, p1, p2, p3, t) => [0, 1].map((k) => 0.5 * ((2 * p1[k]) + (-p0[k] + p2[k]) * t + (2 * p0[k] - 5 * p1[k] + 4 * p2[k] - p3[k]) * t * t + (-p0[k] + 3 * p1[k] - 3 * p2[k] + p3[k]) * t * t * t));
+    for (let i = 0; i <= 6; i++) smp.push(cr(P0, A, B, C, i / 6));
+    for (let i = 1; i <= 6; i++) smp.push(cr(A, B, C, P3, i / 6));
+    const n = smp.length, L = [], R = [];
+    for (let i = 0; i < n; i++) {
+      const p = smp[i], q = smp[Math.min(n - 1, i + 1)], o = smp[Math.max(0, i - 1)];
+      let dx = q[0] - o[0], dy = q[1] - o[1]; const d = Math.hypot(dx, dy) || 1; dx /= d; dy /= d;
+      const u = i / (n - 1), hw = (w * (1.08 - tp * u)) / 2;
+      L.push([p[0] - dy * hw, p[1] + dx * hw]); R.push([p[0] + dy * hw, p[1] - dx * hw]);
+    }
+    ctx.beginPath(); ctx.moveTo(L[0][0], L[0][1]);
+    for (const p of L.slice(1)) ctx.lineTo(p[0], p[1]);
+    for (const p of R.reverse()) ctx.lineTo(p[0], p[1]);
+    if (cap) {
+      // Halbkreis um den Anfang, auf der dem Glied abgewandten Seite
+      const r = w * 1.08 / 2, aR = Math.atan2(R[R.length - 1][1] - A[1], R[R.length - 1][0] - A[0]);
+      const back = Math.atan2(A[1] - smp[1][1], A[0] - smp[1][0]), d = (x) => Math.abs(Math.atan2(Math.sin(x), Math.cos(x)));
+      const cw = d(aR + Math.PI / 2 - back) < d(aR - Math.PI / 2 - back);
+      ctx.arc(A[0], A[1], r, aR, aR + (cw ? Math.PI : -Math.PI), !cw);
+    }
+    ctx.closePath(); ctx.fillStyle = col; ctx.fill();
+    if (lw) { ctx.strokeStyle = INK; ctx.lineWidth = lw; ctx.stroke(); }
+  }
+
+  // ------------------------------------------------------------------ Zeichnen
+  // o: x, y = Knöchel des Standbeins im Bild; s Maßstab; dir 1 = nach rechts; lift Höhe; tilt Kippen (Bogenmaß, z. B. Hang, Sturz);
+  // turn Drehung um die eigene Achse (Sprung, Pirouette); swap Standbein auf der fernen Seite; pose; look (cleanLook);
+  // kit (Name aus KITS oder Objekt); ski { n, f } Winkel der Ski in Grad (+ = Spitze nach unten), sonst waagrecht;
+  // poles { n, f } Spitzen der Stöcke in Figur-Einheiten, sonst schräg nach hinten; lw Konturbreite in Bildpunkten
+  // (fest bei jedem Maßstab, für kleine Figuren), sonst wächst sie mit dem Maßstab.
+  // Die Pose ist ein Seitenprofil; jedes Gelenk bekommt eine Tiefe z (Schultern und Hüfte haben Breite), dann wird um die
+  // senkrechte Achse gedreht und von hinten nach vorn gezeichnet. So bleiben Rumpf und Kopf beim Drehen rund.
+  const Z = { sh: 6.2, hip: 3.2 };
+  function draw(ctx, o) {
+    const L = o.look || DEF_LOOK, p = o.pose, s = o.s || 1, K = typeof o.kit === "string" ? KITS[o.kit] : o.kit || KITS.eiskunstlauf;
+    const skin = pal(L.skin, SKIN, 1), suit = pal(L.suit, SUIT, 0), suitD = isHex(L.suitD) ? L.suitD : shade(suit, 0.8);
+    const acc = typeof L.suit === "number" && L.accent === L.suit ? SUIT[(L.suit + 3) % SUIT.length] : pal(L.accent, SUIT, 3);
+    const accD = isHex(L.accentD) ? L.accentD : shade(acc, 0.8);
+    const skiC = { n: isHex(L.ski) ? L.ski : null, f: isHex(L.skiFar) ? L.skiFar : isHex(L.ski) ? shade(L.ski, 0.78) : null };
+    const lwk = o.lw ? o.lw / (1.4 * s) : 1, W = (w) => w * lwk;
+    // Gesichtszüge nur, wenn der Kopf groß genug ist (Radius ab 10 Bildpunkten: Pass, Gestalten, Siegerehrung); face erzwingt oder verbietet
+    const mood = (o.face != null ? o.face : 6.2 * s >= 10) ? o.mood || p.mood || "ruhig" : null;
+    const th = o.turn || 0, c = Math.cos(th), sn = Math.sin(th);
+    ctx.save();
+    ctx.translate(o.x, o.y - (o.lift || 0) * s);
+    if (o.tilt) ctx.rotate(o.tilt);
+    ctx.scale(s * (o.dir || 1), s);
+    ctx.lineCap = "round"; ctx.lineJoin = "round";
+    const J = joints(p), { hip, knee, ank, fKn, fAn } = J;
+    // Drehachse: senkrecht durch die Hüfte
+    const ax = hip[0];
+    // Punkt (Profil x, y, Tiefe z) → Bild [x, y, Tiefe zum Betrachter]
+    const P = (q, z) => { const x = q[0] - ax; return [ax + x * c - z * sn, q[1], x * sn + z * c]; };
+    const depth = (pts) => pts.reduce((m, q) => m + q[2], 0) / pts.length;
+    const parts = [];
+    const zs = o.swap ? -1 : 1;
+    const split = L.pattern === "split", stripe = L.pattern === "stripe";
+    const legN = split ? acc : suit, legF = split ? accD : suitD;
+    // Beine: Fuß je nach Ausrüstung; Ski und Stiefel zeichnet derselbe Teil, damit die Reihenfolge stimmt
+    const leg = (pts, z0, z1, w, col, shinDeg, skiDeg, near) => {
+      const q = pts.map((pt, i) => P(pt, z0 + (z1 - z0) * i / (pts.length - 1)));
+      parts.push({ d: depth(q), f: () => {
+        const an = q[q.length - 1];
+        if (SKI[K.feet]) ski(ctx, an, skiDeg || 0, c, SKI[K.feet], near, W, skiC);
+        if (K.legs === "knickers") {
+          // Kniebundhose bauschig bis unters Knie, darunter der Wollstrumpf mit Bund in der Zweitfarbe
+          const kn = q[1], at = (u) => [kn[0] + (an[0] - kn[0]) * u, kn[1] + (an[1] - kn[1]) * u];
+          limb(ctx, [at(0.3), at(0.65), an], w * 0.66, SOCK[near ? 0 : 1], W(1.1), 0.12);
+          limb(ctx, [q[0], kn, at(0.34)], w * 1.04, (K.pants || [col, col])[near ? 0 : 1], W(1.2), -0.06, true);
+          if (near) limb(ctx, [at(0.33), at(0.37), at(0.41)], w * 0.7, acc, W(0.9), 0);
+        } else {
+          limb(ctx, q, w, col, W(1.2), null, true);
+          if (stripe && near) limb(ctx, q, w * 0.28, acc, 0);
+        }
+        if (K.feet === "skates") skate(ctx, an, shinDeg, c, W);
+        else if (K.feet === "shoes") shoe(ctx, an, c, W);
+        else skiBoot(ctx, an, skiDeg || 0, c, W, K.bootC);
+      } });
+    };
+    const sk = o.ski || {};
+    // Standbein auf der nahen Seite (zs = 1), die nahe Seite ist heller
+    leg([hip, fKn, fAn], -Z.hip * zs, -Z.hip * zs, 6, zs > 0 ? legF : legN, J.fSh, zs > 0 ? sk.f : sk.n, zs < 0);
+    leg([hip, knee, ank], Z.hip * zs, Z.hip * 0.6 * zs, 6.2, zs > 0 ? legN : legF, J.sKn, zs > 0 ? sk.n : sk.f, zs > 0);
+    // Arme mit Hand (Haut oder Handschuh) und Stock
+    const hand = K.glove === "suit" ? suit : K.glove ? GLOVE : skin;
+    const arm = (pts, z0, z1, col, near) => {
+      const q = pts.map((pt, i) => P(pt, z0 + (z1 - z0) * i / (pts.length - 1)));
+      parts.push({ d: depth(q), f: () => {
+        const h = q[q.length - 1], e = q[q.length - 2], an = Math.atan2(h[1] - e[1], h[0] - e[0]);
+        if (K.hands === "poles") {
+          const tip = o.poles && (near ? o.poles.n : o.poles.f);
+          pole(ctx, h, tip ? P(tip, z1) : poleTip(h, e), W);
+        }
+        limb(ctx, q, 4.8, col, W(1.2), 0.32, true);
+        if (stripe && near) limb(ctx, q, 1.4, acc, 0, 0.3);
+        ctx.beginPath(); ctx.ellipse(h[0] + Math.cos(an) * 2.3, h[1] + Math.sin(an) * 2.3, 3.3, 1.95, an, 0, 7);
+        ctx.fillStyle = hand; ctx.strokeStyle = INK; ctx.lineWidth = W(1); ctx.fill(); ctx.stroke();
+      } });
+    };
+    // Stock ohne vorgegebene Spitze: verlängert den Unterarm (hängend zum Boden, beim Jubel nach oben), endet am Boden
+    const poleTip = (h, e) => {
+      let dx = h[0] - e[0], dy = h[1] - e[1]; const d = Math.hypot(dx, dy) || 1; dx /= d; dy /= d;
+      let l = POLE; if (dy > 0.05) l = Math.min(l, (GROUND - h[1]) / dy);
+      return [h[0] + dx * l, h[1] + dy * l];
+    };
+    arm(J.aB, -Z.sh, -Z.sh - 2, suitD, false);
+    arm(J.aF, Z.sh, Z.sh + 2, shade(suit, 1.08), true);
+    // Rumpf: Querschnitt als Ellipse (Tiefe im Profil, Breite von vorn); sichtbare halbe Breite je Höhe
+    const hw = (dep, wid) => Math.sqrt((dep * c) ** 2 + (wid * sn) ** 2);
+    const lvl = [[2.5, 6.2, 6.8], [-6, 4.6, 5.4], [-18, 7.2, 7.4], [-25.5, 7, 8.6]]; // [y im Rumpf, Tiefe, Breite]
+    parts.push({ d: 0, f: () => {
+      ctx.save(); ctx.translate(P(hip, 0)[0], hip[1]);
+      // Rumpf im Raum: Neigung nach vorn, dann um die Achse gedreht → Winkel und Verkürzung im Bild (Waage von vorn wird kurz)
+      const ls = Math.sin(rad(p.lean)) * c, lc = Math.cos(rad(p.lean)), f = Math.max(0.12, Math.hypot(ls, lc));
+      ctx.rotate(Math.atan2(ls, lc));
+      const L2 = lvl.map(([y, dp, wd]) => [y * f, hw(dp, wd)]);
+      const rifleBehind = sn > -0.25;
+      if (K.back === "rifle" && rifleBehind) rifle(ctx, f, c, W);
+      // Umriss mit runden Schultern, runden Hüftkanten und weichen Seiten
+      const torso = () => roundPoly(ctx, L2.map(([y, w]) => [-w, y]).concat(L2.slice().reverse().map(([y, w]) => [w, y])), [2.6, 3.2, 3.2, 3.6, 3.6, 3.2, 3.2, 2.6]);
+      torso(); ctx.fillStyle = suit; ctx.strokeStyle = INK; ctx.lineWidth = W(1.5); ctx.fill(); ctx.stroke();
+      if (stripe) { ctx.save(); torso(); ctx.clip(); ctx.fillStyle = acc; ctx.fillRect(-1.2, -26 * f, 2.4, 28.5 * f); ctx.restore(); }
+      if (K.torso === "sash") {
+        // Schrägstreifen vorn (von hinten unsichtbar)
+        const vis = clamp01((Math.abs(c) * 0.9 + sn * 1.2 + 0.2));
+        if (vis > 0.05) {
+          ctx.save(); torso(); ctx.clip();
+          ctx.globalAlpha = vis; const w1 = hw(5.8, 6.2) * 1.05, w2 = hw(7.1, 7.6) * 1.05, dirS = c >= 0 ? 1 : -1;
+          ctx.beginPath(); ctx.moveTo(-w1 * dirS, -12.5 * f); ctx.lineTo(w2 * dirS, -20.5 * f); ctx.lineTo(w2 * dirS, -17 * f); ctx.lineTo(-w1 * dirS, -9 * f); ctx.closePath();
+          ctx.fillStyle = acc; ctx.fill(); ctx.globalAlpha = 1; ctx.restore();
+          torso(); ctx.lineWidth = W(1.5); ctx.stroke();
+        }
+      } else if (K.torso === "bib") {
+        // Startnummer: helles Leibchen über Brust und Rücken, Schultern bleiben in der Anzugfarbe
+        const b = [[-4.5, hw(4.9, 5.6)], [-12, hw(6.2, 6.6)], [-21, hw(6.6, 7.2)]].map(([y, w]) => [y * f, w * 0.86]);
+        roundPoly(ctx, b.map(([y, w]) => [-w, y]).concat(b.slice().reverse().map(([y, w]) => [w, y])), 1.6); ctx.fillStyle = PAPER; ctx.strokeStyle = INK; ctx.lineWidth = W(1); ctx.fill(); ctx.stroke();
+        ctx.fillStyle = acc; ctx.fillRect(-b[0][1], -6 * f, 2 * b[0][1], 1.6 * f);
+      } else if (K.torso === "sweater") {
+        // Pullover: helle Bordüre über der Brust, dunkler Bund an der Hüfte
+        ctx.save(); torso(); ctx.clip();
+        ctx.fillStyle = acc; ctx.fillRect(-12, -19.6 * f, 24, 4.6 * f);
+        ctx.fillStyle = suitD; ctx.fillRect(-12, -0.8 * f, 24, 4 * f);
+        ctx.restore(); torso(); ctx.strokeStyle = INK; ctx.lineWidth = W(1.5); ctx.stroke();
+      }
+      if (isHex(L.bib)) {
+        // Leibchen (z. B. des Führenden) über dem Anzug, Schultern frei
+        const b = [[-3.5, hw(5.2, 5.9)], [-12, hw(6.4, 6.8)], [-21.5, hw(6.8, 7.4)]].map(([y, w]) => [y * f, w * 0.9]);
+        roundPoly(ctx, b.map(([y, w]) => [-w, y]).concat(b.slice().reverse().map(([y, w]) => [w, y])), 1.6); ctx.fillStyle = L.bib; ctx.strokeStyle = INK; ctx.lineWidth = W(1); ctx.fill(); ctx.stroke();
+      }
+      if (K.back === "rifle" && !rifleBehind) rifle(ctx, f, c, W);
+      ctx.fillStyle = skin; ctx.fillRect(-1.8, -26 * f - 4.5, 3.6, 4.5);
+      // Kopf: Kreis bleibt rund; Frisur, Helm und Mütze drehen mit (Hinterkopf liegt hinten = −x im Profil)
+      const hr = -Math.atan2(ls, lc) * (1 - f) * 0.6 + rad(p.hd || 0);
+      ctx.translate(0, -26 * f - 9.5); ctx.rotate(hr);
+      head(ctx, L, K, c, sn, skin, acc, suit, W, mood, Math.atan2(ls, lc) + hr + (o.tilt || 0));
+      ctx.restore();
+    } });
+    parts.sort((a, b2) => a.d - b2.d).forEach((x) => x.f());
+    ctx.restore();
+  }
+  const clamp01 = (v) => (v < 0 ? 0 : v > 1 ? 1 : v);
+
+  // Kopf mit Frisur, Helm oder Mütze; Ursprung = Kopfmitte, Gesicht bei +x (c skaliert die Breite beim Drehen)
+  function head(ctx, L, K, c, sn, skin, acc, suit, W, mood, tilt) {
+    const H = HAIRP[L.hair] || HAIRP[0], hc = pal(L.hairC, HAIRC, 0);
+    // Zopf und lange Haare hängen: Neigt sich der Kopf, drehen sie zum Teil zurück nach unten (um den Ansatz)
+    const hangTo = (h) => { if (!H.hang || !H.back.includes(h)) return; const a = Math.max(-1.2, Math.min(1.2, tilt || 0)) * 0.75 * Math.sign(c || 1); ctx.translate(H.hang[0], H.hang[1]); ctx.rotate(a); ctx.translate(-H.hang[0], -H.hang[1]); };
+    const hair = (list, behind) => {
+      for (const h of list) {
+        // Tiefe des Haarteils: Hinterkopf (Profil −x) kommt nach vorn, wenn der Rücken zum Betrachter zeigt
+        const hx = h[0] === "C" ? -(+h.split(" ")[1]) : -4, dz = hx * sn;
+        if ((dz > 0.5) === behind) continue;
+        ctx.save(); ctx.scale(-c || -0.01, 1); hangTo(h);
+        ctx.strokeStyle = INK; ctx.lineWidth = W(1.3) / Math.max(0.3, Math.abs(c)); shape(ctx, h, hc); ctx.restore();
+      }
+    };
+    const cs = Math.abs(c) < 0.35 ? 0.35 * Math.sign(c || 1) : c;
+    // Fülle, die immer hinter dem Kopf liegt (Afro); Teile ohne Rücksicht auf die Drehung (unter Helm und Mütze)
+    const hairAll = (list) => { for (const h of list) { ctx.save(); ctx.scale(-c || -0.01, 1); hangTo(h); ctx.strokeStyle = INK; ctx.lineWidth = W(1.3) / Math.max(0.3, Math.abs(c)); shape(ctx, h, hc); ctx.restore(); } };
+    if (H.behind && K.head !== "helmet") hairAll(H.behind);
+    if (K.head !== "helmet") hair(H.back, false);
+    ctx.beginPath(); ctx.arc(0, 0, 6.2, 0, 7); ctx.fillStyle = skin; ctx.strokeStyle = INK; ctx.lineWidth = W(1.5); ctx.fill(); ctx.stroke();
+    // Gesichtszüge (mood: ruhig, froh, traurig; null = keine): Nase, Auge, Braue, Mund; nichts, was Mann oder Frau kennzeichnet
+    const front = Math.abs(c) < 0.5 && sn > 0.3, flw = (w) => W(w) / Math.max(0.35, Math.abs(front ? 1 : cs));
+    const mouth = () => {
+      ctx.save(); if (!front) ctx.scale(cs, 1); ctx.strokeStyle = INK; ctx.fillStyle = INK; ctx.lineCap = "round";
+      const mx = front ? -1.1 : 4.3, mw = front ? 2.2 : 1.5;
+      ctx.beginPath();
+      if (mood === "froh") { ctx.moveTo(mx, 2.5); ctx.quadraticCurveTo(mx + mw * 0.55, 4.6, mx + mw * 1.05, 2.3); ctx.closePath(); ctx.fill(); }
+      else if (mood === "traurig") { ctx.moveTo(mx, 3.4); ctx.quadraticCurveTo(mx + mw * 0.5, 2.5, mx + mw, 3.2); ctx.lineWidth = flw(0.6); ctx.stroke(); }
+      else if (mood === "staunen") { ctx.ellipse(mx + mw * 0.6, 3.0, 0.55, 0.85, 0, 0, 7); ctx.fill(); }
+      else { ctx.moveTo(mx, 3.0); ctx.lineTo(mx + mw, 2.8); ctx.lineWidth = flw(0.6); ctx.stroke(); }
+      ctx.restore();
+    };
+    const feats = () => {
+      if (!mood || sn < -0.35) return;
+      ctx.save(); ctx.lineCap = "round"; const brow = shade(hc, 0.85);
+      // Brauen: froh gewölbt, traurig innen hoch, Staunen höher
+      const by = mood === "staunen" ? -0.6 : 0, bIn = mood === "traurig" ? -0.7 : mood === "froh" ? 0.1 : 0, bOut = mood === "traurig" ? 0.4 : 0, bArc = mood === "froh" ? -0.9 : -0.6;
+      if (front) {
+        for (const ex of [-2.1, 2.1]) {
+          ctx.beginPath(); ctx.ellipse(ex, -0.6, 0.6, 0.8, 0, 0, 7); ctx.fillStyle = INK; ctx.fill();
+          const sgn = ex < 0 ? 1 : -1;   // innen = zur Mitte
+          ctx.beginPath(); ctx.moveTo(ex - 1.1, -2.1 + by + (sgn > 0 ? bOut : bIn)); ctx.quadraticCurveTo(ex, -2.1 + by + bArc, ex + 1.1, -2.2 + by + (sgn > 0 ? bIn : bOut)); ctx.strokeStyle = brow; ctx.lineWidth = flw(0.6); ctx.stroke();
+        }
+      } else {
+        ctx.scale(cs, 1);
+        // Nase als Teil des Umrisses: Kopflinie dort überdeckt, Bogen nachgezogen
+        ctx.beginPath(); ctx.moveTo(5.0, -1.2); ctx.lineTo(6.05, -1.1); ctx.quadraticCurveTo(9.0, 0.6, 6.1, 1.3); ctx.lineTo(5.0, 1.4); ctx.closePath(); ctx.fillStyle = skin; ctx.fill();
+        ctx.beginPath(); ctx.moveTo(6.05, -1.1); ctx.quadraticCurveTo(9.0, 0.6, 6.1, 1.3); ctx.strokeStyle = INK; ctx.lineWidth = flw(1.5); ctx.stroke();
+        ctx.beginPath(); ctx.ellipse(3.9, -0.7, 0.55, 0.8, 0, 0, 7); ctx.fillStyle = INK; ctx.fill();
+        ctx.beginPath(); ctx.moveTo(2.9, -2.1 + by + bOut); ctx.quadraticCurveTo(3.9, -2.1 + by + bArc, 5.0, -2.2 + by + bIn); ctx.strokeStyle = brow; ctx.lineWidth = flw(0.65); ctx.stroke();
+      }
+      ctx.restore();
+    };
+    if (mood && sn > -0.35) mouth();
+    // Bart in der Haarfarbe; von hinten unsichtbar
+    if (L.beard && BEARDP[L.beard] && sn > -0.5) {
+      ctx.save(); ctx.scale(cs, 1);
+      const bp = pathCache[BEARDP[L.beard]] || (pathCache[BEARDP[L.beard]] = new Path2D(BEARDP[L.beard]));
+      if (L.beard === 3) { ctx.beginPath(); ctx.arc(0, 0, 6.2, 0, 7); ctx.clip(); ctx.globalAlpha = 0.42; ctx.fillStyle = hc; ctx.fill(bp); }
+      else { ctx.fillStyle = hc; ctx.strokeStyle = INK; ctx.lineWidth = W(1.1) / Math.max(0.35, Math.abs(cs)); ctx.fill(bp); ctx.stroke(bp); }
+      ctx.restore();
+    }
+    if (K.head === "helmet") {
+      // unter dem Helm schauen nur Zopf und lange Haare hervor; der Helm deckt ihren Ansatz
+      if (H.under) hairAll(H.back);
+      feats();
+      // Sprunghelm in der Zweitfarbe, Brille auf der Gesichtsseite; Kinn und Mund bleiben frei (Hautton, Bart)
+      ctx.save(); ctx.scale(cs, 1);
+      ctx.beginPath(); ctx.arc(-0.3, -0.6, 7.3, 1.95, 0.5 + Math.PI * 2); ctx.quadraticCurveTo(2.6, 2.4, -2.4, 6.0); ctx.closePath();
+      ctx.fillStyle = isHex(L.helmet) ? L.helmet : acc; ctx.strokeStyle = INK; ctx.lineWidth = W(1.5) / Math.max(0.35, Math.abs(cs)); ctx.fill(); ctx.stroke();
+      ctx.restore();
+      if (sn > -0.5) {
+        ctx.save(); ctx.scale(cs, 1);
+        ctx.beginPath(); ctx.arc(-0.3, -0.6, 7.35, -0.78, 0.48); ctx.arc(0.3, -0.5, 4.6, 1.08, -1.3, true); ctx.closePath();
+        ctx.fillStyle = isHex(L.visor) ? L.visor : VISOR; ctx.lineWidth = W(1.2) / Math.max(0.35, Math.abs(cs)); ctx.fill(); ctx.stroke();
+        ctx.restore();
+      }
+      ctx.beginPath(); ctx.arc(-3.2, -3.6, 1.1, 0, 7); ctx.fillStyle = "rgba(255,255,255,0.5)"; ctx.fill();
+      return;
+    }
+    if (K.head === "cap") {
+      // Strickmütze in der Zweitfarbe mit Bommel in der Anzugfarbe; sitzt über den Brauen, Haare schauen hinten heraus
+      feats();
+      ctx.save(); ctx.scale(cs, 1); ctx.strokeStyle = INK; ctx.lineWidth = W(1.3) / Math.max(0.35, Math.abs(cs));
+      ctx.beginPath(); ctx.moveTo(-6.9, -0.2); ctx.bezierCurveTo(-7.5, -9.6, 6.4, -10.6, 6.4, -2.9); ctx.lineTo(6.2, -2.0); ctx.lineTo(-6.7, 1.0); ctx.closePath();
+      const capC = isHex(L.cap) ? L.cap : acc;
+      ctx.fillStyle = capC; ctx.fill(); ctx.stroke();
+      roundPoly(ctx, [[-6.8, 0.9], [6.3, -1.9], [5.8, -4.2], [-6.9, -1.5]], 0.9);
+      ctx.fillStyle = shade(capC, 0.82); ctx.fill(); ctx.stroke();
+      ctx.beginPath(); ctx.arc(-1.0, -9.6, 2.3, 0, 7); ctx.fillStyle = isHex(L.pom) ? L.pom : suit; ctx.fill(); ctx.stroke();
+      ctx.restore();
+      hair(H.back, true);
+      return;
+    }
+    // Oberkopf: von vorn als Haaransatz rundum, im Profil wie gezeichnet
+    ctx.save(); ctx.scale(-cs, 1); ctx.strokeStyle = INK; ctx.lineWidth = W(1.3);
+    for (const t of H.top) shape(ctx, t, hc);
+    ctx.restore();
+    if (sn > 0.35) { ctx.beginPath(); ctx.ellipse(0, -2.6, 6.3, 3.6 * sn, 0, Math.PI, 0); ctx.fillStyle = hc; ctx.fill(); ctx.strokeStyle = INK; ctx.lineWidth = W(1.2); ctx.stroke(); }
+    else if (sn < -0.35) { ctx.beginPath(); ctx.ellipse(0, -0.6, 6.3, 6.4 * -sn, 0, Math.PI - 0.3, 0.3); ctx.closePath(); ctx.fillStyle = hc; ctx.fill(); ctx.strokeStyle = INK; ctx.lineWidth = W(1.2); ctx.stroke(); }
+    feats();
+    hair(H.back, true);
+  }
+
+  // Schlittschuh: Stiefel folgt dem Unterschenkel, Länge folgt der Drehung (Fuß zeigt nach vorn)
+  function skate(ctx, ank, shinDeg, c, W) {
+    ctx.save(); ctx.translate(ank[0], ank[1]); ctx.scale(Math.sign(c || 1) * Math.max(0.35, Math.abs(c)), 1); ctx.rotate(-rad(shinDeg));
+    roundPoly(ctx, [[-2.5, -3.5], [2.5, -3.5], [6, 1], [-2.5, 1.6]], [1, 1.2, 1.4, 0.8]);
+    ctx.fillStyle = PAPER; ctx.strokeStyle = INK; ctx.lineWidth = W(1.3); ctx.fill(); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(-5, 4.2); ctx.lineTo(7.5, 4.2); ctx.lineWidth = W(1.6); ctx.stroke();
+    ctx.restore();
+  }
+  // Schuh (Siegerehrung, Menü)
+  function shoe(ctx, ank, c, W) {
+    ctx.save(); ctx.translate(ank[0], ank[1]); ctx.scale(Math.sign(c || 1) * Math.max(0.35, Math.abs(c)), 1);
+    roundPoly(ctx, [[-2.6, -2.2], [2.2, -2.2], [6.0, -0.2], [6.6, 2.4], [-2.8, 2.4]], [0.8, 1.4, 1.4, 0.6, 0.6]);
+    ctx.fillStyle = BOOT; ctx.strokeStyle = INK; ctx.lineWidth = W(1.2); ctx.fill(); ctx.stroke();
+    ctx.restore();
+  }
+  // Skischuh: steht flach auf dem Ski
+  function skiBoot(ctx, ank, skiDeg, c, W, col) {
+    ctx.save(); ctx.translate(ank[0], ank[1]); ctx.scale(Math.sign(c || 1) * Math.max(0.35, Math.abs(c)), 1); ctx.rotate(rad(skiDeg));
+    roundPoly(ctx, [[-3.2, -3.6], [2.6, -3.6], [6.2, 1.4], [6.2, 3.2], [-3.6, 3.2]], [1, 1.4, 1, 0.6, 0.8]);
+    ctx.fillStyle = col || BOOT; ctx.strokeStyle = INK; ctx.lineWidth = W(1.2); ctx.fill(); ctx.stroke();
+    ctx.restore();
+  }
+  // Ski unter dem Knöchel: gerade Lauffläche, Spitze aufgebogen; Winkel in Grad (+ = Spitze nach unten)
+  function ski(ctx, ank, skiDeg, c, S, near, W, cols) {
+    ctx.save(); ctx.translate(ank[0], ank[1]); ctx.scale(Math.sign(c || 1) * Math.max(0.2, Math.abs(c)), 1); ctx.rotate(rad(skiDeg));
+    const y = 3.2 + S.w / 2;
+    ctx.beginPath(); ctx.moveTo(-S.back, y); ctx.lineTo(S.front, y); ctx.quadraticCurveTo(S.front + S.tipL * 0.75, y, S.front + S.tipL, y - S.tipH);
+    ctx.strokeStyle = S.edge || INK; ctx.lineWidth = S.w + W(2.2); ctx.stroke();
+    ctx.strokeStyle = (near ? cols && cols.n : cols && cols.f) || (near ? S.col : S.colF); ctx.lineWidth = S.w; ctx.stroke();
+    ctx.restore();
+  }
+  // Stock von der Hand zur Spitze, mit Teller kurz vor der Spitze
+  function pole(ctx, h, t, W) {
+    const dx = t[0] - h[0], dy = t[1] - h[1], l = Math.hypot(dx, dy) || 1, ux = dx / l, uy = dy / l;
+    ctx.beginPath(); ctx.moveTo(h[0] - ux * 3, h[1] - uy * 3); ctx.lineTo(t[0], t[1]); ctx.strokeStyle = INK; ctx.lineWidth = W(1.5); ctx.stroke();
+    const bx = t[0] - ux * 4, by = t[1] - uy * 4;
+    ctx.beginPath(); ctx.moveTo(bx - uy * 2.4, by + ux * 2.4); ctx.lineTo(bx + uy * 2.4, by - ux * 2.4); ctx.lineWidth = W(1.3); ctx.stroke();
+  }
+  // Gewehr auf dem Rücken: Schaft aus Holz längs des Rückens, Lauf über die Schulter (im Rumpf-Koordinatensystem)
+  function rifle(ctx, f, c, W) {
+    const x = (v) => v * c;
+    ctx.beginPath(); ctx.moveTo(x(-6.4), -0.5 * f); ctx.lineTo(x(-8.6), -20 * f);
+    ctx.strokeStyle = INK; ctx.lineWidth = 4.2 + W(2); ctx.stroke(); ctx.strokeStyle = WOOD; ctx.lineWidth = 4.2; ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(x(-8.4), -18 * f); ctx.lineTo(x(-7.9), -31 * f);
+    ctx.strokeStyle = INK; ctx.lineWidth = 1.6; ctx.stroke();
+  }
+
+  root.CMFigur = { draw, joints, fromPoints, mix, seq, ease, gesture, idle, cleanLook, shade, POSES, ABLAEUFE, GESTEN, ARTEN, KITS, SKI, LEN, DEF_LOOK, SKIN, HAIRC, SUIT, HAIRS, BEARDS, PATTERNS, INK };
+})(typeof window !== "undefined" ? window : globalThis);
+
+/* Cold Medal · Eiskunstlauf – Posen und Laufschritt der Sportart, gezeichnet mit der gemeinsamen Figur (../figur/figur.js, CMFigur).
+ * EKFig ist CMFigur mit den Posen des Eiskunstlaufs, kit "eiskunstlauf" (Einteiler mit Schrägstreifen, Schlittschuhe)
+ * und strokePose(u) = CMFigur.seq(STROKE, u, true). Winkel in Grad ab senkrecht nach unten, + = nach vorn.
+ */
+(function (root) {
+  "use strict";
+  const CM = root.CMFigur;
   const POSES = {
     glide: { lean: 6, crouch: 1, sL: [0, 0], fL: [-62, 4], aF: [100, -12], aB: [-108, -10] },
     stroke: { lean: 10, crouch: 3, sL: [5, 14], fL: [-34, 8], aF: [90, -6], aB: [-98, -6] },
     prep: { lean: 14, crouch: 6, sL: [8, 24], fL: [-34, 18], aF: [62, 28], aB: [-72, 18] },
-    air: { lean: 0, crouch: 0, sL: [2, 2], fL: [6, 2], aF: [30, 125], aB: [30, 125] },
+    // Arme eng vor der Brust (gemeinsame Figur hat längere Arme: Ellbogen etwas hinter dem Körper, Unterarm schräg hoch)
+    air: { lean: 0, crouch: 0, sL: [2, 2], fL: [6, 2], aF: [-16, 132], aB: [-16, 132] },
     land: { lean: 8, crouch: 5, sL: [6, 16], fL: [-80, 0], aF: [104, -14], aB: [-114, -12] },
-    spin: { lean: -2, crouch: 2, sL: [0, 2], fL: [30, 80], aF: [42, 108], aB: [42, 108] },
+    spin: { lean: -2, crouch: 2, sL: [0, 2], fL: [30, 80], aF: [-18, 135], aB: [-18, 135] },
     sitspin: { lean: 26, crouch: 0, sL: [86, 100], fL: [84, 0], aF: [86, -4], aB: [80, -2] },
     camel: { lean: 84, crouch: 0, sL: [1, 1], fL: [-98, 0], aF: [96, -8], aB: [-118, -8] },
     stepA: { lean: 6, crouch: 3, sL: [8, 14], fL: [-58, 4], aF: [112, -14], aB: [-96, -12] },
@@ -1272,184 +1879,12 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
     [0.72, { lean: 6, crouch: 1, sL: [1, 2], fL: [-58, 2], aF: [104, -14], aB: [-112, -14] }],
     [1.0, { lean: 9, crouch: 5, sL: [3, 18], fL: [3, 20], aF: [92, -6], aB: [-100, -6] }],
   ];
-  function strokePose(u) {
-    u = ((u % 1) + 1) % 1;
-    let i = 0; while (i < STROKE.length - 2 && u > STROKE[i + 1][0]) i++;
-    const [a, A] = STROKE[i], [b, B] = STROKE[i + 1], t = (u - a) / (b - a);
-    return mix(A, B, t * t * (3 - 2 * t));
-  }
-  const KEYS = ["lean", "crouch"], PAIRS = ["sL", "fL", "aF", "aB"];
-  // weich nachführen: Rumpf und Beine zügig, Arme etwas später (fließender Armzug); fast = Sprung, Sturz
-  const RATE = { lean: 9, crouch: 9, sL: 13, fL: 11, aF: 6.5, aB: 6 };
-  function ease(cur, tgt, dt, fast) {
-    if (!cur) return tgt;
-    const o = {}, m = fast ? 2.4 : 1, a = (k) => 1 - Math.exp(-RATE[k] * m * dt);
-    for (const k of KEYS) o[k] = cur[k] + (tgt[k] - cur[k]) * a(k);
-    for (const k of PAIRS) { const f = a(k); o[k] = [cur[k][0] + (tgt[k][0] - cur[k][0]) * f, cur[k][1] + (tgt[k][1] - cur[k][1]) * f]; }
-    return o;
-  }
-  function mix(a, b, t) {
-    const o = {};
-    for (const k of KEYS) o[k] = a[k] + (b[k] - a[k]) * t;
-    for (const k of PAIRS) o[k] = [a[k][0] + (b[k][0] - a[k][0]) * t, a[k][1] + (b[k][1] - a[k][1]) * t];
-    return o;
-  }
-  const rad = (d) => d * Math.PI / 180;
-  const vec = (deg, L) => [Math.sin(rad(deg)) * L, Math.cos(rad(deg)) * L];
-  const LEN = { thigh: 19, shin: 18, torso: 26, ua: 11, fa: 11 };
-
-  // Frisuren als SVG-Pfade, Ursprung = Kopfmitte (gleich wie im Hörtest)
-  const HAIRP = [
-    { back: ["C 5.5 -4.5 3.4"], top: ["M-6.1 -0.5 C-6 -7 6 -8 6.3 0 C3 -3 -2 -3.5 -6.1 -0.5 Z"] },
-    { back: [], top: ["M-6.3 0.5 C-7 -7.5 6.5 -8.5 6.6 1 L5.2 2.5 C4 -1.5 -2 -3 -6.3 0.5 Z"] },
-    { back: ["M4.5 -3 C10 -3 13 1 15 6 C12 3.5 9 2 5 1.5 Z"], top: ["M-6.1 -0.5 C-6 -7 6 -8 6.3 0 C3 -3 -2 -3.5 -6.1 -0.5 Z"] },
-    { back: ["C 6.4 0.5 2.9", "C 5 -4.8 3.1"], top: ["M-6.3 0.5 C-7 -7.5 6.5 -8.5 6.6 1 L5.2 2.5 C4 -1.5 -2 -3 -6.3 0.5 Z", "C -4.6 -4.6 2.4", "C 0.5 -7.2 2.5"] },
-  ];
-  const pathCache = {};
-  function shape(ctx, s, fill) {
-    ctx.beginPath();
-    if (s[0] === "C") { const [, x, y, r] = s.split(" "); ctx.arc(+x, +y, +r, 0, Math.PI * 2); }
-    else { const p = pathCache[s] || (pathCache[s] = new Path2D(s)); ctx.fillStyle = fill; ctx.fill(p); ctx.stroke(p); return; }
-    ctx.fillStyle = fill; ctx.fill(); ctx.stroke();
-  }
-
-  // Glied als weich gebogene, sich verjüngende Form (Oberschenkel kräftig, Knöchel und Handgelenk schmal)
-  function limb(ctx, pts, w, col) {
-    const [A, B, C] = pts, smp = [];
-    // Catmull-Rom durch Hüfte/Schulter, Knie/Ellbogen, Knöchel/Hand
-    const P0 = [2 * A[0] - B[0], 2 * A[1] - B[1]], P3 = [2 * C[0] - B[0], 2 * C[1] - B[1]];
-    const cr = (p0, p1, p2, p3, t) => [0, 1].map((k) => 0.5 * ((2 * p1[k]) + (-p0[k] + p2[k]) * t + (2 * p0[k] - 5 * p1[k] + 4 * p2[k] - p3[k]) * t * t + (-p0[k] + 3 * p1[k] - 3 * p2[k] + p3[k]) * t * t * t));
-    for (let i = 0; i <= 6; i++) smp.push(cr(P0, A, B, C, i / 6));
-    for (let i = 1; i <= 6; i++) smp.push(cr(A, B, C, P3, i / 6));
-    const n = smp.length, L = [], R = [];
-    for (let i = 0; i < n; i++) {
-      const p = smp[i], q = smp[Math.min(n - 1, i + 1)], o = smp[Math.max(0, i - 1)];
-      let dx = q[0] - o[0], dy = q[1] - o[1]; const d = Math.hypot(dx, dy) || 1; dx /= d; dy /= d;
-      const u = i / (n - 1), hw = (w * (1.08 - 0.42 * u)) / 2;
-      L.push([p[0] - dy * hw, p[1] + dx * hw]); R.push([p[0] + dy * hw, p[1] - dx * hw]);
-    }
-    ctx.beginPath(); ctx.moveTo(L[0][0], L[0][1]);
-    for (const p of L.slice(1)) ctx.lineTo(p[0], p[1]);
-    for (const p of R.reverse()) ctx.lineTo(p[0], p[1]);
-    ctx.closePath(); ctx.fillStyle = col; ctx.fill(); ctx.strokeStyle = INK; ctx.lineWidth = 1.2; ctx.stroke();
-  }
-  function boot(ctx, ank, shinDeg) {
-    // weißer Stiefel und Kufe; der Stiefel folgt dem Unterschenkel
-    ctx.save(); ctx.translate(ank[0], ank[1]); ctx.rotate(-rad(shinDeg));
-    ctx.beginPath(); ctx.moveTo(-2.5, -3.5); ctx.lineTo(2.5, -3.5); ctx.lineTo(6, 1); ctx.lineTo(-2.5, 1.6); ctx.closePath();
-    ctx.fillStyle = "#F1E7D2"; ctx.strokeStyle = INK; ctx.lineWidth = 1.3; ctx.fill(); ctx.stroke();
-    ctx.beginPath(); ctx.moveTo(-5, 4.2); ctx.lineTo(7.5, 4.2); ctx.lineWidth = 1.6; ctx.stroke();
-    ctx.restore();
-  }
-
-  // Figur zeichnen: x, y = Kufe auf dem Eis; s Maßstab; dir 1 = nach rechts; lift = Höhe; tilt = Kippen (Sturz)
-  // turn = Drehung um die eigene Achse (Sprung, Pirouette). Die Pose ist ein Seitenprofil (x vorn, y unten); jedes Gelenk bekommt
-  // eine Tiefe z (Schultern und Hüfte haben Breite), dann wird um die senkrechte Achse gedreht und von hinten nach vorn gezeichnet.
-  // So bleiben Rumpf und Kopf beim Drehen rund, und Arme, Beine und Frisur wandern um den Körper.
-  const Z = { sh: 6.2, hip: 3.2 };
-  function draw(ctx, o) {
-    const L = o.look || DEF_LOOK, p = o.pose, s = o.s || 1;
-    const skin = SKIN[L.skin], suit = SUIT[L.suit], suitD = shade(suit, 0.8), acc = SUIT[L.accent === L.suit ? (L.suit + 3) % SUIT.length : L.accent];
-    const th = o.turn || 0, c = Math.cos(th), sn = Math.sin(th);
-    ctx.save();
-    ctx.translate(o.x, o.y - (o.lift || 0) * s);
-    if (o.tilt) ctx.rotate(o.tilt);
-    ctx.scale(s * (o.dir || 1), s);
-    ctx.lineCap = "round"; ctx.lineJoin = "round";
-    // Profil-Gelenke (wie bisher)
-    const sHip = p.sL[0], sKn = p.sL[0] - p.sL[1];
-    const t1 = vec(sHip, LEN.thigh), t2 = vec(sKn, LEN.shin);
-    const hip = [-(t1[0] + t2[0]), -(t1[1] + t2[1])];
-    const knee = [hip[0] + t1[0], hip[1] + t1[1]], ank = [0, 0];
-    const fK = vec(p.fL[0], LEN.thigh), fKn = [hip[0] + fK[0], hip[1] + fK[1]], fS = vec(p.fL[0] - p.fL[1], LEN.shin), fAn = [fKn[0] + fS[0], fKn[1] + fS[1]];
-    const nk = [hip[0] + Math.sin(rad(p.lean)) * LEN.torso, hip[1] - Math.cos(rad(p.lean)) * LEN.torso];
-    const sh = [nk[0], nk[1] + 2.5];
-    const arm = (a) => { const u = vec(a[0], LEN.ua), e = [sh[0] + u[0], sh[1] + u[1]], f = vec(a[0] + a[1], LEN.fa); return [sh, e, [e[0] + f[0], e[1] + f[1]]]; };
-    const aB = arm(p.aB), aF = arm(p.aF);
-    // Drehachse: senkrecht durch die Hüfte (Sprung) bzw. die Kufe (Pirouette steht ohnehin darüber)
-    const ax = hip[0];
-    // Punkt (Profil x, y, Tiefe z) → Bild [x, y, Tiefe zum Betrachter]
-    const P = (q, z) => { const x = q[0] - ax; return [ax + x * c - z * sn, q[1], x * sn + z * c]; };
-    const depth = (pts) => pts.reduce((m, q) => m + q[2], 0) / pts.length;
-    const parts = [];
-    // Arme und Beine: Schulter bzw. Hüfte seitlich versetzt, Hände und Füße etwas weiter außen
-    const limb3 = (pts, z0, z1, w, col, foot, hand) => {
-      const q = pts.map((pt, i) => P(pt, z0 + (z1 - z0) * i / (pts.length - 1)));
-      parts.push({ d: depth(q), f: () => {
-        limb(ctx, q, w, col);
-        if (hand) { // schmale Hand in Verlängerung des Unterarms
-          const h = q[q.length - 1], e = q[q.length - 2], an = Math.atan2(h[1] - e[1], h[0] - e[0]);
-          ctx.beginPath(); ctx.ellipse(h[0] + Math.cos(an) * 1.6, h[1] + Math.sin(an) * 1.6, 2.6, 1.35, an, 0, 7);
-          ctx.fillStyle = skin; ctx.strokeStyle = INK; ctx.lineWidth = 1; ctx.fill(); ctx.stroke(); }
-        if (foot !== undefined) bootR(ctx, q[q.length - 1], foot, c);
-      } });
-    };
-    // swap: Standbein auf der fernen Seite (Schrittwechsel); die nahe Seite ist heller
-    const zs = o.swap ? -1 : 1;
-    limb3([hip, fKn, fAn], -Z.hip * zs, -Z.hip * zs, 6, zs > 0 ? suitD : suit, p.fL[0] - p.fL[1]);
-    limb3([hip, knee, ank], Z.hip * zs, Z.hip * 0.6 * zs, 6.2, zs > 0 ? suit : suitD, sKn);
-    limb3(aB, -Z.sh, -Z.sh - 2, 4, suitD, undefined, true);
-    limb3(aF, Z.sh, Z.sh + 2, 4, suit, undefined, true);
-    // Rumpf: Querschnitt als Ellipse (Tiefe im Profil, Breite von vorn); sichtbare halbe Breite je Höhe
-    const hw = (dep, wid) => Math.sqrt((dep * c) ** 2 + (wid * sn) ** 2);
-    const lvl = [[2.5, 6.2, 6.8], [-6, 4.6, 5.4], [-18, 7.2, 7.4], [-25.5, 7, 8.6]]; // [y im Rumpf, Tiefe, Breite]
-    // Mitte des Querschnitts liegt im Profil etwas vor der Wirbelsäule; gedreht wandert sie mit
-    const front = (sn >= 0 ? 1 : -1);
-    parts.push({ d: 0, f: () => {
-      ctx.save(); ctx.translate(P(hip, 0)[0], hip[1]);
-      // Rumpf im Raum: Neigung nach vorn, dann um die Achse gedreht → Winkel und Verkürzung im Bild (Waage von vorn wird kurz)
-      const ls = Math.sin(rad(p.lean)) * c, lc = Math.cos(rad(p.lean)), f = Math.max(0.12, Math.hypot(ls, lc));
-      ctx.rotate(Math.atan2(ls, lc));
-      const L2 = lvl.map(([y, dp, wd]) => [y * f, hw(dp, wd)]);
-      ctx.beginPath(); ctx.moveTo(-L2[0][1], L2[0][0]);
-      for (const [y, w] of L2.slice(1)) ctx.lineTo(-w, y);
-      for (const [y, w] of L2.slice().reverse()) ctx.lineTo(w, y);
-      ctx.closePath(); ctx.fillStyle = suit; ctx.strokeStyle = INK; ctx.lineWidth = 1.5; ctx.fill(); ctx.stroke();
-      // Schrägstreifen vorn (von hinten unsichtbar)
-      const vis = clamp01((Math.abs(c) * 0.9 + sn * 1.2 + 0.2));
-      if (vis > 0.05) {
-        ctx.globalAlpha = vis; const w1 = hw(5.8, 6.2) * 0.98, w2 = hw(7.1, 7.6) * 0.98, dirS = c >= 0 ? 1 : -1;
-        ctx.beginPath(); ctx.moveTo(-w1 * dirS, -12.5 * f); ctx.lineTo(w2 * dirS, -20.5 * f); ctx.lineTo(w2 * dirS, -17 * f); ctx.lineTo(-w1 * dirS, -9 * f); ctx.closePath();
-        ctx.fillStyle = acc; ctx.fill(); ctx.globalAlpha = 1;
-      }
-      ctx.fillStyle = skin; ctx.fillRect(-1.8, -26 * f - 4.5, 3.6, 4.5);
-      // Kopf: Kreis bleibt rund; Frisur dreht mit (Hinterkopf liegt hinten = −x im Profil)
-      ctx.translate(0, -26 * f - 9.5); ctx.rotate(-Math.atan2(ls, lc) * (1 - f) * 0.6);
-      const H = HAIRP[L.hair], hc = HAIRC[L.hairC];
-      const hair = (list, behind) => {
-        for (const h of list) {
-          // Tiefe des Haarteils: Hinterkopf (Profil −x) kommt nach vorn, wenn der Rücken zum Betrachter zeigt
-          const hx = h[0] === "C" ? -(+h.split(" ")[1]) : -4, dz = hx * sn;
-          if ((dz > 0.5) === behind) continue;
-          ctx.save(); ctx.scale(-c || -0.01, 1);
-          ctx.strokeStyle = INK; ctx.lineWidth = 1.3 / Math.max(0.3, Math.abs(c)); shape(ctx, h, hc); ctx.restore();
-        }
-      };
-      hair(H.back, false);
-      ctx.beginPath(); ctx.arc(0, 0, 6.2, 0, 7); ctx.fillStyle = skin; ctx.strokeStyle = INK; ctx.lineWidth = 1.5; ctx.fill(); ctx.stroke();
-      // Oberkopf: von vorn als Haaransatz rundum, im Profil wie gezeichnet
-      ctx.save(); ctx.scale(-(Math.abs(c) < 0.35 ? 0.35 * Math.sign(c || 1) : c), 1); ctx.strokeStyle = INK; ctx.lineWidth = 1.3;
-      for (const t of H.top) shape(ctx, t, hc);
-      ctx.restore();
-      if (sn > 0.35) { ctx.beginPath(); ctx.ellipse(0, -2.6, 6.3, 3.6 * sn, 0, Math.PI, 0); ctx.fillStyle = hc; ctx.fill(); ctx.strokeStyle = INK; ctx.lineWidth = 1.2; ctx.stroke(); }
-      else if (sn < -0.35) { ctx.beginPath(); ctx.ellipse(0, -0.6, 6.3, 6.4 * -sn, 0, Math.PI - 0.3, 0.3); ctx.closePath(); ctx.fillStyle = hc; ctx.fill(); ctx.strokeStyle = INK; ctx.lineWidth = 1.2; ctx.stroke(); }
-      hair(H.back, true);
-      ctx.restore();
-    } });
-    parts.sort((a, b2) => a.d - b2.d).forEach((x) => x.f());
-    ctx.restore();
-  }
-  const clamp01 = (v) => (v < 0 ? 0 : v > 1 ? 1 : v);
-  // Stiefel: Länge folgt der Drehung (Fuß zeigt nach vorn)
-  function bootR(ctx, ank, shinDeg, c) {
-    ctx.save(); ctx.translate(ank[0], ank[1]); ctx.scale(Math.sign(c || 1) * Math.max(0.35, Math.abs(c)), 1); ctx.rotate(-rad(shinDeg));
-    ctx.beginPath(); ctx.moveTo(-2.5, -3.5); ctx.lineTo(2.5, -3.5); ctx.lineTo(6, 1); ctx.lineTo(-2.5, 1.6); ctx.closePath();
-    ctx.fillStyle = "#F1E7D2"; ctx.strokeStyle = INK; ctx.lineWidth = 1.3; ctx.fill(); ctx.stroke();
-    ctx.beginPath(); ctx.moveTo(-5, 4.2); ctx.lineTo(7.5, 4.2); ctx.lineWidth = 1.6; ctx.stroke();
-    ctx.restore();
-  }
-
-  root.EKFigure = { POSES, mix, ease, draw, strokePose, cleanLook, DEF_LOOK, SKIN, HAIRC, SUIT, HAIRS, shade };
+  const POSES_ALL = Object.assign({}, CM.POSES, POSES);
+  root.EKFig = Object.assign({}, CM, {
+    POSES: POSES_ALL, STROKE,
+    strokePose: (u) => CM.seq(STROKE, u, true),
+    draw: (ctx, o) => CM.draw(ctx, Object.assign({ kit: "eiskunstlauf" }, o)),
+  });
 })(typeof window !== "undefined" ? window : globalThis);
 
 /* Cold Medal · Eiskunstlauf – Kulisse im Plakatstil: Wiener Eislaufverein am Abend.
@@ -1775,10 +2210,10 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
 /* COLD MEDAL EISKUNSTLAUF – Ablauf, Bildschirme, Eingabe, Taktband, Ergebnis, Spielstand. */
 (function () {
   "use strict";
-  const VERSION = "0.13";
+  const VERSION = "0.14";
   // Seiten-Einstellungen aus dem Build (eigenes Hosting: Adresse, Hoster, Impressum); im claude.ai-Artefakt leer
   const SITE = Object.assign({ web: false, url: "", impressum: null }, {"web": true, "url": "https://matpeins-debug.github.io/cold-medal-eiskunstlauf/", "hoster": "GitHub Pages (GitHub Inc., USA)", "drittland": "GitHub ist nach dem EU-US Data Privacy Framework zertifiziert; die Übermittlung in die USA stützt sich auf den Angemessenheitsbeschluss der EU-Kommission dazu.", "impressum": {"name": "", "adresse": "", "mail": ""}} || {});
-  const M = window.EKMusic, K = window.EKSkate, F = window.EKFigure, SC = window.EKScene;
+  const M = window.EKMusic, K = window.EKSkate, F = window.EKFig, SC = window.EKScene;
   const W = SC.W, H = SC.H, WW = SC.WW;
   const $ = (id) => document.getElementById(id);
   const clamp = (v, a, b) => (v < a ? a : v > b ? b : v);
@@ -2737,6 +3172,7 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
     $("lNat").innerHTML = Object.entries(NAT).map(([k, v]) => `<option value="${k}"${k === S.nat ? " selected" : ""}>${v}</option>`).join("");
     const L = S.look;
     opts("oHair", F.HAIRS.length, (i) => F.HAIRS[i], () => L.hair, (i) => (L.hair = i));
+    opts("oBeard", F.BEARDS.length, (i) => F.BEARDS[i], () => L.beard, (i) => (L.beard = i));
     opts("oHairC", F.HAIRC.length, (i) => "Haarfarbe " + (i + 1), () => L.hairC, (i) => (L.hairC = i), F.HAIRC);
     opts("oSkin", F.SKIN.length, (i) => "Hautton " + (i + 1), () => L.skin, (i) => (L.skin = i), F.SKIN);
     opts("oSuit", F.SUIT.length, (i) => "Kostüm " + (i + 1), () => L.suit, (i) => (L.suit = i), F.SUIT);
