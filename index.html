@@ -443,6 +443,140 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
 .svB .mid { padding: 4px 8px; font-size: 10.5px; flex: 1; }
 .svB .mid:last-child { flex: none; }
 .svList .empty { grid-column: 1 / -1; font-style: italic; opacity: 0.7; padding: 10px 0; }
+
+/* Cold Medal Games · Fenster „Deine Figur“ (pass/pass.css)
+   Aussehen wie die Menüs des Skispringens: Papier mit Doppelrahmen, Knöpfe wie Druckmarken, Futura für Titel und Knöpfe,
+   Buchschrift für Lesetext. Farben und Schriften kommen aus den Variablen des Spiels (alle Spiele der Reihe haben sie),
+   sonst gelten die Werte des Skispringens. Nur Klassen mit ps-, damit nichts im Spiel verrutscht. Grundstock für oberflaeche/. */
+.ps-dialog {
+  --ps-paper: var(--paper, #F1E7D2); --ps-ink: var(--ink, #1E2734); --ps-ink-deep: var(--ink-deep, #141B25);
+  --ps-red: var(--red, #C23B2A); --ps-warn: var(--warn, #D9682B);
+  --ps-text: #1E2734; --ps-text-2: #3A4454; --ps-muted: #786D59;
+  --ps-row: rgba(30, 39, 52, 0.055); --ps-row-2: rgba(30, 39, 52, 0.1); --ps-line: rgba(30, 39, 52, 0.22); --ps-line-2: rgba(30, 39, 52, 0.45);
+  --ps-hi: #B23524; --ps-hi-ink: #FBF4E4;
+  --ps-display: var(--font-display, "Futura", "Avenir Next Condensed", "Bahnschrift Condensed", "Roboto Condensed", "Arial Narrow", sans-serif);
+  --ps-body: var(--font-body, "Iowan Old Style", "Charter", "Georgia", serif);
+  --ps-label: var(--font-label, "Futura", "Avenir Next", "Segoe UI", Roboto, Arial, sans-serif);
+  display: flex; flex-direction: column; gap: 10px; box-sizing: border-box;
+  width: 760px; max-width: calc(100% - 32px); max-height: calc(100% - 20px); overflow: auto; padding: 14px 20px 16px; touch-action: pan-y;
+  color: var(--ps-text); font-family: var(--ps-body); text-align: left;
+  background-color: var(--ps-paper);
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='180' height='180'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 0.36  0 0 0 0 0.28  0 0 0 0 0.16  0 0 0 0.075 0'/></filter><rect width='100%25' height='100%25' filter='url(%23n)'/></svg>");
+  border: 2px solid var(--ps-ink-deep); border-radius: 4px;
+  box-shadow: inset 0 0 0 4px var(--ps-paper), inset 0 0 0 5px rgba(30, 39, 52, 0.38), 0 5px 0 rgba(8, 12, 18, 0.5);
+  -webkit-user-select: none; user-select: none;
+}
+.ps-dialog *, .ps-dialog *::before, .ps-dialog *::after { box-sizing: border-box; }
+.ps-dialog [hidden] { display: none !important; }
+.ps-dialog button, .ps-dialog input, .ps-dialog select, .ps-stage { -webkit-tap-highlight-color: transparent; }
+.ps-dialog button:focus-visible, .ps-dialog input:focus-visible, .ps-dialog select:focus-visible, .ps-stage:focus-visible { outline: 2px solid var(--ps-hi); outline-offset: 2px; }
+
+/* Kopf: Titel in Versalien, rechts nur „Fertig“ */
+.ps-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.ps-title { margin: 0; font-family: var(--ps-display); font-style: normal; font-weight: 800; font-size: 32px; line-height: 34px;
+  letter-spacing: 0.015em; text-transform: uppercase; color: var(--ps-ink); text-wrap: balance; }
+.ps-btn { display: flex; align-items: center; justify-content: center; gap: 8px; height: 44px; padding: 0 18px; margin: 0;
+  border-radius: 4px; font-family: var(--ps-display); font-weight: 700; font-size: 19px; letter-spacing: 0.07em; text-transform: uppercase;
+  white-space: nowrap; cursor: pointer; }
+.ps-btn svg { display: block; flex: none; }
+.ps-btn-1 { background: var(--ps-red); color: #FBF4E4; border: 2px solid var(--ps-ink-deep);
+  box-shadow: inset 0 0 0 2px var(--ps-red), inset 0 0 0 3px rgba(251, 244, 228, 0.5), 0 3px 0 var(--ps-ink-deep); }
+.ps-btn-2 { background: var(--ps-paper); color: var(--ps-ink); border: 2px solid var(--ps-ink-deep); box-shadow: 0 3px 0 var(--ps-ink-deep); }
+.ps-btn:active { transform: translateY(2px); box-shadow: 0 1px 0 var(--ps-ink-deep); }
+.ps-btn:disabled { opacity: 0.55; cursor: default; }
+
+/* links die Figur (antippen wechselt die Haltung), rechts die Reiter */
+.ps-grid { display: grid; grid-template-columns: 268px minmax(0, 1fr); gap: 20px; align-items: start; }
+.ps-left { display: flex; flex-direction: column; gap: 5px; min-width: 0; }
+.ps-stage { height: 236px; border-radius: 4px; overflow: hidden; border: 2px solid var(--ps-ink-deep); background: #E9E4D3; cursor: pointer;
+  box-shadow: 0 3px 0 rgba(20, 27, 37, 0.35); }
+.ps-stage:active { transform: translateY(1px); box-shadow: 0 2px 0 rgba(20, 27, 37, 0.35); }
+.ps-canvas { display: block; width: 100%; height: 100%; }
+.ps-cap { margin: 0; font-family: var(--ps-body); font-size: 12.5px; line-height: 16px; color: var(--ps-muted); text-align: center; }
+.ps-opts { display: flex; flex-direction: column; gap: 8px; min-width: 0; }
+
+/* Reiter über die ganze Breite */
+.ps-seg { display: flex; flex-shrink: 0; border: 2px solid var(--ps-line-2); border-radius: 4px; overflow: hidden; }
+.ps-seg button { height: 34px; margin: 0; padding: 0 10px; border: none; border-radius: 0; background: transparent; color: var(--ps-text-2);
+  font-family: var(--ps-display); font-weight: 700; font-size: 16px; letter-spacing: 0.04em; cursor: pointer; }
+.ps-seg button + button { border-left: 1px solid var(--ps-line); }
+.ps-seg button[aria-checked="true"] { background: var(--ps-hi); color: var(--ps-hi-ink); }
+.ps-tabs { align-self: stretch; border-color: var(--ps-ink-deep); }
+.ps-tabs button { flex: 1 1 auto; padding: 0 8px; }
+.ps-tabbox { display: flex; flex-direction: column; gap: 6px; }
+
+/* Zeilen, Farbfelder, Eingaben */
+.ps-row { display: flex; align-items: center; justify-content: flex-start; gap: 12px; min-height: 32px; }
+.ps-lbl { flex: none; width: 92px; font-size: 15px; font-weight: 600; color: var(--ps-text-2); white-space: normal;
+  -webkit-hyphens: auto; hyphens: auto; overflow-wrap: break-word; }
+.ps-row-wrap { align-items: flex-start; }
+.ps-row-wrap .ps-lbl { padding-top: 7px; }
+.ps-swatches { display: flex; flex-wrap: wrap; gap: 5px 7px; max-width: calc(var(--ps-per, 8) * 39px - 7px); }
+.ps-swatch { width: 32px; height: 32px; margin: 0; padding: 0; border-radius: 16px; border: 2px solid transparent; cursor: pointer;
+  box-shadow: 0 0 0 1px rgba(30, 39, 52, 0.18) inset; }
+.ps-swatch[aria-checked="true"] { border-color: var(--ps-text); box-shadow: 0 0 0 2px rgba(17, 25, 36, 0.9) inset; }
+.ps-dim .ps-swatches { opacity: 0.35; }
+.ps-name, .ps-select, .ps-input { height: 38px; margin: 0; padding: 0 12px; border-radius: 3px; border: 1px solid var(--ps-line-2); background: var(--ps-row);
+  color: var(--ps-text); font-family: var(--ps-display); font-weight: 700; font-size: 19px; letter-spacing: 0.04em; }
+.ps-name, .ps-input { flex: 1; min-width: 0; width: auto; text-transform: uppercase; -webkit-user-select: text; user-select: text; }
+.ps-name.ps-mixed { text-transform: none; }
+.ps-name::placeholder, .ps-input::placeholder { color: var(--ps-muted); opacity: 1; text-transform: none; letter-spacing: 0.02em; }
+.ps-select option { background: #FBF4E4; color: #1E2734; }
+.ps-id { gap: 10px; }
+.ps-id .ps-nation { flex: none; width: 172px; }
+.ps-row-sel { gap: 10px; }
+.ps-row-sel .ps-select { flex: 1; min-width: 0; width: auto; }
+.ps-need { outline: 3px solid var(--ps-warn); outline-offset: 1px; }
+.ps-hint { margin: 2px 0 0; max-width: 420px; font-family: var(--ps-body); font-size: 12.5px; line-height: 17px; color: var(--ps-muted); }
+.ps-plain { flex: none; display: inline-flex; align-items: center; gap: 6px; height: 32px; margin: 0; padding: 0 10px; border-radius: 4px;
+  border: 2px solid var(--ps-line-2); background: transparent; color: var(--ps-text); font-family: var(--ps-label); font-weight: 700; font-size: 13px;
+  letter-spacing: 0.04em; cursor: pointer; }
+.ps-plain svg { display: block; flex: none; }
+.ps-random { margin-left: auto; width: 38px; height: 38px; padding: 0; justify-content: center; }
+
+/* erster Start: Name oder als Gast */
+.ps-ask { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin: -2px 0 2px;
+  font-family: var(--ps-body); font-size: 12.5px; line-height: 16px; color: var(--ps-muted); }
+.ps-warn { color: var(--ps-warn); font-weight: 600; }
+
+/* Reiter Code */
+.ps-codebox { gap: 7px; }
+.ps-code-top { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 12px; min-height: 36px; }
+.ps-code-val { flex: 1; min-width: 0; font-family: var(--ps-display); font-weight: 800; font-size: 26px; line-height: 30px; letter-spacing: 0.1em;
+  color: var(--ps-ink); white-space: nowrap; font-variant-numeric: tabular-nums; -webkit-user-select: text; user-select: text; }
+.ps-code-val.ps-none { font-family: var(--ps-body); font-weight: 400; font-size: 15px; letter-spacing: 0; color: var(--ps-muted); }
+.ps-code-st { margin: 0; }
+.ps-codebox .ps-btn { height: 38px; padding: 0 14px; font-size: 16px; }
+.ps-code-save { align-self: flex-start; }
+.ps-sep { display: flex; align-items: center; gap: 10px; margin: 4px 0 0; font-family: var(--ps-label); font-weight: 700; font-size: 11px;
+  letter-spacing: 0.16em; text-transform: uppercase; color: var(--ps-muted); }
+.ps-sep::after { content: ""; flex: 1; height: 1px; background: var(--ps-line); }
+.ps-code-row { gap: 10px; }
+.ps-code-in { letter-spacing: 0.12em; }
+.ps-code-res { margin: 0; }
+.ps-code-ok { gap: 10px; }
+
+/* eigene Ebene (CMPass.ui.open) für Spiele ohne eigene Ebenen; schmale Bildschirme: Figur über den Reitern */
+.ps-screen { position: fixed; inset: 0; z-index: 1000; display: flex; align-items: center; justify-content: center; padding: 10px;
+  background: rgba(17, 25, 36, 0.55); }
+.ps-screen[hidden] { display: none; }
+@media (max-width: 640px) {
+  .ps-screen .ps-dialog { width: 100%; max-width: 100%; max-height: 100%; padding: 12px 14px 14px; }
+  .ps-screen .ps-title { font-size: 24px; line-height: 27px; }
+  .ps-screen .ps-head .ps-btn { height: 40px; padding: 0 14px; font-size: 17px; }
+  .ps-screen .ps-grid { grid-template-columns: minmax(0, 1fr); gap: 10px; }
+  .ps-screen .ps-stage { height: 190px; }
+  .ps-screen .ps-row { gap: 8px; }
+  .ps-screen .ps-lbl { width: 60px; }
+  .ps-screen .ps-seg button { padding: 0 7px; }
+  .ps-screen .ps-random { width: 36px; }
+  .ps-screen .ps-swatches { gap: 5px; max-width: calc(var(--ps-per, 8) * 33px - 5px); }
+  .ps-screen .ps-swatch { width: 28px; height: 28px; border-radius: 14px; }
+  .ps-screen .ps-name, .ps-screen .ps-select, .ps-screen .ps-input { padding: 0 8px; font-size: 17px; }
+  .ps-screen .ps-id .ps-nation { width: 150px; }
+  .ps-screen .ps-code-val { flex: none; font-size: 21px; letter-spacing: 0.04em; }
+}
+@media (prefers-reduced-motion: reduce) { .ps-btn:active, .ps-stage:active { transform: none; } }
 </style>
 </head>
 <body>
@@ -470,29 +604,12 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
           <button class="mid" id="bSet">Optionen</button>
         </div>
       </div>
-      <div class="foot"><span id="mFoot"></span> · <button class="lnk" id="bInfo">Info &amp; Datenschutz</button></div>
+      <div class="foot"><span id="mFoot"></span> · <button class="lnk" id="bInfo">Info &amp; Datenschutz</button><span id="mCodeW" hidden> · <button class="lnk" id="bCode">Code</button></span></div>
     </div>
   </section>
 
-  <section class="scr" id="scrLook" hidden>
-    <div class="card wide">
-      <div class="kicker">FIGUR GESTALTEN</div>
-      <div class="lookGrid">
-        <canvas id="lookCv" width="200" height="260"></canvas>
-        <div class="lookOpts">
-          <label class="lrow">Name <input id="lName" maxlength="14" autocomplete="off" spellcheck="false" placeholder="dein Name"></label>
-          <div class="lrow">Land <select id="lNat"></select></div>
-          <div class="lrow">Frisur <span class="opts" id="oHair"></span></div>
-          <div class="lrow">Haare <span class="opts" id="oHairC"></span></div>
-          <div class="lrow">Bart <span class="opts" id="oBeard"></span></div>
-          <div class="lrow">Haut <span class="opts" id="oSkin"></span></div>
-          <div class="lrow">Kostüm <span class="opts" id="oSuit"></span></div>
-          <div class="lrow">Streifen <span class="opts" id="oAcc"></span></div>
-        </div>
-      </div>
-      <button class="mid red done" id="lDone">Fertig</button>
-    </div>
-  </section>
+  <!-- Figur: das Fenster „Deine Figur“ aus dem Pass der Reihe (../pass/pass-ui.js füllt es) -->
+  <section class="scr" id="scrLook" hidden></section>
 
   <section class="scr" id="scrProg" hidden>
     <div class="card wide prog studio">
@@ -1270,6 +1387,15 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
     if (Array.isArray(a)) { let n = 0; a.slice(0, 8).forEach((x, i) => { if (FX[x] && n < FX_MAX) { o[i] = x; n++; } }); }
     return o;
   }
+  // Kostümfarbe → eine der sechs Farbgruppen der Bewertung (Rot, Blau, Grün, Gold, Violett, Nachtblau); der Pass speichert #RRGGBB
+  const SUIT6 = [[194, 59, 42], [35, 70, 107], [63, 107, 85], [221, 164, 59], [107, 63, 122], [30, 39, 52]];
+  function suitIdx(v) {
+    if (typeof v === "number") return clamp(v | 0, 0, 5);
+    const m = /^#?([0-9a-f]{6})$/i.exec(String(v || "")); if (!m) return 0;
+    const n = parseInt(m[1], 16), c = [n >> 16, (n >> 8) & 255, n & 255];
+    let best = 0, bd = Infinity; SUIT6.forEach((q, i) => { const d = (q[0] - c[0]) ** 2 + (q[1] - c[1]) ** 2 + (q[2] - c[2]) ** 2; if (d < bd) { bd = d; best = i; } });
+    return best;
+  }
   // cap: Höchstwert der Choreo-Note (Vorschlag 8, selbst geändert 9, Experte 10)
   function plan(slots, look, music, fx, cap) {
     music = SECTIONS[music] ? music : "donau";
@@ -1305,7 +1431,7 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
     const empty = ids.filter((x) => !x).length;
     const vari = clamp(kinds.size * 2 + Math.min(2, chor.size) - same * 2 - Math.max(0, empty - 2) * 1.5, 0, 10);
     // 4 Kostüm: Farbe zur Musik, Streifen setzt sich ab
-    const C = COSTUME[music], L = look || {}, su = clamp(L.suit | 0, 0, 5), ac = clamp(L.accent | 0, 0, 5);
+    const C = COSTUME[music], L = look || {}, su = suitIdx(L.suit), ac = suitIdx(L.accent);
     const cost = clamp(C.fit[su] - (su === ac ? 3 : 0), 0, 10);
     const r1 = (v) => Math.round(v * 2) / 2;
     const parts = [
@@ -2326,6 +2452,565 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
   root.CMFigur = { draw, joints, fromPoints, mix, seq, ease, gesture, idle, cleanLook, shade, POSES, ABLAEUFE, GESTEN, ARTEN, KITS, SKI, LEN, DEF_LOOK, SKIN, HAIRC, SUIT, HAIRS, BEARDS, PATTERNS, INK };
 })(typeof window !== "undefined" ? window : globalThis);
 
+/* Cold Medal Games · Pass (pass/pass.js, global CMPass)
+ *
+ * Eine Figur für alle Spiele der Reihe (Mat, 12.11.2026): Name, Land, Aussehen, Code und Taler liegen im Pass, nicht im
+ * Spielstand eines einzelnen Spiels. Alle Spiele liegen unter matpeins-debug.github.io und teilen den Browser-Speicher
+ * (Schlüssel „cm.pass“); auf einem anderen Gerät holt man den Pass mit dem persönlichen Code (Schema cm, RPCs public.cm_pass_*).
+ * Das Fenster „Deine Figur“ liegt in pass-ui.js. Regeln: nur abwärtskompatibel ändern, unbekannte Felder bleiben erhalten,
+ * der Code geht nie im Klartext in die Daten (der Server speichert nur seinen Prüfwert).
+ *
+ * Format (v 1): { v, code, name, nation, look: { hair, hairC, beard, skin, suit, accent, pattern }, taler, at, edited }
+ *   code    12 Zeichen ohne I, O, 0, 1 oder null (entsteht beim ersten Online-Schritt)
+ *   look    Kopf als Nummern in den Listen von figur.js, Farben als #RRGGBB (Liste COLORS), Muster uni | stripe | split
+ *   taler   gemeinsame Währung der Reihe (vorerst schreibt nur das Skispringen)
+ *   at      letzte Änderung (ms); edited: Name oder Aussehen hat jemand selbst gewählt (nicht nur Standard)
+ */
+(function (root) {
+  "use strict";
+  const KEY = "cm.pass", V = 1;
+  const ALPHA = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";   // ohne I, O, 0, 1 (verwechselbar)
+  const CODE_RE = /^[A-HJ-NP-Z2-9]{12}$/;
+  const HEX = /^#[0-9A-F]{6}$/i;
+  const fig = () => root.CMFigur || null;
+
+  // Eine Farbliste für Anzug und Zweitfarbe in allen Spielen: zuerst die Anzugfarben des Skispringens (Reihenfolge fest, das
+  // Skispringen meldet sie online als Nummer), dann die Plakatfarben der Figur (figur.js SUIT) und Bordeaux; Tinte (SUIT 5)
+  // fehlt in der Auswahl, weil sie wie Schwarz aussieht (bleibt aber gültig).
+  const COLORS = [["#FF8A3D", "Orange"], ["#FFD23F", "Gelb"], ["#E5383B", "Rot"], ["#F25C78", "Pink"], ["#9B6BFF", "Violett"],
+    ["#3A7BFF", "Blau"], ["#4FD1C5", "Türkis"], ["#3FBF6E", "Grün"], ["#EEF2F7", "Weiß"], ["#262E3B", "Schwarz"],
+    ["#C23B2A", "Signalrot"], ["#23466B", "Alpenblau"], ["#3F6B55", "Tannengrün"], ["#DDA43B", "Ocker"], ["#6B3F7A", "Pflaume"], ["#7A2232", "Bordeaux"]];
+  const PATTERNS = [["uni", "Uni"], ["stripe", "Streifen"], ["split", "Zweifarbig"]];
+  const HAIRC_NAMES = ["Dunkelbraun", "Braun", "Blond", "Schwarz", "Grau"];
+  const SKIN_NAMES = ["Sehr hell", "Hell", "Mittel", "Dunkel", "Sehr dunkel"];
+  const NATIONS = [["AUT", "Österreich"], ["GER", "Deutschland"], ["SUI", "Schweiz"], ["NOR", "Norwegen"], ["SLO", "Slowenien"], ["POL", "Polen"],
+    ["JPN", "Japan"], ["FIN", "Finnland"], ["ITA", "Italien"], ["CZE", "Tschechien"], ["FRA", "Frankreich"], ["USA", "USA"]];
+  // Standard wie die Figur: Signalrot mit Ocker (die Plakatfarben der Reihe)
+  const DEF_LOOK = { hair: 0, hairC: 0, beard: 0, skin: 1, suit: "#C23B2A", accent: "#DDA43B", pattern: "uni" };
+  const LOOK_KEYS = ["hair", "hairC", "beard", "skin", "suit", "accent", "pattern"];
+  const HEAD = { hair: 9, hairC: 5, beard: 4, skin: 5 };   // Anzahl, falls figur.js fehlt (Tests ohne Figur)
+  const count = (k) => { const F = fig(); const L = F && { hair: F.HAIRS, hairC: F.HAIRC, beard: F.BEARDS, skin: F.SKIN }[k]; return L ? L.length : HEAD[k]; };
+  const isObj = (v) => !!v && typeof v === "object" && !Array.isArray(v);
+
+  // ------------------------------------------------------------------ Prüfen und Reparieren
+  // Name wie am Server (tm.clean_name): ohne Steuerzeichen und <>"&\/;{}, höchstens 12 Zeichen; leer = noch kein Name
+  const cleanName = (s) => String(s == null ? "" : s).replace(/[\u0000-\u001f\u007f<>"&\\/;{}]/g, "").trim().slice(0, 12);
+  function cleanLook(l) {
+    const o = Object.assign({}, DEF_LOOK);
+    if (!isObj(l)) return o;
+    for (const k of Object.keys(l)) {   // unbekannte einfache Felder (spätere Muster, Wappen) bleiben
+      const v = l[k];
+      if (!LOOK_KEYS.includes(k) && (typeof v === "string" || typeof v === "boolean" || (typeof v === "number" && isFinite(v)))) o[k] = v;
+    }
+    for (const k of ["hair", "hairC", "beard", "skin"]) if (Number.isInteger(l[k]) && l[k] >= 0 && l[k] < count(k)) o[k] = l[k];
+    for (const k of ["suit", "accent"]) {
+      const v = l[k], F = fig();
+      if (typeof v === "string" && HEX.test(v)) o[k] = v.toUpperCase();
+      else if (Number.isInteger(v) && F && F.SUIT[v]) o[k] = F.SUIT[v].toUpperCase();   // Nummer in der Plakatliste der Figur (Eiskunstlauf)
+    }
+    if (PATTERNS.some((p) => p[0] === l.pattern)) o.pattern = l.pattern;
+    return o;
+  }
+  function clean(p) {
+    let o = {};
+    if (isObj(p)) { try { o = JSON.parse(JSON.stringify(p)); } catch (e) { o = {}; } }
+    o.v = Number.isInteger(o.v) && o.v > V ? o.v : V;   // ein neueres Format nicht zurückstufen
+    o.code = typeof o.code === "string" && CODE_RE.test(o.code) ? o.code : null;
+    o.name = cleanName(o.name);
+    o.nation = typeof o.nation === "string" && /^[A-Z]{3}$/.test(o.nation) ? o.nation : "AUT";
+    o.look = cleanLook(o.look);
+    o.taler = typeof o.taler === "number" && isFinite(o.taler) && o.taler >= 0 ? Math.min(1e7, Math.round(o.taler)) : 0;
+    o.at = typeof o.at === "number" && isFinite(o.at) && o.at > 0 ? Math.round(o.at) : 0;
+    o.edited = !!o.edited;
+    return o;
+  }
+  const blank = () => clean(null);
+  // gleich bis auf den Zeitstempel?
+  const same = (a, b) => { const x = Object.assign({}, a, { at: 0 }), y = Object.assign({}, b, { at: 0 }); return JSON.stringify(x) === JSON.stringify(y); };
+
+  // ------------------------------------------------------------------ Speicher (geteilt von allen Spielen dieser Adresse)
+  let cur = null;
+  const subs = [];
+  const store = () => { try { return root.localStorage || null; } catch (e) { return null; } };
+  function read() {
+    const s = store();
+    if (!s) return null;
+    try { const raw = s.getItem(KEY); return raw ? clean(JSON.parse(raw)) : null; } catch (e) {
+      try { const raw = s.getItem(KEY); if (raw) s.setItem(KEY + ".backup", raw); } catch (e2) { /* egal */ }
+      return null;
+    }
+  }
+  function write(p) { const s = store(); if (!s) return false; try { s.setItem(KEY, JSON.stringify(p)); return true; } catch (e) { return false; } }
+  function emit(src) { for (const f of subs.slice()) { try { f(cur, src); } catch (e) { /* ein Spiel darf die anderen nicht stören */ } } }
+
+  // Pass laden; fehlt er, entsteht er aus seed (Objekt oder Funktion mit den Angaben des Spiels). created: eben neu angelegt.
+  let created = false;
+  function load(seed) {
+    cur = read();
+    created = false;
+    if (!cur) {
+      cur = clean(typeof seed === "function" ? seed() : seed);
+      cur.at = cur.at || Date.now();
+      write(cur); created = true;
+    }
+    return cur;
+  }
+  const get = () => cur || load();
+  // Felder ändern; look wird zusammengeführt. Schreibt nur, wenn sich etwas ändert. src: wer ändert (an die Zuhörer).
+  function set(patch, src) {
+    const base = get(), nx = Object.assign({}, base, isObj(patch) ? patch : {});
+    if (isObj(patch) && isObj(patch.look)) nx.look = Object.assign({}, base.look, patch.look);
+    const c = clean(nx);
+    if (same(c, base)) return base;
+    c.at = Date.now();
+    cur = c; write(cur); emit(src || "local");
+    return cur;
+  }
+  // ganzen Pass ersetzen (vom Server geholt, aus einer Datei); bleibt sonst wie set
+  function replace(p, src) { cur = clean(p); cur.at = cur.at || Date.now(); write(cur); emit(src || "load"); return cur; }
+  // Pass auf diesem Gerät löschen (Kopie bleibt unter cm.pass.backup)
+  function remove() {
+    const s = store();
+    try { if (s) { const raw = s.getItem(KEY); if (raw) s.setItem(KEY + ".backup", raw); s.removeItem(KEY); } } catch (e) { /* egal */ }
+    cur = null;
+  }
+  // Zuhörer: fn(pass, src); src "local" | "load" | "tab" (anderer Tab, z. B. das Biathlon daneben). Gibt eine Abmeldung zurück.
+  function on(fn) { subs.push(fn); return () => { const i = subs.indexOf(fn); if (i >= 0) subs.splice(i, 1); }; }
+  if (root.addEventListener) {
+    root.addEventListener("storage", (e) => {
+      if (e.key !== KEY || e.newValue == null) return;   // gelöscht: im Speicher bleibt der Pass, bis das Spiel neu lädt
+      const p = read();
+      if (!p || (cur && same(p, cur))) return;
+      cur = p; emit("tab");
+    });
+  }
+
+  // ------------------------------------------------------------------ Code der Reihe
+  function newCode() {
+    const b = new Uint8Array(12);
+    (root.crypto || globalThis.crypto).getRandomValues(b);
+    let s = "";
+    for (const x of b) s += ALPHA[x & 31];
+    return s;
+  }
+  const codeOk = (c) => typeof c === "string" && CODE_RE.test(c);
+  const fmtCode = (c) => String(c || "").replace(/(.{4})(?=.)/g, "$1-");
+  // Eingabe aufräumen (Leerzeichen, Bindestriche, Kleinbuchstaben); null wenn kein gültiger Code
+  const parseCode = (t) => { const s = String(t || "").toUpperCase().replace(/[^A-Z0-9]/g, ""); return CODE_RE.test(s) ? s : null; };
+  // Code anlegen, falls noch keiner da ist
+  function ensureCode() { const p = get(); return p.code || set({ code: newCode() }, "local").code; }
+
+  // ------------------------------------------------------------------ Online (rpc: Funktion des Spiels, z. B. TMOnline.make(cfg).rpc)
+  // Gesendet wird alles außer dem Code; der Server prüft Felder und Größe und speichert unter dem Prüfwert des Codes.
+  const online = {
+    async put(rpc, p) {
+      p = p || get();
+      if (!p || !codeOk(p.code)) return null;
+      const data = Object.assign({}, p); delete data.code;
+      return rpc("cm_pass_put", { p_code: p.code, p_data: data }, 8000);
+    },
+    // Pass zu einem Code holen: null, wenn es keinen gibt
+    async get(rpc, code) {
+      if (!codeOk(code)) return null;
+      const j = await rpc("cm_pass_get", { p_code: code }, 8000);
+      if (!j || !isObj(j.d)) return null;
+      return clean(Object.assign({}, j.d, { code }));
+    },
+  };
+
+  root.CMPass = { KEY, V, COLORS, PATTERNS, HAIRC_NAMES, SKIN_NAMES, NATIONS, DEF_LOOK, LOOK_KEYS,
+    clean, cleanLook, cleanName, blank, same, load, get, set, replace, remove, on, get created() { return created; },
+    newCode, codeOk, fmtCode, parseCode, ensureCode, online };
+})(typeof window !== "undefined" ? window : globalThis);
+
+/* Cold Medal Games · Fenster „Deine Figur“ (pass/pass-ui.js, CMPass.ui)
+ *
+ * Ein Fenster für alle Spiele der Reihe: links die Figur auf hellem Plakatgrund (antippen wechselt die Haltung), rechts Reiter:
+ * Person (Name, Land, Frisur, Bart, Haare, Haut), Farben (Anzug, Muster, Zweitfarbe, Zufall), eigene Reiter der Sportart
+ * (im Skispringen: Ausrüstung) und Code (der persönliche Code der Reihe: zeigen, kopieren, online sichern, auf einem anderen
+ * Gerät holen). Was man hier wählt, liegt im Pass und gilt in jedem Spiel. Aussehen wie das Skispringen (Papier, Druckmarken),
+ * Klassen mit dem Präfix ps- (pass.css). Braucht figur.js und pass.js.
+ *
+ * const ui = CMPass.ui.mount(host, opts)   host: leeres Element, das das Spiel ein- und ausblendet (Ebene, Maßstab)
+ *   opts.title        Überschrift, Standard „Deine Figur“      opts.kit     Kit der Figur in der Vorschau (figur.js KITS)
+ *   opts.nations      [[Kürzel, Name], …] (sonst CMPass.NATIONS) opts.upper  Namen in Versalien (Standard ja)
+ *   opts.labels       { suit: "Anzug", accent: "Zweitfarbe" }  opts.personHint  kurzer Satz unter Person
+ *   opts.preview      eigene Vorschau: { poses: [[id, Name], …], pose, personPose, colorPose, draw(ctx, w, h, t, pose, look) }
+ *                     (Hintergrund wie hier: CMPass.ui.backdrop(ctx, w, h))
+ *   opts.tabs         eigene Reiter: [{ id, label, pose, rows: [Zeile, …] }], Zeile:
+ *                       { type: "swatches", label, list: [[Wert, Name, Farbe?], …], get, set, dim?, hide? }
+ *                       { type: "seg", label, list: [[Wert, Name], …], get, set, hide? }
+ *                       { type: "selects", label, items: [{ list, get, set, aria }] }      { type: "hint", text }
+ *   opts.code         Reiter Code: { status() → { code?, text, save?, load? }, save(), load(code) → { text, apply? } }
+ *                     status: code = der gezeigte Code (sonst der im Pass, null = „noch keiner“), save = Beschriftung des Knopfs
+ *                     zum Sichern (ohne: kein Knopf), load: false blendet „Auf einem anderen Gerät“ aus. Fehler als Error mit Text.
+ *                     Für Spiele nur mit Pass: CMPass.ui.codeVia(rpc). Ohne opts.code kein Reiter Code.
+ *   opts.random()     zusätzlich bei „Zufall“ (Ausrüstung der Sportart)     opts.onDone()  nach „Fertig“
+ *   opts.defaultName  Name, wenn keiner eingegeben ist         opts.dpr()   Pixeldichte der Vorschau
+ * ui.open({ ask, title, tab })   ask: erster Start, ohne Namen geht es nicht weiter (oder „Als Gast spielen“)
+ * ui.refresh() · ui.done() → false, solange ein Name fehlt · ui.close() · ui.setTab(id) · ui.el (das Fenster)
+ * CMPass.ui.open(opts) legt selbst eine Ebene über die Seite (für Spiele ohne eigene Ebenen) und zeigt das Fenster.
+ */
+(function (root) {
+  "use strict";
+  const P = root.CMPass, doc = root.document;
+  let uid = 0;
+  const mk = (tag, cls, text) => { const e = doc.createElement(tag); if (cls) e.className = cls; if (text != null) e.textContent = text; return e; };
+  const at = (e, a) => { for (const k of Object.keys(a)) e.setAttribute(k, a[k]); return e; };
+  const DICE = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linejoin="round" aria-hidden="true">' +
+    '<rect x="3.5" y="3.5" width="17" height="17" rx="2.5"/><circle cx="8.5" cy="8.5" r="1.4" fill="currentColor" stroke="none"/>' +
+    '<circle cx="12" cy="12" r="1.4" fill="currentColor" stroke="none"/><circle cx="15.5" cy="15.5" r="1.4" fill="currentColor" stroke="none"/></svg>';
+  // Vorschau ohne eigene Zeichnung des Spiels: die Figur steht, jubelt, winkt oder tanzt (Gesten aus figur.js)
+  const DEF_POSES = [["stand", "Stehen"], ["jubel", "Jubel"], ["winken", "Winken"], ["charleston", "Tanz"]];
+  const errText = (e) => (e && e.message ? e.message : "Hat nicht geklappt. Bitte später noch einmal.");
+
+  // Hintergrund der Vorschau: heller Plakathimmel mit blassen Bergen über Schnee. Hell, damit jede Farbe gut steht (auch
+  // dunkle Anzüge und Haare); die Figur hat eine dunkle Kontur. Für eigene Vorschauen der Spiele: CMPass.ui.backdrop(…).
+  function backdrop(c, w, h, o) {
+    o = o || {};
+    const g = c.createLinearGradient(0, 0, 0, h);
+    g.addColorStop(0, "#C7DAE5"); g.addColorStop(0.6, "#E9E4D3"); g.addColorStop(1, "#F1E7D2");
+    c.fillStyle = g; c.fillRect(0, 0, w, h);
+    c.fillStyle = "rgba(35,70,107,0.12)";
+    c.beginPath(); c.moveTo(0, h * 0.64);
+    for (const [x, y] of [[0.14, 0.47], [0.27, 0.58], [0.45, 0.39], [0.63, 0.55], [0.8, 0.44], [1, 0.6]]) c.lineTo(w * x, h * y);
+    c.lineTo(w, h); c.lineTo(0, h); c.closePath(); c.fill();
+    if (o.ground !== false) {
+      const y = o.groundY != null ? o.groundY : h - 12;
+      c.fillStyle = "#FBF8F1"; c.fillRect(0, y, w, h - y);
+      c.fillStyle = "rgba(30,39,52,0.28)"; c.fillRect(0, y, w, 1.5);
+    }
+  }
+
+  function defaultDraw(c, w, h, t, pose, look, kit) {
+    backdrop(c, w, h);
+    const F = root.CMFigur;
+    if (!F) return;
+    let p = F.POSES.stand, lift = 0, mood = "ruhig";
+    if (pose === "stand") p = F.idle(F.POSES.stand, t);
+    else {
+      const G = F.GESTEN[pose], r = G && F.gesture(pose, G.loop ? t : t % (G.dauer + 1.4));
+      if (r) { p = r.pose; lift = r.lift; mood = r.mood; }
+    }
+    const s = Math.min(w / 64, (h - 26) / 96);
+    F.draw(c, { x: w / 2, y: h - 13, s, dir: 1, pose: p, lift, look: F.cleanLook(look), kit: kit || "plain", face: true, mood });
+  }
+
+  // Eine Zeile im Fenster; sync() stellt den aktuellen Wert dar (und blendet aus, wenn hide() es will)
+  function row(spec, changed) {
+    if (spec.type === "hint") {
+      const p = mk("p", "ps-hint", typeof spec.text === "function" ? spec.text() : spec.text);
+      return { el: p, sync() { if (typeof spec.text === "function") p.textContent = spec.text(); } };
+    }
+    const r = mk("div", "ps-row");
+    r.appendChild(mk("span", "ps-lbl", spec.label));
+    const hide = () => { r.hidden = !!(spec.hide && spec.hide()); };
+    if (spec.type === "swatches") {
+      const box = at(mk("div", "ps-swatches"), { role: "radiogroup", "aria-label": spec.aria || spec.label });
+      // mehr als acht Felder: gleich lange Reihen (10 → 5 + 5, 16 → 8 + 8)
+      if (spec.list.length > 8) { r.classList.add("ps-row-wrap"); box.style.setProperty("--ps-per", Math.ceil(spec.list.length / Math.ceil(spec.list.length / 8))); }
+      const bs = spec.list.map(([v, name, col]) => {
+        const b = at(mk("button", "ps-swatch"), { type: "button", role: "radio", "aria-label": name, "aria-checked": "false" });
+        b.style.background = col || v; b._v = v; box.appendChild(b); return b;
+      });
+      box.addEventListener("click", (e) => { const b = e.target.closest(".ps-swatch"); if (b && box.contains(b)) { spec.set(b._v); changed(spec); } });
+      r.appendChild(box);
+      return { el: r, sync() { hide(); const v = spec.get(); for (const b of bs) b.setAttribute("aria-checked", String(b._v === v)); r.classList.toggle("ps-dim", !!(spec.dim && spec.dim())); } };
+    }
+    if (spec.type === "seg") {
+      const box = at(mk("div", "ps-seg"), { role: "radiogroup", "aria-label": spec.aria || spec.label });
+      const bs = spec.list.map(([v, name]) => { const b = at(mk("button", null, name), { type: "button", role: "radio", "aria-checked": "false" }); b._v = v; box.appendChild(b); return b; });
+      box.addEventListener("click", (e) => { const b = e.target.closest("button"); if (b && box.contains(b)) { spec.set(b._v); changed(spec); } });
+      r.appendChild(box);
+      return { el: r, sync() { hide(); const v = spec.get(); for (const b of bs) b.setAttribute("aria-checked", String(b._v === v)); } };
+    }
+    // mehrere Auswahllisten in einer Zeile (Frisur und Bart)
+    r.classList.add("ps-row-sel");
+    const sels = (spec.items || []).map((it) => {
+      const s = at(mk("select", "ps-select"), { "aria-label": it.aria || spec.label });
+      for (const [v, name] of it.list) { const o = mk("option", null, name); o.value = String(v); s.appendChild(o); }
+      s.addEventListener("change", () => { const hit = it.list.find(([v]) => String(v) === s.value); if (hit) { it.set(hit[0]); changed(spec); } });
+      r.appendChild(s);
+      return [s, it];
+    });
+    return { el: r, sync() { hide(); for (const [s, it] of sels) s.value = String(it.get()); } };
+  }
+
+  // Reiter Code: der persönliche Code der Reihe (zeigen, kopieren), online sichern, auf einem anderen Gerät holen
+  function codeTab(code, stop) {
+    const box = mk("div", "ps-tabbox ps-codebox");
+    const top = mk("div", "ps-code-top"), val = mk("b", "ps-code-val");
+    const bCopy = at(mk("button", "ps-plain", "Kopieren"), { type: "button" });
+    top.append(mk("span", "ps-lbl", "Dein Code"), val, bCopy);
+    const st = mk("p", "ps-hint ps-code-st");
+    const bSave = at(mk("button", "ps-btn ps-btn-2 ps-code-save"), { type: "button" });
+    const sep = mk("p", "ps-sep", "Auf einem anderen Gerät");
+    const inRow = mk("div", "ps-row ps-code-row");
+    const inCode = at(mk("input", "ps-input ps-code-in"), { type: "text", maxlength: "16", autocomplete: "off", spellcheck: "false", "aria-label": "Code eingeben", placeholder: "Code eingeben" });
+    const bGet = at(mk("button", "ps-btn ps-btn-2 ps-code-get", "Holen"), { type: "button" });
+    inRow.append(inCode, bGet);
+    const res = mk("p", "ps-hint ps-code-res"); res.hidden = true;
+    const okRow = mk("div", "ps-row ps-code-ok"); okRow.hidden = true;
+    const bYes = at(mk("button", "ps-btn ps-btn-1 ps-code-yes", "Laden"), { type: "button" }), bNo = at(mk("button", "ps-plain", "Abbrechen"), { type: "button" });
+    okRow.append(bYes, bNo);
+    box.append(top, st, bSave, sep, inRow, res, okRow);
+    let pending = null, busy = false, shownCode = "";
+    // Rückfrage zum Laden: dann nur noch sie (der obere Teil hat Pause), damit alles ins Fenster passt
+    const ask = (on) => { okRow.hidden = !on; top.hidden = st.hidden = on; if (on) bSave.hidden = true; else sync(); };
+    function sync() {
+      const s = (code.status && code.status()) || {}, c = "code" in s ? s.code : P.get().code;
+      shownCode = P.codeOk(c) ? c : "";
+      val.textContent = shownCode ? P.fmtCode(shownCode) : "noch keiner";
+      val.classList.toggle("ps-none", !shownCode);
+      bCopy.hidden = !shownCode;
+      st.textContent = s.text || "";
+      bSave.textContent = s.save || ""; bSave.hidden = !s.save;
+      // Holen geht nur, wenn das Spiel online ist (s.load === false: aus oder keine Verbindung möglich)
+      const canLoad = s.load !== false;
+      sep.hidden = inRow.hidden = !canLoad;
+      if (!canLoad) { pending = null; okRow.hidden = true; res.hidden = true; }
+      if (pending) { top.hidden = st.hidden = bSave.hidden = true; } else { top.hidden = st.hidden = false; }
+    }
+    bCopy.addEventListener("click", async () => {
+      const t = P.fmtCode(shownCode);
+      try { await root.navigator.clipboard.writeText(t); bCopy.textContent = "Kopiert"; }
+      catch (e) { const rg = doc.createRange(); rg.selectNodeContents(val); const sel = root.getSelection(); sel.removeAllRanges(); sel.addRange(rg); bCopy.textContent = "Markiert"; }
+      setTimeout(() => { bCopy.textContent = "Kopieren"; }, 1800);
+    });
+    bSave.addEventListener("click", async () => {
+      if (busy) return;
+      busy = true; bSave.disabled = true;
+      try { await code.save(); sync(); } catch (e) { sync(); st.textContent = errText(e); }
+      busy = false; bSave.disabled = false;
+    });
+    bGet.addEventListener("click", async () => {
+      const c = P.parseCode(inCode.value);
+      if (pending) { pending = null; ask(false); }
+      res.hidden = false; res.classList.remove("ps-warn");
+      if (!c) { res.textContent = "Kein gültiger Code: 12 Zeichen, zum Beispiel K7PM-3QXD-9TRA."; res.classList.add("ps-warn"); return; }
+      res.textContent = "Suche …"; bGet.disabled = true;
+      try { const r = await code.load(c); res.textContent = r.text; if (r.apply) { pending = r.apply; ask(true); } }
+      catch (e) { res.textContent = errText(e); res.classList.add("ps-warn"); }
+      bGet.disabled = false;
+    });
+    bYes.addEventListener("click", () => { const f = pending; if (!f) return; pending = null; ask(false); res.hidden = true; inCode.value = ""; f(); });
+    bNo.addEventListener("click", () => { pending = null; ask(false); res.hidden = true; inCode.value = ""; });
+    inCode.addEventListener("keydown", (e) => { if (e.key === "Enter") bGet.click(); stop(e); });
+    return { box, sync };
+  }
+
+  function mount(host, opts) {
+    opts = opts || {};
+    const F = root.CMFigur, id = ++uid, upper = opts.upper !== false;
+    const pv = opts.preview || { poses: DEF_POSES, pose: "stand" };
+    const lbl = Object.assign({ suit: "Anzug", accent: "Zweitfarbe" }, opts.labels || {});
+    const look = () => P.get().look;
+    const setLook = (patch) => P.set({ look: patch, edited: true }, "ui");
+    const personPose = pv.personPose || pv.pose || pv.poses[0][0];
+    let tab = "person", pose = personPose, ask = false, shown = false, raf = 0, openedAt = 0;
+    // Tasten beim Tippen nicht ans Spiel weitergeben, außer Escape (schließt das Fenster)
+    const stop = (e) => { if (e.key !== "Escape") e.stopPropagation(); };
+
+    // ---------------------------------------------------------------- Aufbau: Kopf nur Titel und Fertig
+    const dlg = at(mk("div", "ps-dialog"), { role: "dialog", "aria-labelledby": "psTitle" + id });
+    const head = mk("div", "ps-head"), title = at(mk("h2", "ps-title", opts.title || "Deine Figur"), { id: "psTitle" + id });
+    const bDone = at(mk("button", "ps-btn ps-btn-1 ps-done", "Fertig"), { type: "button" });
+    head.append(title, bDone);
+
+    // links: die Figur; antippen wechselt die Haltung
+    const grid = mk("div", "ps-grid"), left = mk("div", "ps-left"), opt = mk("div", "ps-opts");
+    const stage = at(mk("div", "ps-stage"), { role: "button", tabindex: "0", "aria-label": "Haltung der Figur wechseln" });
+    const cv = at(mk("canvas", "ps-canvas"), { role: "img", "aria-label": "Vorschau deiner Figur" });
+    const cap = mk("p", "ps-cap");
+    stage.appendChild(cv); left.append(stage, cap);
+    const poseName = () => (pv.poses.find((x) => x[0] === pose) || pv.poses[0])[1];
+    const nextPose = () => { const i = pv.poses.findIndex((x) => x[0] === pose); pose = pv.poses[(i + 1) % pv.poses.length][0]; refresh(); };
+    stage.addEventListener("click", nextPose);
+    stage.addEventListener("keydown", (e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); nextPose(); } });
+
+    // Person: Name und Land, dann der Kopf
+    const idRow = mk("div", "ps-row ps-id");
+    const inName = at(mk("input", "ps-name"), { type: "text", maxlength: "12", autocomplete: "off", spellcheck: "false", "aria-label": "Name", placeholder: "Dein Name" });
+    if (!upper) inName.classList.add("ps-mixed");
+    const selNat = at(mk("select", "ps-select ps-nation"), { "aria-label": "Land" });
+    for (const [c, n] of opts.nations || P.NATIONS) { const o = mk("option", null, n); o.value = c; selNat.appendChild(o); }
+    idRow.append(inName, selNat);
+    const askRow = mk("div", "ps-ask"), askTxt = mk("span", "ps-ask-txt"), bGuest = at(mk("button", "ps-plain", "Als Gast spielen"), { type: "button" });
+    askRow.append(askTxt, bGuest); askRow.hidden = true;
+    const ASK = "Dein Name steht auf den Tafeln und in den Gruppen, in allen Spielen.";
+    const person = [
+      { type: "selects", label: "Frisur", head: true, items: [
+        { aria: "Frisur", list: F.HAIRS.map((n, i) => [i, n]), get: () => look().hair, set: (v) => setLook({ hair: v }) },
+        { aria: "Bart", list: F.BEARDS.map((n, i) => [i, i ? n : "ohne Bart"]), get: () => look().beard, set: (v) => setLook({ beard: v }) }] },
+      { type: "swatches", label: "Haare", aria: "Haarfarbe", head: true, list: F.HAIRC.map((c, i) => [i, P.HAIRC_NAMES[i] || "Haarfarbe " + (i + 1), c]), get: () => look().hairC, set: (v) => setLook({ hairC: v }) },
+      { type: "swatches", label: "Haut", aria: "Hautton", head: true, list: F.SKIN.map((c, i) => [i, P.SKIN_NAMES[i] || "Hautton " + (i + 1), c]), get: () => look().skin, set: (v) => setLook({ skin: v }) },
+      { type: "hint", text: opts.personHint || "Deine Figur gilt in allen Spielen von Cold Medal." },
+    ];
+    // Farben: die Zweitfarbe erscheint erst, wenn ein Muster sie braucht
+    const colors = [
+      { type: "swatches", label: lbl.suit, aria: "Farbe: " + lbl.suit, list: P.COLORS, get: () => look().suit, set: (v) => setLook({ suit: v }) },
+      { type: "seg", label: "Muster", list: P.PATTERNS, get: () => look().pattern, set: (v) => {
+        const L = look(), patch = { pattern: v };
+        if (v !== "uni" && L.accent === L.suit) patch.accent = L.suit === "#EEF2F7" ? "#262E3B" : "#EEF2F7";   // Muster soll man sehen
+        setLook(patch);
+      } },
+      { type: "swatches", label: lbl.accent, aria: lbl.accent, list: P.COLORS, get: () => look().accent, set: (v) => setLook({ accent: v }), hide: () => look().pattern === "uni" },
+    ];
+    const tabs = [{ id: "person", label: "Person", pose: pv.personPose, rows: person }, { id: "farben", label: "Farben", pose: pv.colorPose, rows: colors }]
+      .concat((opts.tabs || []).filter((t) => t && t.id && Array.isArray(t.rows)));
+    const changed = (spec) => { if (spec.head) pose = personPose; refresh(); };
+    const boxes = tabs.map((t) => {
+      const box = mk("div", "ps-tabbox"); box._id = t.id;
+      if (t.id === "person") box.append(idRow, askRow);
+      t._rows = t.rows.map((s) => { const r = row(s, changed); box.appendChild(r.el); return r; });
+      return box;
+    });
+    // Zufall gehört zu den Farben (Würfel am Ende der Zeile Muster): Anzug, Muster, Zweitfarbe und die Ausrüstung der Sportart;
+    // die Person bleibt
+    const bRand = at(mk("button", "ps-plain ps-random"), { type: "button", "aria-label": "Zufällige Farben", title: "Zufällige Farben" });
+    bRand.innerHTML = DICE;
+    tabs[1]._rows[1].el.appendChild(bRand);
+    let code = null;
+    if (opts.code) { code = codeTab(opts.code, stop); code.box._id = "code"; boxes.push(code.box); tabs.push({ id: "code", label: "Code", pose: personPose, rows: [], _rows: [] }); }
+    const segTab = at(mk("div", "ps-seg ps-tabs"), { role: "tablist", "aria-label": "Was du gestaltest" });
+    const tabBtns = tabs.map((t) => { const b = at(mk("button", null, t.label), { type: "button", role: "tab", "aria-selected": "false" }); b._v = t.id; segTab.appendChild(b); return b; });
+    opt.append(segTab, ...boxes);
+    grid.append(left, opt); dlg.append(head, grid);
+    host.appendChild(dlg);
+
+    // ---------------------------------------------------------------- Darstellen
+    function refresh() {
+      const p = P.get();
+      if (doc.activeElement !== selNat) selNat.value = p.nation;
+      for (const b of tabBtns) { const on = b._v === tab; b.setAttribute("aria-selected", String(on)); b.setAttribute("aria-checked", String(on)); }
+      for (const box of boxes) box.hidden = box._id !== tab;
+      for (const t of tabs) if (t.id === tab) for (const r of t._rows) r.sync();
+      if (code && tab === "code") code.sync();
+      askRow.hidden = !ask;
+      cap.textContent = pv.poses.length > 1 ? poseName() + " · antippen für eine andere Haltung" : "";
+    }
+    function setTab(t) {
+      tab = tabs.some((x) => x.id === t) ? t : "person";
+      const T = tabs.find((x) => x.id === tab);
+      if (T && T.pose) pose = T.pose;
+      refresh();
+    }
+    function drawPreview(t) {
+      const cw = cv.clientWidth, ch = cv.clientHeight;
+      if (!cw || !ch) return;
+      const dpr = Math.min(3, Math.max(1, opts.dpr ? opts.dpr() : root.devicePixelRatio || 1));
+      const bw = Math.round(cw * dpr), bh = Math.round(ch * dpr);
+      if (cv.width !== bw || cv.height !== bh) { cv.width = bw; cv.height = bh; }
+      const c = cv.getContext("2d");
+      c.setTransform(dpr, 0, 0, dpr, 0, 0);
+      try {
+        if (opts.preview && opts.preview.draw) opts.preview.draw(c, cw, ch, t, pose, P.get().look);
+        else defaultDraw(c, cw, ch, t, pose, P.get().look, tab === "person" || tab === "code" ? opts.personKit || "plain" : opts.kit);
+      } catch (e) { /* eine kaputte Vorschau darf das Fenster nicht stören */ }
+    }
+    const hidden = () => !host.isConnected || host.hidden || doc.hidden || !cv.offsetParent;
+    function frame(ts) {
+      raf = 0;
+      if (!shown) return;
+      if (hidden()) { if (Date.now() - openedAt < 1500) raf = root.requestAnimationFrame(frame); return; }   // gleich nach dem Öffnen noch warten
+      drawPreview(ts / 1000);
+      raf = root.requestAnimationFrame(frame);
+    }
+    const run = () => { if (shown && !raf && root.requestAnimationFrame) raf = root.requestAnimationFrame(frame); };
+    doc.addEventListener("visibilitychange", () => { if (!doc.hidden) run(); });
+
+    // ---------------------------------------------------------------- Bedienen
+    function done() {
+      const raw = (inName.value || "").trim().slice(0, 12), typed = P.cleanName(upper ? raw.toUpperCase() : raw);
+      if (ask && !typed) {
+        setTab("person");
+        inName.classList.add("ps-need"); askTxt.textContent = "Bitte gib einen Namen ein, oder spiel als Gast."; askTxt.classList.add("ps-warn");
+        try { inName.focus(); } catch (e) { /* egal */ }
+        return false;
+      }
+      inName.classList.remove("ps-need"); askTxt.classList.remove("ps-warn");
+      const cur = P.get(), name = typed || cur.name || P.cleanName(opts.defaultName || "");
+      if (name !== cur.name) P.set({ name, edited: true }, "ui");
+      ask = false; shown = false;
+      if (opts.onDone) opts.onDone();
+      return true;
+    }
+    function random() {
+      const pick = (a) => a[Math.floor(Math.random() * a.length)][0];
+      const suit = pick(P.COLORS);
+      let accent = pick(P.COLORS);
+      while (accent === suit) accent = pick(P.COLORS);
+      setLook({ suit, accent, pattern: pick(P.PATTERNS) });
+      if (opts.random) opts.random();
+      pose = pv.colorPose || pose;
+      refresh();
+    }
+    bDone.addEventListener("click", () => done());
+    bRand.addEventListener("click", () => random());
+    bGuest.addEventListener("click", () => { inName.value = upper ? "GAST" : "Gast"; done(); });
+    segTab.addEventListener("click", (e) => { const b = e.target.closest("button"); if (b && segTab.contains(b)) setTab(b._v); });
+    selNat.addEventListener("change", () => P.set({ nation: selNat.value, edited: true }, "ui"));
+    inName.addEventListener("keydown", (e) => { if (e.key === "Enter") inName.blur(); stop(e); });
+    inName.addEventListener("input", () => { if (inName.value.trim()) { inName.classList.remove("ps-need"); askTxt.classList.remove("ps-warn"); askTxt.textContent = ASK; } });
+    // Änderungen aus einem anderen Spiel (anderer Tab) oder vom Server gleich zeigen
+    P.on((p, src) => { if (src !== "ui") { if (src !== "local" && doc.activeElement !== inName) inName.value = p.name; refresh(); } });
+
+    return {
+      el: dlg,
+      open(o) {
+        o = o || {};
+        ask = !!o.ask;
+        title.textContent = o.title || opts.title || "Deine Figur";
+        inName.value = P.get().name; inName.classList.remove("ps-need");
+        askTxt.textContent = ASK; askTxt.classList.remove("ps-warn");
+        setTab(ask ? "person" : o.tab || "person");
+        shown = true; openedAt = Date.now(); run();
+        if (ask) setTimeout(() => { try { inName.focus(); } catch (e) { /* egal */ } }, 60);
+      },
+      close() { shown = false; },
+      refresh, done, setTab,
+      get tab() { return tab; }, get pose() { return pose; },
+      get name() { return inName.value; },
+    };
+  }
+
+  // Reiter Code für Spiele, die nur den Pass online sichern (ohne eigenen Spielstand): rpc wie bei CMPass.online
+  function codeVia(rpc) {
+    return {
+      status() {
+        const p = P.get();
+        return p.code ? { code: p.code, text: "Mit diesem Code holst du deine Figur auf jedes Gerät, in jedem Spiel von Cold Medal. Gib ihn nicht weiter.", save: "Jetzt sichern" }
+          : { code: null, text: "Sichere deine Figur online, dann bekommst du deinen Code. Mit ihm holst du sie auf jedes Gerät.", save: "Online sichern" };
+      },
+      async save() { P.ensureCode(); await P.online.put(rpc); },
+      async load(code) {
+        const p = await P.online.get(rpc, code);
+        if (!p) throw new Error("Zu diesem Code gibt es keine Figur.");
+        return { text: `Figur ${p.name || "ohne Namen"} (${p.nation}). Deine Figur auf diesem Gerät wird ersetzt.`, apply() { P.replace(p, "load"); } };
+      },
+    };
+  }
+
+  // Für Spiele ohne eigene Ebenen: eine Ebene über der ganzen Seite, Escape oder „Fertig“ schließt
+  let own = null;
+  function open(opts, o) {
+    if (!own) {
+      const host = at(mk("section", "ps-screen"), { "aria-modal": "true" });
+      host.hidden = true;
+      doc.body.appendChild(host);
+      const onDone = opts && opts.onDone;
+      const ui = mount(host, Object.assign({}, opts, { onDone() { host.hidden = true; if (onDone) onDone(); } }));
+      host.addEventListener("keydown", (e) => { if (e.key === "Escape") { e.preventDefault(); ui.done(); } });
+      own = { host, ui };
+    }
+    own.host.hidden = false;
+    own.ui.open(o);
+    return own.ui;
+  }
+
+  P.ui = { mount, open, backdrop, codeVia, DEF_POSES };
+})(typeof window !== "undefined" ? window : globalThis);
+
 /* Cold Medal · Eiskunstlauf – Posen und Laufschritt der Sportart, gezeichnet mit der gemeinsamen Figur (../figur/figur.js, CMFigur).
  * EKFig ist CMFigur mit den Posen des Eiskunstlaufs, kit "eiskunstlauf" (Einteiler mit Schrägstreifen, Schlittschuhe)
  * und strokePose(u) = CMFigur.seq(STROKE, u, true). Winkel in Grad ab senkrecht nach unten, + = nach vorn.
@@ -2864,10 +3549,10 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
 /* COLD MEDAL EISKUNSTLAUF – Ablauf, Bildschirme, Eingabe, Taktband, Ergebnis, Spielstand. */
 (function () {
   "use strict";
-  const VERSION = "0.36";
+  const VERSION = "0.37";
   // Seiten-Einstellungen aus dem Build (eigenes Hosting: Adresse, Hoster, Impressum); im claude.ai-Artefakt leer
-  const SITE = Object.assign({ web: false, url: "", impressum: null }, {"web": true, "url": "https://matpeins-debug.github.io/cold-medal-eiskunstlauf/", "hoster": "GitHub Pages (GitHub Inc., USA)", "drittland": "GitHub ist nach dem EU-US Data Privacy Framework zertifiziert; die Übermittlung in die USA stützt sich auf den Angemessenheitsbeschluss der EU-Kommission dazu.", "impressum": {"name": "", "adresse": "", "mail": ""}} || {});
-  const M = window.EKMusic, K = window.EKSkate, F = window.EKFig, SC = window.EKScene;
+  const SITE = Object.assign({ web: false, url: "", impressum: null }, {"web": true, "supabase": {"url": "https://pqpvgkslozsekjywpdrf.supabase.co", "key": "sb_publishable_KkKe9jchmXYp_-OEmB8WLQ_gZLXrRhF"}, "url": "https://matpeins-debug.github.io/cold-medal-eiskunstlauf/", "hoster": "GitHub Pages (GitHub Inc., USA)", "drittland": "GitHub ist nach dem EU-US Data Privacy Framework zertifiziert; die Übermittlung in die USA stützt sich auf den Angemessenheitsbeschluss der EU-Kommission dazu.", "impressum": {"name": "", "adresse": "", "mail": ""}} || {});
+  const M = window.EKMusic, K = window.EKSkate, F = window.EKFig, SC = window.EKScene, PASS = window.CMPass;
   const W = SC.W, H = SC.H, WW = SC.WW;
   const $ = (id) => document.getElementById(id);
   const clamp = (v, a, b) => (v < a ? a : v > b ? b : v);
@@ -2884,7 +3569,7 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
 
   // ------------------------------------------------------------------ Spielstand (nur auf diesem Gerät; Aussehen zieht später in pass/ um)
   const KEY = "coldmedal-eiskunstlauf";
-  const DEF = { v: 1, prog: null, name: "", nat: "AUT", look: F.DEF_LOOK, help: "norm", lv3: 1, progAuto: true, saved: [], sound: 1, preset: "salon", lat: 0, music: "donau", fx: [null, null, null, null, null, null, null, null], best: 0, bestTrain: 0, runs: 0, flowers: 0, toys: 0, album: [] };
+  const DEF = { v: 1, prog: null, name: "", nat: "AUT", look: F.DEF_LOOK, help: "norm", lv3: 1, progAuto: true, saved: [], passSeen: 0, sound: 1, preset: "salon", lat: 0, music: "donau", fx: [null, null, null, null, null, null, null, null], best: 0, bestTrain: 0, runs: 0, flowers: 0, toys: 0, album: [] };
   function sanitize(o) {
     const S = Object.assign({}, DEF, { look: F.cleanLook(null), prog: K.DEFAULT_SLOTS.slice(), album: [] });
     if (o && typeof o === "object") {
@@ -2892,6 +3577,7 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
       if (NAT[o.nat]) S.nat = o.nat;
       S.look = F.cleanLook(o.look);
       if (o.help === "pro" || o.help === "anf" || o.help === "norm") S.help = o.help;
+      if (o.passSeen) S.passSeen = 1;
       if (o.help === "anf" && !o.lv3) S.help = "norm"; // bis 0.28 hieß die normale Stufe „Anfänger“
       S.sound = o.sound === 0 ? 0 : 1;
       if (M.PRESETS[o.preset]) S.preset = o.preset;
@@ -2910,6 +3596,20 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
   }
   let S = sanitize(null);
   try { S = sanitize(JSON.parse(localStorage.getItem(KEY) || "null")); } catch (e) { /* ohne Speicher */ }
+  // ------------------------------------------------------------------ Pass der Reihe (../pass/): Name, Land und Aussehen gelten in allen Spielen
+  // Beim ersten Start entsteht der Pass aus den bisherigen Angaben, damit nichts verloren geht. Gibt es ihn schon (anderes Spiel)
+  // und hat dort jemand gestaltet (edited), gewinnt der Pass; sonst übernimmt er einmal, was hier gestaltet war.
+  const lookToPass = (L) => { const o = Object.assign({}, L); for (const k of ["suit", "accent"]) if (typeof o[k] === "number") o[k] = F.SUIT[o[k]] || F.SUIT[0]; return o; };
+  {
+    const mine = () => ({ name: S.name, nation: S.nat, look: lookToPass(S.look), edited: !!S.name });
+    const P0 = PASS.load(mine);
+    if (!S.passSeen) {
+      if (!PASS.created && !P0.edited && S.name) PASS.set(mine(), "eiskunstlauf");
+      S.passSeen = 1;
+    }
+  }
+  function fromPass() { const p = PASS.get(); S.name = p.name || ""; S.nat = p.nation || "AUT"; S.look = Object.assign({}, p.look); }
+  fromPass();
   function save() {
     for (let i = 0; i < 9; i++) {
       try { localStorage.setItem(KEY, JSON.stringify(S)); return; } catch (e) { if (!S.album.length) return; S.album.pop(); } // Speicher voll: ältestes Bild weg
@@ -4124,7 +4824,7 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
     $("hPose").textContent = "Auf den Schlussakkord tippen." + (PROG.elements.some((e) => e.kind === "expr") ? " ✦ Choreo-Figur: tippen, wenn sie kommt." : "");
     show("scrIntro");
   }
-  $("bComp").onclick = () => { unlock(); if (!S.name) { openLook(() => intro("comp")); return; } intro("comp"); };
+  $("bComp").onclick = () => { unlock(); if (!S.name) { openLook(() => intro("comp"), { ask: true, title: "Wie heißt du?" }); return; } intro("comp"); };
   $("bTrain").onclick = () => { unlock(); intro("train"); };
   $("iGo").onclick = () => { unlock(); if (needOwn()) { $("bProg").onclick(); return; } startRun(pendingMode); };
   $("abort").onclick = abortRun;
@@ -4132,40 +4832,45 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
   $("rAgain").onclick = () => { unlock(); startRun(run ? run.mode : "comp"); };
   $("rMenu").onclick = () => { run = null; show("scrMenu"); };
 
-  // Gestalten
+  // Gestalten: das Fenster „Deine Figur“ aus dem Pass der Reihe (../pass/pass-ui.js). Person und Farben gelten in allen Spielen;
+  // der Reiter Kür zeigt, wie das Kostüm zur gewählten Musik passt (gibt es nur im Eiskunstlauf).
   let lookNext = null;
-  const lcv = $("lookCv"), lctx = lcv.getContext("2d");
-  function drawLook() {
-    lctx.setTransform(1, 0, 0, 1, 0, 0); lctx.clearRect(0, 0, lcv.width, lcv.height);
-    F.draw(lctx, { x: 100, y: 225, s: 2.2, dir: 1, pose: F.POSES.final, look: S.look });
+  const ONLINE = (() => {
+    const sb = SITE.supabase; if (!SITE.web || !sb || !/^https:\/\/[a-z0-9.-]+$/i.test(sb.url || "") || !sb.key || typeof fetch !== "function") return null;
+    const base = sb.url + "/rest/v1/rpc/", headers = { "Content-Type": "application/json", apikey: sb.key, Authorization: "Bearer " + sb.key };
+    // nur die geprüften Funktionen des Passes (cm_pass_put, cm_pass_get); der Code geht nie in die Daten
+    return async function rpc(fn, args, ms) {
+      const ac = typeof AbortController === "function" ? new AbortController() : null, timer = ac ? setTimeout(() => ac.abort(), ms || 9000) : 0;
+      try {
+        const r = await fetch(base + fn, { method: "POST", headers, body: JSON.stringify(args || {}), signal: ac ? ac.signal : undefined, cache: "no-store" });
+        const text = await r.text(); let j = null; try { j = text ? JSON.parse(text) : null; } catch (e) { /* keine JSON-Antwort */ }
+        if (!r.ok) throw new Error((j && (j.message || j.hint)) || "Hat nicht geklappt (HTTP " + r.status + ").");
+        return j;
+      } catch (e) { if (e && e.name === "AbortError") throw new Error("Keine Verbindung. Bitte später noch einmal."); throw e; } finally { if (timer) clearTimeout(timer); }
+    };
+  })();
+  const KUER_POSES = [["final", "Schlusspose"], ["glideArc", "Gleiten"], ["spiral", "Spirale"], ["portUp", "Arme"]];
+  function figPreview(c, w, h, t, pose) {
+    PASS.ui.backdrop(c, w, h);
+    const p0 = F.POSES[pose] || F.POSES.final, sway = Math.sin(t * 1.6) * 2;
+    const p = openArms(Object.assign({}, p0, { lean: (p0.lean || 0) + sway * 0.4 }), 0.5);
+    F.draw(c, { x: w / 2, y: h - 14, s: h / 118, dir: 1, pose: p, turn: 0.5, look: F.cleanLook(PASS.get().look) });
   }
-  function opts(id, n, label, sel, set, col) {
-    const el = $(id); el.innerHTML = "";
-    for (let i = 0; i < n; i++) {
-      const b = document.createElement("button");
-      if (col) { b.className = "sw" + (i === sel() ? " on" : ""); b.style.background = col[i]; b.setAttribute("aria-label", label(i)); }
-      else { b.className = "pill" + (i === sel() ? " on" : ""); b.textContent = label(i); }
-      b.onclick = () => { set(i); save(); opts(id, n, label, sel, set, col); drawLook(); };
-      el.appendChild(b);
-    }
-  }
-  function openLook(next) {
-    lookNext = next || null;
-    $("lName").value = S.name;
-    $("lNat").innerHTML = Object.entries(NAT).map(([k, v]) => `<option value="${k}"${k === S.nat ? " selected" : ""}>${v}</option>`).join("");
-    const L = S.look;
-    opts("oHair", F.HAIRS.length, (i) => F.HAIRS[i], () => L.hair, (i) => (L.hair = i));
-    opts("oBeard", F.BEARDS.length, (i) => F.BEARDS[i], () => L.beard, (i) => (L.beard = i));
-    opts("oHairC", F.HAIRC.length, (i) => "Haarfarbe " + (i + 1), () => L.hairC, (i) => (L.hairC = i), F.HAIRC);
-    opts("oSkin", F.SKIN.length, (i) => "Hautton " + (i + 1), () => L.skin, (i) => (L.skin = i), F.SKIN);
-    opts("oSuit", F.SUIT.length, (i) => "Kostüm " + (i + 1), () => L.suit, (i) => (L.suit = i), F.SUIT);
-    opts("oAcc", F.SUIT.length, (i) => "Streifen " + (i + 1), () => L.accent, (i) => (L.accent = i), F.SUIT);
-    drawLook(); show("scrLook");
-  }
-  $("lName").oninput = (e) => { const v = e.target.value.replace(/[<>&"]/g, "").slice(0, 14); if (v !== e.target.value) e.target.value = v; S.name = v; save(); };
-  $("lNat").onchange = (e) => { if (NAT[e.target.value]) { S.nat = e.target.value; save(); } };
-  $("lDone").onclick = () => { S.name = S.name.trim(); save(); const n = lookNext; lookNext = null; if (n) n(); else show("scrMenu"); };
+  const passUi = PASS.ui.mount($("scrLook"), {
+    title: "Deine Figur", kit: "eiskunstlauf", nations: Object.entries(NAT), defaultName: "LÄUFERIN",
+    personHint: "Gilt in allen Spielen von Cold Medal.",
+    preview: { poses: KUER_POSES, pose: "final", personPose: "final", colorPose: "glideArc", draw: figPreview },
+    tabs: [{ id: "kuer", label: "Kür", pose: "spiral", rows: [
+      { type: "hint", text: () => { useMusic(); const C = K.COSTUME[SCORE.id]; return `Zu „${SCORE.title}“ passt: ${C ? C.best : ""}. Die Farbe zählt in der Choreo-Note (Kostüm).`; } },
+      { type: "hint", text: "Gibt es nur im Eiskunstlauf: Kostüm und Musik werden gemeinsam bewertet." }] }],
+    code: ONLINE ? PASS.ui.codeVia(ONLINE) : null,
+    onDone: () => { fromPass(); save(); const n = lookNext; lookNext = null; if (n) n(); else show("scrMenu"); },
+  });
+  PASS.on(() => { fromPass(); if (!$("scrMenu").hidden) fillMenu(); });
+  function openLook(next, o) { lookNext = next || null; show("scrLook"); passUi.open(o || {}); }
   $("bLook").onclick = () => openLook();
+  $("mCodeW").hidden = !ONLINE;
+  $("bCode").onclick = () => openLook(null, { tab: "code" }); // Code steht absichtlich nicht offen auf der Hauptseite (Bildschirmfotos)
 
   // Meine Kür: acht Abschnitte der Musik, je ein Element (Schrittfolge zwei)
   let pSel = 0, pRot = 2, pCombo = "";
@@ -4406,7 +5111,7 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
     $("ifImp").innerHTML = lines.length ? lines.map(esc).join("<br>") : "Privates Spieleprojekt, nicht kommerziell.";
     const hoster = typeof SITE.hoster === "string" && SITE.hoster.trim() ? SITE.hoster.trim() : "";
     const third = typeof SITE.drittland === "string" && SITE.drittland.trim() ? " " + SITE.drittland.trim() : "";
-    $("ifPriv").textContent = `Verantwortlich ist ${lines.length ? "der Herausgeber im Impressum" : "der Herausgeber"}. ${hoster ? `Die Seite liegt bei ${hoster}; beim Aufruf` : "Beim Aufruf der Seite"} verarbeitet der Webserver technisch nötige Daten wie deine IP-Adresse (berechtigtes Interesse, Art. 6 Abs. 1 lit. f DSGVO).${third} Du hast das Recht auf Auskunft, Berichtigung, Löschung, Einschränkung und Widerspruch sowie auf Beschwerde bei der Datenschutzbehörde.`;
+    $("ifPriv").textContent = `Verantwortlich ist ${lines.length ? "der Herausgeber im Impressum" : "der Herausgeber"}. ${hoster ? `Die Seite liegt bei ${hoster}; beim Aufruf` : "Beim Aufruf der Seite"} verarbeitet der Webserver technisch nötige Daten wie deine IP-Adresse (berechtigtes Interesse, Art. 6 Abs. 1 lit. f DSGVO).${third} ${ONLINE ? " Freiwillig und nur, wenn du unter Figur → Code „Online sichern“ tippst: Wir speichern deine Figur für alle Spiele von Cold Medal (Name, Land, Aussehen, Taler) bei Supabase Inc. auf Servern in Frankfurt (Art. 6 Abs. 1 lit. b DSGVO), damit du sie mit deinem Code auf ein anderes Gerät holst; den Code selbst nur als Prüfwert." : ""} Du hast das Recht auf Auskunft, Berichtigung, Löschung, Einschränkung und Widerspruch sowie auf Beschwerde bei der Datenschutzbehörde.`;
     show("scrInfo");
   }
   $("bInfo").onclick = openInfo;
