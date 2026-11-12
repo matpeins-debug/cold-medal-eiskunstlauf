@@ -2411,7 +2411,7 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
 /* COLD MEDAL EISKUNSTLAUF – Ablauf, Bildschirme, Eingabe, Taktband, Ergebnis, Spielstand. */
 (function () {
   "use strict";
-  const VERSION = "0.17";
+  const VERSION = "0.18";
   // Seiten-Einstellungen aus dem Build (eigenes Hosting: Adresse, Hoster, Impressum); im claude.ai-Artefakt leer
   const SITE = Object.assign({ web: false, url: "", impressum: null }, {"web": true, "url": "https://matpeins-debug.github.io/cold-medal-eiskunstlauf/", "hoster": "GitHub Pages (GitHub Inc., USA)", "drittland": "GitHub ist nach dem EU-US Data Privacy Framework zertifiziert; die Übermittlung in die USA stützt sich auf den Angemessenheitsbeschluss der EU-Kommission dazu.", "impressum": {"name": "", "adresse": "", "mail": ""}} || {});
   const M = window.EKMusic, K = window.EKSkate, F = window.EKFig, SC = window.EKScene;
@@ -2756,7 +2756,19 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
       const kind = inp.type === "swipe" ? "pizz" : inp.type === "circle" ? "harp" : inp.type === "down" ? (r.posed ? "chord" : "bell") : null;
       if (kind) player.accent(kind, r.accI++, q);
     }
-    pop((best.ok ? `${word} ${sg(ms)} ms` : word) + (r.streak >= 3 ? `  · Serie ${r.streak}` : ""), !best.ok || a > T.good ? "#E8A07A" : a <= T.perfect ? "#F3C969" : "#F1E7D2", true);
+    // sofort sichtbar, wie gut die Eingabe war: großes Wort mit Sternen an der Läuferin und ein Strich im Takt-Meter
+    const W2 = K.WIN.jump * 1000 * k;
+    const rate = !best.ok ? { w: "FALSCH", st: 0, c: "#E8705A" } : a <= T.perfect ? { w: "PERFEKT", st: 3, c: "#F3C969" } : a <= T.good ? { w: "GUT", st: 2, c: "#8FD3A0" } : a <= W2 ? { w: ms < 0 ? "KNAPP · FRÜH" : "KNAPP · SPÄT", st: 1, c: "#F0A65A" } : { w: ms < 0 ? "ZU FRÜH" : "ZU SPÄT", st: 0, c: "#E8705A" };
+    r.rate = Object.assign(rate, { ms, t: performance.now(), streak: r.streak });
+    (r.meter = r.meter || []).push({ ms: best.ok ? ms : 0, c: rate.c, t: performance.now(), bad: !best.ok }); if (r.meter.length > 10) r.meter.shift();
+  }
+  // Karte nach jedem Element: Name, Punkte, Ausführung in Worten und Sternen
+  const GOE_W = { 5: "überragend", 4: "hervorragend", 3: "sehr gut", 2: "gut", 1: "ordentlich", 0: "solide", "-1": "unsauber", "-2": "unsauber", "-3": "schwach", "-4": "schwach", "-5": "schwach" };
+  function card(name, r) {
+    if (!run) return;
+    const miss = r.status === "miss", fall = r.status === "fall";
+    run.card = { t: performance.now(), name, pts: miss ? "–" : `+${dec(r.score)}`, word: miss ? "ausgelassen" : fall ? "Sturz · −1" : (r.level ? `Stufe ${r.level} · ` : "") + `GOE ${sg(r.goe)} · ${GOE_W[r.goe]}`,
+      st: miss || fall ? 0 : r.goe >= 4 ? 3 : r.goe >= 2 ? 2 : r.goe >= 0 ? 1 : 0, bad: miss || fall || r.status === "under" };
   }
   function pop(text, col, near) { if (run) run.pops.push({ text: nb(text), col, t: performance.now(), near: !!near }); }
 
@@ -2832,7 +2844,7 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
           const nm = e.part ? e.short.replace(/^\+/, "") : e.name;
           if (e.kind === "expr" && r.status === "ok") pop(`${e.name} · Ausdruck${r.q >= 1 ? " ★" : ""}`, "#E9C8EE");
           if (e.kind === "glide") pop(r.status === "ok" ? (e.role === "entry" ? "Einlauf gehalten · Stufe +1" : "sauber ausgelaufen · GOE +1") : `${e.short}: ${r.note}`, r.status === "ok" ? "#CFE3FF" : "#E8A07A");
-          if (e.kind !== "pose" && e.kind !== "expr" && e.kind !== "glide" && !(e.part === "b" && r.status === "miss" && run.done[i - 1] && run.done[i - 1].status !== "ok")) pop(r.status === "miss" ? `${nm}: ausgelassen` : r.status === "fall" ? "Sturz −1" : `${nm} +${dec(r.score)}`, r.status === "ok" ? "#F3C969" : "#E8A07A");
+          if (e.kind !== "pose" && e.kind !== "expr" && e.kind !== "glide" && !(e.part === "b" && r.status === "miss" && run.done[i - 1] && run.done[i - 1].status !== "ok")) card(nm, r);
           if (r.peak) { pop("Höhepunkt der Musik · +1 GOE", "#FFE7A0"); run.burst = 1; run.burstQ += 30; }
           if (e.part === "b" && r.status === "ok" && run.done[i - 1] && run.done[i - 1].status === "ok") pop("Kombination!", "#FFE7A0");
         }
@@ -3082,7 +3094,56 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
     ctx.fillStyle = "#F1E7D2"; ctx.textAlign = "center"; ctx.textBaseline = "middle"; ctx.fillText(txt, x, y);
   }
   // Rückmeldungen: Timing direkt neben der Läuferin, Punkte der Elemente oben
+  function stars(x, y, n, size, col) {
+    for (let i = 0; i < 3; i++) {
+      const cx = x + (i - 1) * size * 2.2; ctx.fillStyle = i < n ? col : "rgba(241,231,210,0.22)"; ctx.beginPath();
+      for (let k = 0; k < 10; k++) { const a = -Math.PI / 2 + k * Math.PI / 5, rr = k % 2 ? size * 0.45 : size; ctx.lineTo(cx + Math.cos(a) * rr, y + Math.sin(a) * rr); }
+      ctx.closePath(); ctx.fill();
+    }
+  }
+  function drawRate(fx, fy, s) {
+    const R0 = run.rate; if (!R0) return;
+    const age = (performance.now() - R0.t) / 1000; if (age > 1.1) return;
+    const sc = age < 0.12 ? 0.7 + 2.5 * age : 1, al = age > 0.8 ? 1 - (age - 0.8) / 0.3 : 1, x = clamp(fx + 75 * s, 80, W - 200), y = fy - 18 * s - age * 8;
+    ctx.save(); ctx.globalAlpha = al; ctx.translate(x, y); ctx.scale(sc, sc);
+    ctx.textAlign = "center"; ctx.textBaseline = "alphabetic"; ctx.font = "800 21px " + font(); ctx.lineWidth = 5; ctx.strokeStyle = "#141B25";
+    ctx.strokeText(R0.w, 0, 0); ctx.fillStyle = R0.c; ctx.fillText(R0.w, 0, 0);
+    stars(0, 12, R0.st, 6, R0.c);
+    ctx.font = "600 11px " + font(); ctx.lineWidth = 3; const sub = `${sg(R0.ms)} ms` + (R0.streak >= 3 ? ` · Serie ${R0.streak}` : "");
+    ctx.strokeText(sub, 0, 32); ctx.fillStyle = "#F1E7D2"; ctx.fillText(sub, 0, 32);
+    ctx.restore();
+  }
+  function drawCard() {
+    const C = run.card; if (!C) return;
+    const age = (performance.now() - C.t) / 1000; if (age > 2.2) return;
+    const al = age < 0.15 ? age / 0.15 : age > 1.8 ? 1 - (age - 1.8) / 0.4 : 1, w = 230, h = 54, x = 12, y = 52 - (age < 0.15 ? (0.15 - age) * 60 : 0);
+    ctx.save(); ctx.globalAlpha = al;
+    ctx.fillStyle = "rgba(15,23,48,0.88)"; ctx.fillRect(x, y, w, h); ctx.strokeStyle = C.bad ? "#E8705A" : "#F3C969"; ctx.lineWidth = 1.5; ctx.strokeRect(x + 0.5, y + 0.5, w - 1, h - 1);
+    ctx.textBaseline = "alphabetic"; ctx.textAlign = "left"; ctx.fillStyle = "#F1E7D2"; ctx.font = "700 13px " + font(); ctx.fillText(C.name, x + 10, y + 19);
+    ctx.font = "500 11px " + font(); ctx.fillStyle = C.bad ? "#E8A07A" : "rgba(241,231,210,0.75)"; ctx.fillText(C.word, x + 10, y + 40);
+    ctx.textAlign = "right"; ctx.font = "800 24px " + font(); ctx.fillStyle = C.bad ? "#E8A07A" : "#F3C969"; ctx.fillText(C.pts, x + w - 10, y + 27);
+    stars(x + w - 34, y + 42, C.st, 5, "#F3C969");
+    ctx.restore();
+  }
+  // Takt-Meter: Mitte = genau auf dem Schlag, links zu früh, rechts zu spät; die letzten Eingaben als Striche
+  function drawMeter() {
+    const w = 170, h = 18, x = W - w - 14, y = 324, R = 160; // ±160 ms
+    ctx.fillStyle = "rgba(15,23,48,0.75)"; ctx.fillRect(x - 6, y - 14, w + 12, h + 18);
+    const X = (ms) => x + w / 2 + clamp(ms / R, -1, 1) * w / 2;
+    ctx.fillStyle = "rgba(143,211,160,0.28)"; ctx.fillRect(X(-M.TIMING.good), y, X(M.TIMING.good) - X(-M.TIMING.good), h);
+    ctx.fillStyle = "rgba(243,201,105,0.45)"; ctx.fillRect(X(-M.TIMING.perfect), y, X(M.TIMING.perfect) - X(-M.TIMING.perfect), h);
+    ctx.fillStyle = "#FFF4D6"; ctx.fillRect(x + w / 2 - 0.75, y - 2, 1.5, h + 4);
+    ctx.font = "600 9px " + font(); ctx.fillStyle = "rgba(241,231,210,0.7)"; ctx.textBaseline = "alphabetic";
+    ctx.textAlign = "left"; ctx.fillText("ZU FRÜH", x, y - 4); ctx.textAlign = "right"; ctx.fillText("ZU SPÄT", x + w, y - 4); ctx.textAlign = "center"; ctx.fillText("IM TAKT", x + w / 2, y - 4);
+    const now = performance.now();
+    for (const m of run.meter || []) {
+      const age = (now - m.t) / 1000, al = clamp(1 - age / 6, 0.15, 1), fresh = age < 0.4;
+      ctx.globalAlpha = al; ctx.fillStyle = m.c; ctx.fillRect(X(m.ms) - (fresh ? 2 : 1.25), y + (fresh ? -3 : 2), fresh ? 4 : 2.5, fresh ? h + 6 : h - 4);
+    }
+    ctx.globalAlpha = 1;
+  }
   function drawPops(fx, fy, s) {
+    drawRate(fx, fy, s); drawCard(); drawMeter();
     const now = performance.now();
     run.pops = run.pops.filter((p) => now - p.t < 1300);
     const lastNear = run.pops.filter((p) => p.near).pop();
