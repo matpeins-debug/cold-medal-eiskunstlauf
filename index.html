@@ -1252,7 +1252,8 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
     if (Array.isArray(a)) { let n = 0; a.slice(0, 8).forEach((x, i) => { if (FX[x] && n < FX_MAX) { o[i] = x; n++; } }); }
     return o;
   }
-  function plan(slots, look, music, fx) {
+  // cap: Höchstwert der Choreo-Note (Vorschlag 8, selbst geändert 9, Experte 10)
+  function plan(slots, look, music, fx, cap) {
     music = SECTIONS[music] ? music : "donau";
     const moods = MOODS[music], sec = SECTIONS[music], ids = slots.map((x) => (x === "~" ? "~" : x));
     const kindAt = (i) => { let id = ids[i]; if (id === "~") id = ids[i - 1]; return id && CATALOG[id] ? CATALOG[id].kind : null; };
@@ -1295,8 +1296,8 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
       { id: "abw", name: "Abwechslung", v: r1(vari), why: same ? "zweimal hintereinander dasselbe" : kinds.size < 3 ? "mehr verschiedene Elemente (Sprung, Pirouette, Schritte, Choreo)" : empty > 2 ? "viel Gleiten" : !chor.size ? "Tipp: eine Choreo-Figur in einen freien Abschnitt" : "abwechslungsreich" },
       { id: "kostuem", name: "Kostüm", v: r1(cost), why: su === ac ? "Streifen in derselben Farbe wie das Kostüm" : C.fit[su] >= 8 ? "passt zur Musik" : "Tipp: " + C.best },
     ];
-    const total = r1(parts.reduce((a, x) => a + x.v, 0) / parts.length);
-    return { total, parts, moods };
+    const raw = r1(parts.reduce((a, x) => a + x.v, 0) / parts.length), total = Math.min(raw, cap || 10);
+    return { total, raw, cap: cap || 10, parts, moods };
   }
   const KIND_DE = { jump: "ein Sprung", spin: "eine Pirouette", steps: "die Schrittfolge", choreo: "eine Choreo-Figur" };
   const STEP_PATTERN = [[0, "r"], [3, "l"], [6, "r"], [8, "u"], [9, "l"], [12, "d"], [14, "r"], [15, "l"], [18, "u"], [20, "d"], [21, "r"], [24, "l"]];
@@ -1578,7 +1579,7 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
     const meanDev = all.length ? mean(all) : 400, pose = els.find((x) => x.kind === "pose");
     // Komposition: die geplante Choreografie (Musik, Bogen, Abwechslung, Kostüm) zählt bis 1,5 Punkte, Höhepunkt genutzt 0,25
     const strokes = judgeStrokes(prog, bt, inp, k);
-    const pl = plan(prog.slots || [], prog.look, prog.music, prog.fx), variety = pl.total * (level.choreo || 0.15) + (els.some((x) => x.peak) ? 0.25 : 0);
+    const pl = plan(prog.slots || [], prog.look, prog.music, prog.fx, prog.planCap), variety = pl.total * (level.choreo || 0.15) + (els.some((x) => x.peak) ? 0.25 : 0);
     const pcs = {
       comp: q4(clamp(3 + 4.5 * done + (pose && pose.status === "ok" ? 1.25 : 0) - 0.75 * falls + variety, 1.5, 9.75)),
       pres: 0,
@@ -2832,7 +2833,7 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
 /* COLD MEDAL EISKUNSTLAUF – Ablauf, Bildschirme, Eingabe, Taktband, Ergebnis, Spielstand. */
 (function () {
   "use strict";
-  const VERSION = "0.31";
+  const VERSION = "0.32";
   // Seiten-Einstellungen aus dem Build (eigenes Hosting: Adresse, Hoster, Impressum); im claude.ai-Artefakt leer
   const SITE = Object.assign({ web: false, url: "", impressum: null }, {"web": true, "url": "https://matpeins-debug.github.io/cold-medal-eiskunstlauf/", "hoster": "GitHub Pages (GitHub Inc., USA)", "drittland": "GitHub ist nach dem EU-US Data Privacy Framework zertifiziert; die Übermittlung in die USA stützt sich auf den Angemessenheitsbeschluss der EU-Kommission dazu.", "impressum": {"name": "", "adresse": "", "mail": ""}} || {});
   const M = window.EKMusic, K = window.EKSkate, F = window.EKFig, SC = window.EKScene;
@@ -2852,7 +2853,7 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
 
   // ------------------------------------------------------------------ Spielstand (nur auf diesem Gerät; Aussehen zieht später in pass/ um)
   const KEY = "coldmedal-eiskunstlauf";
-  const DEF = { v: 1, prog: null, name: "", nat: "AUT", look: F.DEF_LOOK, help: "norm", lv3: 1, sound: 1, preset: "salon", lat: 0, music: "donau", fx: [null, null, null, null, null, null, null, null], best: 0, bestTrain: 0, runs: 0, flowers: 0, toys: 0, album: [] };
+  const DEF = { v: 1, prog: null, name: "", nat: "AUT", look: F.DEF_LOOK, help: "norm", lv3: 1, progAuto: true, sound: 1, preset: "salon", lat: 0, music: "donau", fx: [null, null, null, null, null, null, null, null], best: 0, bestTrain: 0, runs: 0, flowers: 0, toys: 0, album: [] };
   function sanitize(o) {
     const S = Object.assign({}, DEF, { look: F.cleanLook(null), prog: K.DEFAULT_SLOTS.slice(), album: [] });
     if (o && typeof o === "object") {
@@ -2865,6 +2866,7 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
       if (M.PRESETS[o.preset]) S.preset = o.preset;
       if (Number.isFinite(o.lat)) S.lat = clamp(Math.round(o.lat / 10) * 10, -200, 400);
       S.prog = K.cleanSlots(o.prog);
+      S.progAuto = typeof o.progAuto === "boolean" ? o.progAuto : S.prog.join() === K.DEFAULT_SLOTS.join();
       if (M.KUER.includes(o.music)) S.music = o.music;
       S.fx = K.cleanFx(o.fx);
       S.album = Array.isArray(o.album) ? o.album.filter((a) => a && typeof a.img === "string" && a.img.startsWith("data:image/jpeg;base64,") && a.img.length < 250000)
@@ -3000,6 +3002,8 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
   };
   const LV = () => LEVELS[S.help] || LEVELS.norm;
   const kHelp = () => LV().k;
+  // Choreo-Note: ein Vorschlag bekommt höchstens 8, selbst geändert bis 9, nur als Experte bis 10
+  const planCap = () => (LV().own ? 10 : S.progAuto ? 8 : 9);
   function songTime() {
     if (!run) return 0;
     if (run.fake) return run.fakeT;
@@ -3024,7 +3028,7 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
   function startRun(mode, opt) {
     opt = opt || {};
     const fake = !!opt.fake || testMode || !player;
-    useMusic(); PROG = K.buildProgram(S.prog, SCORE.id); PROG.look = S.look; PROG.fx = S.fx.slice();
+    useMusic(); PROG = K.buildProgram(S.prog, SCORE.id); PROG.look = S.look; PROG.fx = S.fx.slice(); PROG.planCap = planCap();
     const lv = LV(), bt = M.grid(SCORE, Math.round(SCORE.bpm * lv.tempo), true);
     run = { mode, lv, bt, marks: buildMarks(bt), inputs: [], fake, fakeT: -0.6, lastT: 0, done: {}, pops: [], p: 0, camX: WW / 2 - W / 2,
       dir: 1, face: 0, trail: [], trailT: 0, turn: 0, spinV: 0, jump: null, fallUntil: -1, landUntil: -1, lastSwipe: null, posed: false, finished: false, k: kHelp(), paint: { pts: [], marks: [], t: 0 }, sparks: [], burstQ: 0, lastQ: null, pos: null, intensity: 0.6, cheer: 0, burst: 0, streak: 0, bestStreak: 0, accI: 0, throws: null, intT: 0, seed: (Date.now() & 0xffff) || 7 };
@@ -4200,7 +4204,7 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
     useMusic();
     const bt = M.grid(SCORE, SCORE.bpm, true), sl = S.prog, sec = K.SECTIONS[SCORE.id], moods = K.MOODS[SCORE.id];
     if (sl[pSel] === "~") pSel--;
-    const pl = K.plan(sl, S.look, SCORE.id, S.fx), cur = sl[pSel], curC = cur ? CAT[cur] : null, fit = moods[pSel][1], peak = (sec.peak || []).includes(pSel);
+    const pl = K.plan(sl, S.look, SCORE.id, S.fx, planCap()), cur = sl[pSel], curC = cur ? CAT[cur] : null, fit = moods[pSel][1], peak = (sec.peak || []).includes(pSel);
     if (!pCat) { // beim Wechsel des Abschnitts: Art und Sprung-Einstellungen vom gewählten Element übernehmen
       pCat = curC ? (curC.kind === "glide" ? "none" : curC.kind) : fit[0];
       if (curC && curC.kind === "jump") { pRot = curC.rot; pCombo = curC.combo ? curC.combo[1].replace(/^\d/, "") : ""; }
@@ -4227,7 +4231,7 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
     $("pShow").querySelectorAll("[data-fx]").forEach((b) => (b.onclick = () => {
       const f = b.dataset.fx, a = S.fx.slice(); a[pSel] = a[pSel] === f ? null : f;
       if (a.filter(Boolean).length > K.FX_MAX) return;
-      S.fx = a; save(); fillProg();
+      S.fx = a; S.progAuto = false; save(); fillProg();
     }));
     // rechts: Art wählen
     $("pCats").innerHTML = CATS.map(([k, ic, nm]) => `<button class="cat${pCat === k ? " on" : ""}${fit.includes(k) ? " fit" : ""}" data-cat="${k}"><span>${ic}</span>${nm}</button>`).join("");
@@ -4258,7 +4262,7 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
     $("pOpts").innerHTML = o; $("pTweak").innerHTML = tw;
     $("pOpts").querySelectorAll(".el").forEach((b) => (b.onclick = () => {
       const a = assign(S.prog, pSel, b.dataset.id || null); if (!a) return;
-      S.prog = a; save();
+      S.prog = a; S.progAuto = false; save();
       const step = a[pSel] === "StSq" ? 2 : 1; if (pSel + step < a.length) { pSel += step; pCat = null; }
       fillProg();
     }));
@@ -4279,9 +4283,9 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
       C.querySelectorAll(".muC").forEach((b) => (b.onclick = () => { const was = SCORE.id; S.music = b.dataset.mu; save(); if (listenOn && was !== S.music) listen(true); pCat = null; pSheet = null; fillProg(); }));
       C.querySelectorAll(".muPlay").forEach((b) => (b.onclick = (ev) => { ev.stopPropagation(); const same = listenOn && SCORE.id === b.dataset.mu; S.music = b.dataset.mu; save(); pCat = null; listen(!same); }));
     } else {
-      C.innerHTML = `<div class="kicker">CHOREO-NOTE ${dec(pl.total)} VON 10</div><div class="noteTab"><div class="lookBox"><canvas id="pFig" width="180" height="220"></canvas><button class="mid" id="pLook">Kostüm ändern</button></div><div class="plList">`
+      C.innerHTML = `<div class="kicker">CHOREO-NOTE ${dec(pl.total)} · HÖCHSTENS ${pl.cap}</div><div class="noteTab"><div class="lookBox"><canvas id="pFig" width="180" height="220"></canvas><button class="mid" id="pLook">Kostüm ändern</button></div><div class="plList">`
         + pl.parts.map((x) => `<div class="plRow"><span>${esc(x.name)}</span><i style="--v:${x.v * 10}%"></i><b>${dec(x.v)}</b><em>${esc(x.why)}</em></div>`).join("") + `</div></div>`
-        + `<div class="shFoot"><span>Wie im Tanzsport: Musik, Aufbau, Abwechslung und Kostüm zählen zur Komposition.</span></div>`;
+        + `<div class="shFoot"><span>${pl.raw > pl.total ? `Dein Plan wäre ${dec(pl.raw)} wert – ` : ""}${pl.cap === 8 ? "Ein Vorschlag bekommt höchstens 8. Ändere selbst etwas, dann geht es bis 9; nur als Experte bis 10." : pl.cap === 9 ? "Selbst choreografiert: bis 9. Die 9,5 bis 10 gibt es nur als Experte." : "Experte: die volle Choreo-Note bis 10."}</span></div>`;
       const fc = $("pFig").getContext("2d"); fc.clearRect(0, 0, 180, 220); F.draw(fc, { x: 90, y: 200, s: 1.9, dir: 1, pose: F.POSES.final, turn: 0.5, look: S.look });
       $("pLook").onclick = () => openLook(() => { fillProg(); show("scrProg"); });
     }
@@ -4315,12 +4319,12 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
   // Kürplan im Menü: das Herz der Kür – Stück, Choreo-Note und die acht Abschnitte auf einen Blick
   function fillPlanCard() {
     useMusic();
-    const sl = K.cleanSlots(S.prog), pl = K.plan(sl, S.look, SCORE.id, S.fx);
+    const sl = K.cleanSlots(S.prog), pl = K.plan(sl, S.look, SCORE.id, S.fx, planCap());
     $("mPiece").textContent = `♪ ${SCORE.short}`; $("mNote").textContent = `Choreo-Note ${dec(pl.total)}`;
     $("mStrip").innerHTML = sl.map((id) => { if (id === "~") return ""; const c = CAT[id]; return `<span class="ms ${c ? c.kind : "empty"}">${c ? KIND[c.kind][0] : ""}</span>`; }).join("");
   }
   $("bProg").onclick = () => { if (listenOn) listen(false); pSel = 0; pCat = null; pSheet = null; const c = CAT[S.prog[0]]; if (c && c.kind === "jump") { pRot = c.rot; pCombo = c.combo ? c.combo[1].slice(1) : ""; } fillProg(); show("scrProg"); };
-  $("pDef").onclick = () => { if (LV().own) return; useMusic(); S.prog = K.suggest(SCORE.id, S.look, Math.random, S.prog); save(); fillProg(); }; // jedes Mal ein anderer Plan, passend zum Stück
+  $("pDef").onclick = () => { if (LV().own) return; useMusic(); S.prog = K.suggest(SCORE.id, S.look, Math.random, S.prog); S.progAuto = true; save(); fillProg(); }; // jedes Mal ein anderer Plan, passend zum Stück
   $("pDone").onclick = () => { if (listenOn) listen(false); fillPlanCard(); show("scrMenu"); };
 
   // Einstellungen
