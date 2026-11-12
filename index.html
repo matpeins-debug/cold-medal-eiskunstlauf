@@ -421,6 +421,9 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
 .card.res .els td.e i { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .card.res .els td.n { width: 42px; }
 .card.res .els td.g { width: 30px; }
+.intro .own { margin: 0; text-align: center; color: #F3D58A; font-style: italic; font-size: 12.5px; }
+#pDef:disabled { opacity: 0.55; cursor: default; font-size: 11px; }
+.srow.sub { font-size: 11px; font-style: italic; opacity: 0.75; margin-top: -4px; }
 </style>
 </head>
 <body>
@@ -518,6 +521,7 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
     <div class="card">
       <div class="kicker">EINSTELLUNGEN</div>
       <div class="srow">Stufe <span class="opts" id="sHelp"></span></div>
+      <div class="srow sub" id="sHelpTxt"></div>
       <div class="srow">Klang <span class="opts" id="sPreset"></span></div>
       <div class="srow">Ton <span class="opts" id="sSound"></span></div>
       <div class="srow">Verzögerung <span class="opts"><button class="pill" id="sLm">−</button><b class="num" id="sLat"></b><button class="pill" id="sLp">+</button></span></div>
@@ -539,6 +543,7 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
         <div class="lane"><i class="tk"></i><i class="tk one"></i><i class="st"></i><i class="tk"></i><i class="ring"></i><i class="sym">●</i><i class="tk one"></i><i class="tk"></i></div>
         <p><b>Das Taktband</b> Alles kommt von rechts in den <em>goldenen Ring</em>. Gedrückt wird genau dann – bei den farbigen Zeichen und bei den kleinen <em>weißen Ringen</em> (Abstoß, gibt Schwung). Die feinen Striche zählen nur den Takt.</p>
       </div>
+      <p class="own" id="iOwn" hidden>✦ Experte: Du choreografierst selbst. Belege im Kürplan alle acht Abschnitte – die Choreo-Note zählt doppelt.</p>
       <button class="big red go" id="iGo"><span>Los</span></button>
     </div>
   </section>
@@ -1105,9 +1110,9 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
 
   // Auswertung des Timings (Abweichungen in ms, + = zu spät): für jedes Ergebnis im Spiel
   // mean = durchschnittliche Abweichung (Betrag), bias = Tendenz (mit Vorzeichen), hits = Anteil im Fenster
-  const TIMING = { perfect: 60, good: 120 };
-  function timingStats(ms) {
-    const n = ms.length;
+  const TIMING0 = { perfect: 60, good: 120 }, TIMING = TIMING0;
+  function timingStats(ms, k) {
+    const n = ms.length, TIMING = { perfect: Math.round(TIMING0.perfect * (k || 1)), good: Math.round(TIMING0.good * (k || 1)) }; // Stufe: k weitet oder verengt die Grenzen
     if (!n) return null;
     const sum = (f) => ms.reduce((a, x) => a + f(x), 0);
     const mean = Math.round(sum(Math.abs) / n), bias = Math.round(sum((x) => x) / n);
@@ -1567,12 +1572,12 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
     const tes = r2(els.reduce((s, x) => s + x.score, 0));
     const falls = els.filter((x) => x.status === "fall").length;
     const all = [].concat(...els.map((x) => x.devs));
-    const tim = root.EKMusic ? root.EKMusic.timingStats(all) : null;
+    const tim = root.EKMusic ? root.EKMusic.timingStats(all, k) : null;
     const scored = els.filter((x) => x.kind !== "pose" && x.kind !== "expr" && x.kind !== "glide" && !x.inCombo), done = scored.filter((x) => x.status !== "miss").length / scored.length;
     const meanDev = all.length ? mean(all) : 400, pose = els.find((x) => x.kind === "pose");
     // Komposition: die geplante Choreografie (Musik, Bogen, Abwechslung, Kostüm) zählt bis 1,5 Punkte, Höhepunkt genutzt 0,25
     const strokes = judgeStrokes(prog, bt, inp, k);
-    const pl = plan(prog.slots || [], prog.look, prog.music, prog.fx), variety = pl.total * 0.15 + (els.some((x) => x.peak) ? 0.25 : 0);
+    const pl = plan(prog.slots || [], prog.look, prog.music, prog.fx), variety = pl.total * (level.choreo || 0.15) + (els.some((x) => x.peak) ? 0.25 : 0);
     const pcs = {
       comp: q4(clamp(3 + 4.5 * done + (pose && pose.status === "ok" ? 1.25 : 0) - 0.75 * falls + variety, 1.5, 9.75)),
       pres: 0,
@@ -2826,7 +2831,7 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
 /* COLD MEDAL EISKUNSTLAUF – Ablauf, Bildschirme, Eingabe, Taktband, Ergebnis, Spielstand. */
 (function () {
   "use strict";
-  const VERSION = "0.29";
+  const VERSION = "0.30";
   // Seiten-Einstellungen aus dem Build (eigenes Hosting: Adresse, Hoster, Impressum); im claude.ai-Artefakt leer
   const SITE = Object.assign({ web: false, url: "", impressum: null }, {"web": true, "url": "https://matpeins-debug.github.io/cold-medal-eiskunstlauf/", "hoster": "GitHub Pages (GitHub Inc., USA)", "drittland": "GitHub ist nach dem EU-US Data Privacy Framework zertifiziert; die Übermittlung in die USA stützt sich auf den Angemessenheitsbeschluss der EU-Kommission dazu.", "impressum": {"name": "", "adresse": "", "mail": ""}} || {});
   const M = window.EKMusic, K = window.EKSkate, F = window.EKFig, SC = window.EKScene;
@@ -2984,9 +2989,9 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
   // Stufen: Anfänger langsamer, weite Fenster, kein Sturz, Wertung ×0,8; Normal; Experte schneller, enge Fenster,
   // keine Zeichen über der Läuferin und keine Hinweise, Wertung ×1,15. Die Gegnerinnen werden genauso umgerechnet.
   const LEVELS = {
-    anf: { name: "Anfänger", k: 1.45, tempo: 0.9, cues: true, hints: "immer", falls: false, factor: 0.8 },
-    norm: { name: "Normal", k: 1, tempo: 1, cues: true, hints: "start", falls: true, factor: 1 },
-    pro: { name: "Experte", k: 0.72, tempo: 1.06, cues: false, hints: "nie", falls: true, factor: 1.15 },
+    anf: { name: "Anfänger", k: 1.45, tempo: 0.9, cues: true, hints: "immer", falls: false, factor: 0.8, choreo: 0.1 },
+    norm: { name: "Normal", k: 1, tempo: 1, cues: true, hints: "start", falls: true, factor: 1, choreo: 0.15 },
+    pro: { name: "Experte", k: 0.72, tempo: 1.06, cues: false, hints: "nie", falls: true, factor: 1.15, choreo: 0.3, own: true }, // Experte: ohne Vorschlag, jeder Abschnitt selbst belegt, Choreo-Note zählt doppelt
   };
   const LV = () => LEVELS[S.help] || LEVELS.norm;
   const kHelp = () => LV().k;
@@ -3175,7 +3180,7 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
     }
     if (inp.type === "swipe") r.lastSwipe = { dir: inp.dir, t: inp.t };
     if (!best) return;
-    const ms = Math.round(best.d * 1000), T = M.TIMING, a = Math.abs(ms);
+    const ms = Math.round(best.d * 1000), T = { perfect: M.TIMING.perfect * k, good: M.TIMING.good * k }, a = Math.abs(ms); // Grenzen wachsen und schrumpfen mit der Stufe
     const word = !best.ok ? "Falsche Richtung" : a <= T.perfect ? "Perfekt" : a <= T.good ? "Gut" : ms < 0 ? "Zu früh" : "Zu spät";
     // Serie, Orchester und Publikum folgen der Leistung
     const q = !best.ok ? 0 : a <= T.perfect ? 1 : a <= T.good ? 0.6 : 0.15;
@@ -3489,9 +3494,11 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
     ctx.globalAlpha = 1;
     // Trefferring in der Mitte statt einer Linie: hier kommen die Zeichen an, hier steht auch die Rückmeldung
     {
-      const nbx = nearBeat(t), pu = clamp(1 - Math.abs(nbx.d) / 0.12, 0, 1), yc = y0 + h / 2;
-      ctx.fillStyle = "rgba(20,27,37,0.55)"; ctx.beginPath(); ctx.arc(px, yc, 19, 0, 7); ctx.fill();
-      ctx.strokeStyle = `rgba(243,201,105,${0.55 + 0.45 * pu})`; ctx.lineWidth = 2.5 + 1.5 * pu; ctx.beginPath(); ctx.arc(px, yc, 17 + 2 * pu, 0, 7); ctx.stroke();
+      // Größe ehrlich in Zeit: Ring = „gut“ (±120 ms × Stufe), feiner Innenring = „perfekt“ (±60 ms × Stufe)
+      const nbx = nearBeat(t), pu = clamp(1 - Math.abs(nbx.d) / 0.12, 0, 1), yc = y0 + h / 2, rg = M.TIMING.good / 1000 * run.k * pps, rp = M.TIMING.perfect / 1000 * run.k * pps;
+      ctx.fillStyle = "rgba(20,27,37,0.55)"; ctx.beginPath(); ctx.arc(px, yc, rg + 2, 0, 7); ctx.fill();
+      ctx.strokeStyle = "rgba(255,236,170,0.45)"; ctx.lineWidth = 1; ctx.beginPath(); ctx.arc(px, yc, rp, 0, 7); ctx.stroke();
+      ctx.strokeStyle = `rgba(243,201,105,${0.55 + 0.45 * pu})`; ctx.lineWidth = 2.5 + 1.5 * pu; ctx.beginPath(); ctx.arc(px, yc, rg + 2 * pu, 0, 7); ctx.stroke();
     }
     // Hinweis zum nächsten Element
     const nx = PROG.elements.find((e) => { const [a, b] = elWindow(e, bt); return b > t && a - 2.6 < t; });
@@ -3636,8 +3643,9 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
     if (!(run.meter && run.meter.length)) return;
     ctx.fillStyle = "rgba(15,23,48,0.75)"; ctx.fillRect(x - 6, y - 13, w + 12, h + 17);
     const X = (ms) => x + w / 2 + clamp(ms / R, -1, 1) * w / 2;
-    ctx.fillStyle = "rgba(143,211,160,0.28)"; ctx.fillRect(X(-M.TIMING.good), y, X(M.TIMING.good) - X(-M.TIMING.good), h);
-    ctx.fillStyle = "rgba(243,201,105,0.45)"; ctx.fillRect(X(-M.TIMING.perfect), y, X(M.TIMING.perfect) - X(-M.TIMING.perfect), h);
+    const G = M.TIMING.good * run.k, Pf = M.TIMING.perfect * run.k;
+    ctx.fillStyle = "rgba(143,211,160,0.28)"; ctx.fillRect(X(-G), y, X(G) - X(-G), h);
+    ctx.fillStyle = "rgba(243,201,105,0.45)"; ctx.fillRect(X(-Pf), y, X(Pf) - X(-Pf), h);
     ctx.fillStyle = "#FFF4D6"; ctx.fillRect(x + w / 2 - 0.75, y - 2, 1.5, h + 4);
     ctx.font = "600 9px " + font(); ctx.fillStyle = "rgba(241,231,210,0.7)"; ctx.textBaseline = "alphabetic";
     ctx.textAlign = "left"; ctx.fillText("FRÜH", x, y - 3); ctx.textAlign = "right"; ctx.fillText("SPÄT", x + w, y - 3); ctx.textAlign = "center"; ctx.fillText("IM TAKT", x + w / 2, y - 3);
@@ -4058,8 +4066,11 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
     $("mFoot").textContent = `Version ${VERSION} · inoffizielles Fanspiel`;
   }
   let pendingMode = "comp";
+  // Experte choreografiert selbst: erst wenn alle acht Abschnitte belegt sind, geht es aufs Eis
+  const needOwn = () => LV().own && S.prog.some((x) => !x);
   function intro(mode) {
     pendingMode = mode;
+    $("iOwn").hidden = !needOwn(); $("iGo").querySelector("span").textContent = needOwn() ? "Zum Kürplan" : "Los";
     $("iKick").textContent = mode === "comp" ? "KÜR · WETTKAMPF · WIEN" : "TRAINING · WIEN";
     const d = canHover();
     $("hJump").textContent = (d ? "Leertaste bei ● drücken, halten, bei ○ loslassen." : "Bei ● drücken, halten, bei ○ loslassen.") + (PROG.elements.some((e) => e.part) ? " Kombination: gleich das nächste ●." : "");
@@ -4070,7 +4081,7 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
   }
   $("bComp").onclick = () => { unlock(); if (!S.name) { openLook(() => intro("comp")); return; } intro("comp"); };
   $("bTrain").onclick = () => { unlock(); intro("train"); };
-  $("iGo").onclick = () => { unlock(); startRun(pendingMode); };
+  $("iGo").onclick = () => { unlock(); if (needOwn()) { $("bProg").onclick(); return; } startRun(pendingMode); };
   $("abort").onclick = abortRun;
   $("rHonor").onclick = () => { if (!run || !run.finished) return; unlock(); startHonor(run); if (run.honor) run.honor.title = run.honorTitle || ""; };
   $("rAgain").onclick = () => { unlock(); startRun(run ? run.mode : "comp"); };
@@ -4180,6 +4191,7 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
     return esc(c.name);
   }
   function fillProg() {
+    $("pDef").disabled = !!LV().own; $("pDef").textContent = LV().own ? "Experte: selbst" : "Vorschlag"; $("pDef").title = LV().own ? "Als Experte choreografierst du alles selbst – die Choreo-Note zählt doppelt." : "";
     useMusic();
     const bt = M.grid(SCORE, SCORE.bpm, true), sl = S.prog, sec = K.SECTIONS[SCORE.id], moods = K.MOODS[SCORE.id];
     if (sl[pSel] === "~") pSel--;
@@ -4303,13 +4315,14 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
     $("mStrip").innerHTML = sl.map((id) => { if (id === "~") return ""; const c = CAT[id]; return `<span class="ms ${c ? c.kind : "empty"}">${c ? KIND[c.kind][0] : ""}</span>`; }).join("");
   }
   $("bProg").onclick = () => { if (listenOn) listen(false); pSel = 0; pCat = null; pSheet = null; const c = CAT[S.prog[0]]; if (c && c.kind === "jump") { pRot = c.rot; pCombo = c.combo ? c.combo[1].slice(1) : ""; } fillProg(); show("scrProg"); };
-  $("pDef").onclick = () => { useMusic(); S.prog = K.suggest(SCORE.id, S.look, Math.random, S.prog); save(); fillProg(); }; // jedes Mal ein anderer Plan, passend zum Stück
+  $("pDef").onclick = () => { if (LV().own) return; useMusic(); S.prog = K.suggest(SCORE.id, S.look, Math.random, S.prog); save(); fillProg(); }; // jedes Mal ein anderer Plan, passend zum Stück
   $("pDone").onclick = () => { if (listenOn) listen(false); fillPlanCard(); show("scrMenu"); };
 
   // Einstellungen
   function fillSet() {
     const pills = (id, list, cur, set) => { const el = $(id); el.innerHTML = ""; for (const [v, t] of list) { const b = document.createElement("button"); b.className = "pill" + (v === cur ? " on" : ""); b.textContent = t; b.onclick = () => { set(v); save(); fillSet(); }; el.appendChild(b); } };
     pills("sHelp", [["anf", "Anfänger"], ["norm", "Normal"], ["pro", "Experte"]], S.help, (v) => (S.help = v));
+    $("sHelpTxt").textContent = { anf: "langsamer, weite Fenster, kein Sturz, Hinweise immer · Wertung ×0,8", norm: "Original-Tempo, Hinweise am Anfang, Vorschlag im Kürplan · Wertung ×1", pro: "schneller, enge Fenster, keine Zeichen über der Läuferin; Kür selbst choreografieren, Choreo-Note zählt doppelt · Wertung ×1,15" }[S.help] || "";
     pills("sPreset", Object.entries(M.PRESETS).map(([k, v]) => [k, v.name]), S.preset, (v) => (S.preset = v));
     pills("sSound", [[1, "An"], [0, "Aus"]], S.sound, (v) => (S.sound = v));
     $("sLat").textContent = nb(`${S.lat} ms`);
