@@ -277,6 +277,23 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
 .piece b { overflow: visible; }
 .piece i { font-size: 13px; }
 #oHair .pill, #oBeard .pill { font-size: 10.5px; padding: 4px 6px; letter-spacing: 0.03em; }
+/* Abspielkopf über Melodie und Abschnitten */
+.progWrap { position: relative; display: flex; flex-direction: column; gap: 7px; }
+.phead { position: absolute; top: -4px; bottom: -4px; width: 0; pointer-events: none; z-index: 2; }
+.phead[hidden] { display: none; }
+.phead::before { content: ""; position: absolute; top: 0; bottom: 0; left: -1px; width: 2px; background: #FFF4D6; box-shadow: 0 0 8px rgba(255,236,170,0.9), 0 0 2px #F3C969; }
+.phead i { position: absolute; top: -3px; left: -5px; width: 10px; height: 10px; border-radius: 50%; background: #F3C969; box-shadow: 0 0 8px rgba(243,201,105,0.9); }
+/* Show-Effekte */
+.showRow { display: flex; align-items: center; gap: 4px; margin-top: 4px; white-space: nowrap; }
+.showRow small { margin-right: 2px; }
+.showRow .tg { font-size: 10px; padding: 3px 6px; }
+.showRow .tg:disabled { opacity: 0.3; }
+.fxB { position: absolute; right: 5px; bottom: 3px; font-style: normal; font-size: 12px; color: #F3C969; text-shadow: 0 0 6px rgba(243,201,105,0.8); }
+.fxB.r2 { right: calc(50% + 5px); }
+.choose .showRow { margin-top: auto; padding-top: 6px; border-top: 1px solid rgba(243,201,105,0.2); gap: 6px; }
+.choose .showRow small { font-family: var(--font-display); font-size: 10px; letter-spacing: 0.12em; color: #F3C969; margin-right: 4px; }
+.choose .showRow .tg { font-size: 11px; padding: 3px 9px; }
+.choose .showRow em { margin-left: auto; font-style: normal; font-family: var(--font-display); font-size: 11px; color: rgba(241,231,210,0.6); }
 </style>
 </head>
 <body>
@@ -334,11 +351,14 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
         <div class="sTitle"><div class="kicker">MEINE KÜR</div><button class="piece" id="pPiece"></button><button class="playBtn" id="pPlay" aria-label="Musik anhören"><svg viewBox="0 0 44 44"><circle class="trk" cx="22" cy="22" r="19.5"/><circle class="prg" id="pPrg" cx="22" cy="22" r="19.5"/><path class="ico" id="pIco" d="M18 14 L31 22 L18 30 Z"/></svg></button><span class="ptime" id="pTime"></span></div>
         <div class="sActs"><button class="noteBtn" id="pNoteBtn"><small>CHOREO-NOTE</small><b id="pNote"></b></button><button class="mid" id="pDef">Vorschlag</button><button class="mid red" id="pDone">Fertig</button></div>
       </div>
-      <div class="band"><canvas id="pBand"></canvas></div>
-      <div class="tl" id="tl"></div>
+      <div class="progWrap">
+        <div class="band"><canvas id="pBand"></canvas></div>
+        <div class="tl" id="tl"></div>
+        <div class="phead" id="pHead" hidden><i></i></div>
+      </div>
       <div class="sBody">
         <div class="secCol" id="pSec"></div>
-        <div class="choose"><div class="cats" id="pCats"></div><div class="opts2" id="pOpts"></div><div class="tweak" id="pTweak"></div></div>
+        <div class="choose"><div class="cats" id="pCats"></div><div class="opts2" id="pOpts"></div><div class="tweak" id="pTweak"></div><div class="showRow" id="pShow"></div></div>
       </div>
       <div class="sheet" id="pSheet" hidden><button class="x" id="pSheetX">✕</button><div id="pSheetC"></div></div>
     </div>
@@ -954,7 +974,14 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
     wellen: { fit: [10, 5, 4, 7, 8, 9], best: "leidenschaftlich: Rot oder Nachtblau, Violett" },
     brahms: { fit: [3, 9, 7, 6, 10, 8], best: "zart: Violett, Blau oder Nachtblau" },
   };
-  function plan(slots, look, music) {
+  // Show-Effekte je Abschnitt (höchstens 3): Lasershow, Feuerwerk, Kostümwechsel (Farben von Kostüm und Streifen tauschen)
+  const FX = { laser: "Lasershow", fire: "Feuerwerk", swap: "Kostümwechsel" }, FX_MAX = 3;
+  function cleanFx(a) {
+    const o = [null, null, null, null, null, null, null, null];
+    if (Array.isArray(a)) { let n = 0; a.slice(0, 8).forEach((x, i) => { if (FX[x] && n < FX_MAX) { o[i] = x; n++; } }); }
+    return o;
+  }
+  function plan(slots, look, music, fx) {
     music = SECTIONS[music] ? music : "donau";
     const moods = MOODS[music], sec = SECTIONS[music], ids = slots.map((x) => (x === "~" ? "~" : x));
     const kindAt = (i) => { let id = ids[i]; if (id === "~") id = ids[i - 1]; return id && CATALOG[id] ? CATALOG[id].kind : null; };
@@ -969,6 +996,17 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
     if (best >= 4 || (sec.peak || []).includes(best)) arc += 3; else if (best >= 0) arcWhy.push("das stärkste Element kommt früh");
     if (ids[ids.length - 1]) arc += 2; else arcWhy.push("am Schluss nur Gleiten");
     if (ids[0] && val(ids[0]) > bv * 0.9 && best > 0 && bv > 2) { arc -= 1; arcWhy.push("gleich am Anfang das Schwerste"); } else arc += 1;
+    // Show: Feuerwerk am Höhepunkt oder zum Schluss, Laser in lebhaften Abschnitten, Kostümwechsel in der Mitte
+    const lively = (i) => moods[i][1].includes("steps") || moods[i][1].includes("jump");
+    let showGood = 0, showBad = 0;
+    (fx || []).forEach((f, i) => {
+      if (!f) return;
+      const okF = f === "fire" ? (sec.peak || []).includes(i) || i === sec.n - 1 : f === "laser" ? lively(i) : i >= 2 && i <= 5;
+      if (okF) showGood++; else showBad++;
+    });
+    arc += 0.5 * showGood - 0.75 * showBad;
+    if (showBad) arcWhy.unshift("ein Show-Effekt passt nicht zur Stelle (Feuerwerk an den Höhepunkt oder ans Ende)");
+    else if (showGood) arcWhy.push("Show-Effekte an der richtigen Stelle");
     // 3 Abwechslung: Arten von Elementen, keine gleichen Nachbarn, verschiedene Choreo-Figuren
     const kinds = new Set(ids.filter((x) => x && x !== "~").map((x) => CATALOG[x].kind));
     let same = 0; for (let i = 1; i < ids.length; i++) if (ids[i] && ids[i] !== "~" && ids[i] === ids[i - 1]) same++;
@@ -1165,7 +1203,7 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
     const scored = els.filter((x) => x.kind !== "pose" && x.kind !== "expr" && !x.inCombo), done = scored.filter((x) => x.status !== "miss").length / scored.length;
     const meanDev = all.length ? mean(all) : 400, pose = els.find((x) => x.kind === "pose");
     // Komposition: die geplante Choreografie (Musik, Bogen, Abwechslung, Kostüm) zählt bis 1,5 Punkte, Höhepunkt genutzt 0,25
-    const pl = plan(prog.slots || [], prog.look, prog.music), variety = pl.total * 0.15 + (els.some((x) => x.peak) ? 0.25 : 0);
+    const pl = plan(prog.slots || [], prog.look, prog.music, prog.fx), variety = pl.total * 0.15 + (els.some((x) => x.peak) ? 0.25 : 0);
     const pcs = {
       comp: q4(clamp(3 + 4.5 * done + (pose && pose.status === "ok" ? 1.25 : 0) - 0.75 * falls + variety, 1.5, 9.75)),
       pres: 0,
@@ -1211,7 +1249,7 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
     });
   }
 
-  root.EKSkate = { PROGRAMS, CATALOG, RULES, SECTIONS, DEFAULT_SLOTS, check, cleanSlots, buildProgram, plan, MOODS, COSTUME, MUSIC_NAME, maxBase, WIN, judge, goeFrom, perfectInputs, field, PCS_FACTOR };
+  root.EKSkate = { PROGRAMS, CATALOG, RULES, SECTIONS, DEFAULT_SLOTS, check, cleanSlots, buildProgram, plan, MOODS, COSTUME, MUSIC_NAME, FX, FX_MAX, cleanFx, maxBase, WIN, judge, goeFrom, perfectInputs, field, PCS_FACTOR };
 })(typeof window !== "undefined" ? window : globalThis);
 
 /* Cold Medal Games · gemeinsame Figur (figur/figur.js, global CMFigur)
@@ -1868,6 +1906,9 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
     twizzle: { lean: 0, crouch: 2, sL: [0, 2], fL: [18, 60], aF: [150, 8], aB: [150, 8] },
     handDown: { lean: 30, crouch: 8, sL: [30, 70], fL: [-70, 10], aF: [20, 0], aB: [-120, -10] },
     bow: { lean: 48, crouch: 3, sL: [4, 10], fL: [-24, 6], aF: [40, 10], aB: [-150, -10] },
+    // langes Gleiten auf einer Kante zwischen zwei Abstößen: Spielbein lang nach hinten, Arme weit, wiegend
+    glideArc: { lean: 9, crouch: 2, sL: [2, 7], fL: [-76, 2], aF: [122, -8], aB: [-124, -8], hd: -4 },
+    glideArc2: { lean: 6, crouch: 1, sL: [0, 3], fL: [-84, 0], aF: [96, -24], aB: [-146, -4], hd: -9 },
     fallen: { lean: 10, crouch: 2, sL: [30, 60], fL: [-10, 50], aF: [60, 30], aB: [-30, 40] },
   };
 
@@ -2210,7 +2251,7 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
 /* COLD MEDAL EISKUNSTLAUF – Ablauf, Bildschirme, Eingabe, Taktband, Ergebnis, Spielstand. */
 (function () {
   "use strict";
-  const VERSION = "0.14";
+  const VERSION = "0.15";
   // Seiten-Einstellungen aus dem Build (eigenes Hosting: Adresse, Hoster, Impressum); im claude.ai-Artefakt leer
   const SITE = Object.assign({ web: false, url: "", impressum: null }, {"web": true, "url": "https://matpeins-debug.github.io/cold-medal-eiskunstlauf/", "hoster": "GitHub Pages (GitHub Inc., USA)", "drittland": "GitHub ist nach dem EU-US Data Privacy Framework zertifiziert; die Übermittlung in die USA stützt sich auf den Angemessenheitsbeschluss der EU-Kommission dazu.", "impressum": {"name": "", "adresse": "", "mail": ""}} || {});
   const M = window.EKMusic, K = window.EKSkate, F = window.EKFig, SC = window.EKScene;
@@ -2230,7 +2271,7 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
 
   // ------------------------------------------------------------------ Spielstand (nur auf diesem Gerät; Aussehen zieht später in pass/ um)
   const KEY = "coldmedal-eiskunstlauf";
-  const DEF = { v: 1, prog: null, name: "", nat: "AUT", look: F.DEF_LOOK, help: "anf", sound: 1, preset: "salon", lat: 0, music: "donau", best: 0, bestTrain: 0, runs: 0, flowers: 0, toys: 0, album: [] };
+  const DEF = { v: 1, prog: null, name: "", nat: "AUT", look: F.DEF_LOOK, help: "anf", sound: 1, preset: "salon", lat: 0, music: "donau", fx: [null, null, null, null, null, null, null, null], best: 0, bestTrain: 0, runs: 0, flowers: 0, toys: 0, album: [] };
   function sanitize(o) {
     const S = Object.assign({}, DEF, { look: F.cleanLook(null), prog: K.DEFAULT_SLOTS.slice(), album: [] });
     if (o && typeof o === "object") {
@@ -2243,6 +2284,7 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
       if (Number.isFinite(o.lat)) S.lat = clamp(Math.round(o.lat / 10) * 10, -200, 400);
       S.prog = K.cleanSlots(o.prog);
       if (M.KUER.includes(o.music)) S.music = o.music;
+      S.fx = K.cleanFx(o.fx);
       S.album = Array.isArray(o.album) ? o.album.filter((a) => a && typeof a.img === "string" && a.img.startsWith("data:image/jpeg;base64,") && a.img.length < 250000)
         .slice(0, 8).map((a) => ({ img: a.img, date: String(a.date || "").slice(0, 12), score: String(a.score || "").slice(0, 12), venue: String(a.venue || "").slice(0, 40) })) : [];
       for (const k of ["best", "bestTrain", "runs", "flowers", "toys"]) if (Number.isFinite(o[k]) && o[k] >= 0) S[k] = +o[k];
@@ -2323,6 +2365,11 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
     if (kind === "land") burst(t, 0.35, 3200, 0.8, 0.22);
     else if (kind === "fall") { burst(t, 0.25, 180, 0.7, 0.5, "lowpass"); burst(t + 0.05, 0.5, 2200, 0.6, 0.15); }
     else if (kind === "applause") { const n = Math.round(60 + 200 * (lvl === undefined ? 1 : lvl)); for (let i = 0; i < n; i++) burst(t + Math.random() * 3.6 * Math.sqrt(Math.random()), 0.05, 1500 + Math.random() * 2500, 1.2, 0.04 + Math.random() * 0.05); }
+    else if (kind === "boom") {
+      // Feuerwerk: dumpfer Knall, danach Knistern
+      burst(t, 1.1, 120, 0.7, 0.55, "lowpass"); burst(t, 0.05, 1800, 1, 0.12);
+      for (let i = 0; i < 16; i++) burst(t + 0.25 + Math.random() * 0.9, 0.015, 3000 + Math.random() * 3000, 2, 0.05 + Math.random() * 0.05);
+    }
     else if (kind === "gong") {
       // Lautsprecher-Gong vor der Ansage: drei weiche Töne, leicht verstimmt wie eine alte Anlage
       [[659, 0], [523, 0.55], [392, 1.1]].forEach(([f, dt]) => { for (const df of [1, 2.01]) {
@@ -2375,7 +2422,7 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
   function startRun(mode, opt) {
     opt = opt || {};
     const fake = !!opt.fake || testMode || !player;
-    useMusic(); PROG = K.buildProgram(S.prog, SCORE.id); PROG.look = S.look;
+    useMusic(); PROG = K.buildProgram(S.prog, SCORE.id); PROG.look = S.look; PROG.fx = S.fx.slice();
     const bt = M.grid(SCORE, SCORE.bpm, true);
     run = { mode, bt, marks: buildMarks(bt), inputs: [], fake, fakeT: -0.6, lastT: 0, done: {}, pops: [], p: 0, camX: WW / 2 - W / 2,
       dir: 1, face: 0, trail: [], trailT: 0, turn: 0, spinV: 0, jump: null, fallUntil: -1, landUntil: -1, lastSwipe: null, posed: false, finished: false, k: kHelp(), paint: { pts: [], marks: [], t: 0 }, sparks: [], burstQ: 0, lastQ: null, pos: null, intensity: 0.6, cheer: 0, burst: 0, streak: 0, bestStreak: 0, accI: 0, throws: null, intT: 0, seed: (Date.now() & 0xffff) || 7 };
@@ -2638,16 +2685,20 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
     const bi = Math.max(0, bt.findIndex((b) => b > t) - 1), ph = bi >= 0 && bt[bi + 1] ? (t - bt[bi]) / (bt[bi + 1] - bt[bi]) : 0;
     const bar = t < 0 ? Math.floor(t / (bt[3] - bt[0])) : Math.floor(bi / 3);
     const inBar = t < 0 ? ((t / (bt[3] - bt[0])) % 1 + 1) % 1 : ((bi % 3) + ph) / 3;
-    const push = inBar < 0.45 ? Math.sin(Math.PI * inBar / 0.45) : 0;
-    r.p += dt * speed * (0.85 + 0.35 * push);
+    // Abstoß nur jeden zweiten Takt, dazwischen ein langer Bogen auf einer Kante: weniger Treten, mehr Gleiten
+    const glideBar = bar % 2 === 1, push = !glideBar && inBar < 0.45 ? Math.sin(Math.PI * inBar / 0.45) : 0;
+    r.p += dt * speed * (glideBar ? 1.12 - 0.22 * inBar : 0.86 + 0.4 * push);
     const P = r.p, x = WW / 2 + 660 * Math.sin(2 * Math.PI * P / 24), d = 0.52 + 0.3 * Math.sin(2 * Math.PI * P / 9.5 + 1);
     const vx = Math.cos(2 * Math.PI * P / 24);
     // Blickrichtung dreht weich (über die Vorderseite) statt umzuklappen
     if (speed > 0 && Math.abs(vx) > 0.05) r.dir = vx > 0 ? 1 : -1;
-    const want = ended ? Math.PI / 2 - 0.5 : r.dir > 0 ? 0 : Math.PI, df = want - r.face; // am Ende zum Publikum vor dem Bildschirm
+    // Schwünge: in Bögen zur Kamera hin dreht sich der Körper etwas mit, im Bogen weg wieder ins Profil
+    const dd = Math.cos(2 * Math.PI * P / 9.5 + 1), sw = speed > 0 ? 0.38 * dd : 0;
+    const want = ended ? Math.PI / 2 - 0.5 : r.dir > 0 ? Math.max(0, sw) : Math.PI - Math.max(0, sw), df = want - r.face; // am Ende zum Publikum vor dem Bildschirm
     r.face += Math.sign(df) * Math.min(Math.abs(df), dt * 3.6);
     let pose = F.strokePose(inBar), lift = 0, turn = 0, tilt = 0;
-    r.swap = bar % 2 !== 0;
+    if (glideBar) { const w = Math.pow(Math.sin(Math.PI * inBar), 0.6); pose = F.mix(F.strokePose(0), F.mix(F.POSES.glideArc, F.POSES.glideArc2, 0.5 - 0.5 * Math.cos(2 * Math.PI * inBar)), w); tilt = 0.05 * Math.sin(Math.PI * inBar) * (r.dir || 1); }
+    r.swap = Math.floor(bar / 2) % 2 !== 0;
     // Choreografie zur Melodie, wenn gerade kein Element läuft. Jede Phrase hat 4 Takte:
     // 1 „da da da“ = Laufschritt, 2 langer Ton = Spirale / Arme heben / Ina Bauer, 3 „pam pam“ = Armakzente, 4 „pam pam“ = Twizzle-Drehung
     const free = !el || (el.kind === "pose" && t < bt[el.at] - 0.8);
@@ -2942,6 +2993,57 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
     }
     ctx.restore();
   }
+  // Show-Effekte aus dem Kürplan: Lasershow, Feuerwerk, Kostümwechsel – je Abschnitt
+  const LASER_C = ["#4DE1FF", "#FF4FD8", "#7CFF6B", "#FFE066"];
+  function showAt(t) {
+    const sec = K.SECTIONS[PROG.music] || K.SECTIONS.donau, bt = run.bt, b0 = sec.first * 3;
+    let bi = run.showBi || 0; while (bi + 1 < bt.length && bt[bi + 1] <= t) bi++; while (bi > 0 && bt[bi] > t) bi--; run.showBi = bi;
+    const beat = bi + clamp((t - bt[bi]) / ((bt[bi + 1] || bt[bi] + 0.4) - bt[bi]), 0, 1), i = Math.floor((beat - b0) / 12);
+    return { i, beat, bi, rel: beat - b0 - i * 12, fx: i >= 0 && i < sec.n ? (PROG.fx || [])[i] : null };
+  }
+  function showUpdate(t, fx, fy) {
+    const S0 = showAt(t);
+    // Kostümwechsel auf der Eins des Abschnitts: schnelle Drehung, Glitzer, dann tauschen Kostüm und Streifen die Farben
+    if (S0.fx === "swap" && run.swapDone !== S0.i) { run.swapDone = S0.i; run.swapT = t; run.swapped = !run.swapped; emitSparks(40, run.lastX || 0, fy, 40, 160, true); sfx("cheer", 0.5); run.burst = Math.max(run.burst, 0.6); }
+    // Feuerwerk: auf jeder Eins des Abschnitts eine Rakete über dem Konzerthaus
+    if (S0.fx === "fire" && S0.bi % 3 === 0 && run.fwDone !== S0.bi && S0.rel < 11.5) {
+      run.fwDone = S0.bi; sfx("boom");
+      const cx = run.camX + W * (0.25 + Math.random() * 0.5), cy = 55 + Math.random() * 45, col = LASER_C[Math.floor(Math.random() * 4)], col2 = ["#FFF4D6", "#F3C969", "#FF7A59"][Math.floor(Math.random() * 3)];
+      run.fw = run.fw || [];
+      for (let k = 0; k < 80; k++) { const a = (k / 80) * Math.PI * 2 + Math.random() * 0.05, v = 95 + Math.random() * 65; run.fw.push({ x: cx, y: cy, vx: Math.cos(a) * v, vy: Math.sin(a) * v, life: 0, max: 1.3 + Math.random() * 0.5, c: k % 3 ? col : col2 }); }
+      run.flash = 1;
+    }
+    return S0;
+  }
+  function drawFireworks(dt) {
+    const a = run.fw; if (!a || !a.length) return;
+    ctx.save(); ctx.globalCompositeOperation = "lighter"; ctx.lineCap = "round";
+    if (run.flash > 0) { ctx.fillStyle = `rgba(255,230,200,${0.1 * run.flash})`; ctx.fillRect(0, 0, W, 216); run.flash = Math.max(0, run.flash - dt * 3); }
+    for (let i = a.length - 1; i >= 0; i--) {
+      const p = a[i]; p.life += dt; if (p.life > p.max) { a[i] = a[a.length - 1]; a.pop(); continue; }
+      p.vx *= 1 - dt * 1.2; p.vy = p.vy * (1 - dt * 1.2) + 38 * dt; p.x += p.vx * dt; p.y += p.vy * dt;
+      const u = p.life / p.max, x = p.x - run.camX; ctx.globalAlpha = (1 - u) * (0.7 + 0.3 * Math.sin(p.life * 40));
+      ctx.strokeStyle = p.c; ctx.lineWidth = 2.4; ctx.beginPath(); ctx.moveTo(x, p.y); ctx.lineTo(x - p.vx * 0.09, p.y - p.vy * 0.09); ctx.stroke();
+    }
+    ctx.restore();
+  }
+  function drawLaser(S0, fx, fy) {
+    if (S0.fx !== "laser") { run.laserA = Math.max(0, (run.laserA || 0) - 0.05); if (!run.laserA) return; } else run.laserA = Math.min(1, (run.laserA || 0) + 0.06);
+    const A = run.laserA * (S0.rel > 11 ? Math.max(0, 12 - S0.rel) : 1), ph = S0.beat;
+    ctx.save(); ctx.globalCompositeOperation = "lighter"; ctx.lineCap = "round";
+    const src = [[W * 0.08, 70], [W * 0.5, 40], [W * 0.92, 70], [W * 0.3, 55], [W * 0.7, 55]];
+    src.forEach(([sx, sy], k) => {
+      const col = LASER_C[(k + Math.floor(ph / 3)) % 4];
+      for (let j = 0; j < 3; j++) {
+        const tx = fx + Math.sin(ph * Math.PI * 2 / 3 + k * 1.3 + j * 0.7) * (120 + 40 * j), ty = fy + 6 + j * 10;
+        ctx.globalAlpha = 0.12 * A; ctx.strokeStyle = col; ctx.lineWidth = 7; ctx.beginPath(); ctx.moveTo(sx, sy); ctx.lineTo(tx, ty); ctx.stroke();
+        ctx.globalAlpha = 0.75 * A; ctx.lineWidth = 1.3; ctx.stroke();
+        ctx.globalAlpha = 0.5 * A; ctx.fillStyle = col; ctx.beginPath(); ctx.ellipse(tx, ty, 9, 2.5, 0, 0, 7); ctx.fill();
+      }
+      ctx.globalAlpha = 0.9 * A; ctx.fillStyle = "#FFFFFF"; ctx.beginPath(); ctx.arc(sx, sy, 2.5, 0, 7); ctx.fill();
+    });
+    ctx.restore();
+  }
   // Spiegelbild der Figur auf dem glatten Eis
   function drawReflection(o) {
     ctx.save();
@@ -2961,6 +3063,8 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
     run.cheer += (tgt - run.cheer) * Math.min(1, dt * 3);
     const now = performance.now() / 1000;
     scene.twinkle(ctx, run.camX, now);
+    const SH = showUpdate(t, st.x - run.camX, SC.footY(st.d)); run.lastX = st.x;
+    drawFireworks(dt);
     scene.crowd(ctx, run.camX, now, run.cheer);
     scene.snow(ctx, run.camX, now, [0, 1], 0.4 + 0.4 * run.cheer);
     if (run.dim > 0.005) { run.dim *= 1 - Math.min(1, dt * 0.35); ctx.fillStyle = `rgba(8,12,30,${run.dim})`; ctx.fillRect(0, 0, W, H); } // mit der Musik geht das Licht wieder an
@@ -2989,7 +3093,9 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
       drawTrail(run.trail, run.camX);
     }
     run.sp = F.ease(run.sp, st.pose, dt, st.lift > 1 || st.tilt < -0.3);
-    const fo = { x: fx, y: fy, s, dir: 1, pose: run.sp, lift: st.lift, turn: st.turn, tilt: st.tilt, swap: st.swap, look: S.look };
+    drawLaser(SH, fx, fy);
+    const swT = run.swapT !== undefined ? t - run.swapT : 9, look = run.swapped ? Object.assign({}, S.look, { suit: S.look.accent, accent: S.look.suit }) : S.look;
+    const fo = { x: fx, y: fy, s, dir: 1, pose: run.sp, lift: st.lift, turn: st.turn + (swT < 0.6 ? smooth(swT / 0.6) * Math.PI * 2 : 0), tilt: st.tilt, swap: st.swap, look };
     drawReflection(fo);
     F.draw(ctx, fo);
     // Glitzer: bei Treffern, Eisstaub in Pirouetten und bei Landungen
@@ -3231,14 +3337,16 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
     if (listenOn && player && player.playing) {
       const now = player.heardNow(), bt = player.beatTimes; let k = bt.findIndex((t) => t > now); if (k < 0) k = bt.length;
       const beat = k > 0 ? k - 1 + clamp((now - bt[k - 1]) / ((bt[k] || bt[k - 1] + 0.4) - bt[k - 1]), 0, 1) : 0, x = X(beat);
-      if (x >= 0 && x <= w) { g.fillStyle = "rgba(255,255,255,0.85)"; g.fillRect(x - 1, 0, 2, h - 14); }
+      $("pHead").hidden = !(x >= 0 && x <= w); $("pHead").style.left = (x / w * 100) + "%";
       const si = Math.floor((beat - b0) / 12); $("tl").querySelectorAll(".slot").forEach((el) => el.classList.toggle("play", +el.dataset.i === si || (+el.dataset.i === si - 1 && el.classList.contains("steps"))));
     }
   }
+  function hideHead() { $("pHead").hidden = true; }
   (function bandLoop() { requestAnimationFrame(bandLoop); if (listenOn && !$("scrProg").hidden) { drawBand(); playUI(); } })();
   // Kürplan, so einfach wie möglich: oben das Stück, darunter die Melodie und die acht Abschnitte.
   // Unten links steht, was im gewählten Abschnitt in der Musik passiert, rechts wählt man: erst die Art, dann das Element.
   let pCat = null, pSheet = null;
+  const FXI = { laser: "✳", fire: "✺", swap: "⇄" };
   const CATS = [["jump", "●○", "Sprung"], ["spin", "⟳", "Pirouette"], ["steps", "➜", "Schritte"], ["choreo", "✦", "Choreo"], ["none", "～", "Gleiten"]];
   // kurze, lesbare Namen für die Abschnitte (höchstens zwei Zeilen)
   const JN = { T: "Toeloop", S: "Salchow", Lo: "Rittberger", F: "Flip", Lz: "Lutz", A: "Axel" };
@@ -3252,7 +3360,7 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
     useMusic();
     const bt = M.grid(SCORE, SCORE.bpm, true), sl = S.prog, sec = K.SECTIONS[SCORE.id], moods = K.MOODS[SCORE.id];
     if (sl[pSel] === "~") pSel--;
-    const pl = K.plan(sl, S.look, SCORE.id), cur = sl[pSel], curC = cur ? CAT[cur] : null, fit = moods[pSel][1], peak = (sec.peak || []).includes(pSel);
+    const pl = K.plan(sl, S.look, SCORE.id, S.fx), cur = sl[pSel], curC = cur ? CAT[cur] : null, fit = moods[pSel][1], peak = (sec.peak || []).includes(pSel);
     if (!pCat) { // beim Wechsel des Abschnitts: Art und Sprung-Einstellungen vom gewählten Element übernehmen
       pCat = curC ? curC.kind : fit[0];
       if (curC && curC.kind === "jump") { pRot = curC.rot; pCombo = curC.combo ? curC.combo[1].replace(/^\d/, "") : ""; }
@@ -3266,7 +3374,7 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
       const val = !c ? "" : c.kind === "choreo" ? "Ausdruck" : c.kind === "jump" ? dec(c.base) + " P." : `bis ${dec(c.levels[c.levels.length - 1])} P.`;
       return `<button class="slot ${c ? c.kind : "empty"}${i === pSel ? " sel" : ""}${c && !fits ? " off" : ""}" data-i="${i}">`
         + `<small>${i + 1}${(sec.peak || []).includes(i) ? " ♪" : ""}</small><span class="ic">${c ? KIND[c.kind][0] : ""}</span>`
-        + `<b>${c ? slotName(c) : "+"}</b><i>${val}</i></button>`;
+        + `<b>${c ? slotName(c) : "+"}</b><i>${val}</i>${S.fx[i] ? `<em class="fxB" title="${K.FX[S.fx[i]]}">${FXI[S.fx[i]]}</em>` : ""}${id === "StSq" && S.fx[i + 1] ? `<em class="fxB r2">${FXI[S.fx[i + 1]]}</em>` : ""}</button>`;
     }).join("");
     $("tl").querySelectorAll(".slot").forEach((b) => (b.onclick = () => { pSel = +b.dataset.i; pCat = null; fillProg(); }));
     // links: was die Musik hier macht
@@ -3274,6 +3382,13 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
       + `<p>passt: <b>${fit.map((k) => KIND[k][1]).join(" oder ")}</b></p>` + (peak ? `<p class="pk">♪ Höhepunkt der Musik – ein sauberes Element bekommt +1</p>` : "")
       + `<p class="now">${curC ? `gewählt: <b>${slotName(curC).replace("<br>", " ")}</b>${fit.includes(curC.kind) ? " ✓" : " – passt kaum"}` : "noch frei"}</p>`
       + `<p class="hint2">Art wählen, dann Element – weiter geht es von selbst. ★ passt zur Musik.</p>`;
+    const nfx = S.fx.filter(Boolean).length;
+    $("pShow").innerHTML = `<small>SHOW IN ABSCHNITT ${pSel + 1}</small>${Object.keys(K.FX).map((f) => { const on = S.fx[pSel] === f, full = !on && !S.fx[pSel] && nfx >= K.FX_MAX; return `<button class="tg${on ? " on" : ""}" data-fx="${f}"${full ? " disabled" : ""}>${FXI[f]} ${K.FX[f]}</button>`; }).join("")}<em>${nfx} von ${K.FX_MAX}</em>`;
+    $("pShow").querySelectorAll("[data-fx]").forEach((b) => (b.onclick = () => {
+      const f = b.dataset.fx, a = S.fx.slice(); a[pSel] = a[pSel] === f ? null : f;
+      if (a.filter(Boolean).length > K.FX_MAX) return;
+      S.fx = a; save(); fillProg();
+    }));
     // rechts: Art wählen
     $("pCats").innerHTML = CATS.map(([k, ic, nm]) => `<button class="cat${pCat === k ? " on" : ""}${fit.includes(k) ? " fit" : ""}" data-cat="${k}"><span>${ic}</span>${nm}</button>`).join("");
     $("pCats").querySelectorAll("[data-cat]").forEach((b) => (b.onclick = () => {
@@ -3336,7 +3451,8 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
     unlock();
     if (player && player.playing) player.stop();
     listenOn = !!on && !!player;
-    if (listenOn) { useMusic(); player.start(SCORE.id, { preset: S.preset, swing: true }); player.onEnd = () => { listenOn = false; playUI(); if (!$("scrProg").hidden) fillProg(); }; }
+    if (listenOn) { useMusic(); player.start(SCORE.id, { preset: S.preset, swing: true }); player.onEnd = () => { listenOn = false; hideHead(); playUI(); if (!$("scrProg").hidden) fillProg(); }; }
+    else hideHead();
     playUI();
     if (!$("scrProg").hidden) fillProg();
   }
@@ -3355,7 +3471,7 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
   // Kürplan im Menü: das Herz der Kür – Stück, Choreo-Note und die acht Abschnitte auf einen Blick
   function fillPlanCard() {
     useMusic();
-    const sl = K.cleanSlots(S.prog), pl = K.plan(sl, S.look, SCORE.id);
+    const sl = K.cleanSlots(S.prog), pl = K.plan(sl, S.look, SCORE.id, S.fx);
     $("mPiece").textContent = `♪ ${SCORE.short}`; $("mNote").textContent = `Choreo-Note ${dec(pl.total)}`;
     $("mStrip").innerHTML = sl.map((id) => { if (id === "~") return ""; const c = CAT[id]; return `<span class="ms ${c ? c.kind : "empty"}">${c ? KIND[c.kind][0] : ""}</span>`; }).join("");
   }
