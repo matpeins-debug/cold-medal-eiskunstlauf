@@ -406,11 +406,11 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
 .muPlay { width: 26px; height: 26px; padding: 6px; flex: none; }
 .rBtns { min-width: 0; }
 .rBtns .mid { min-width: 0; letter-spacing: 0.02em; white-space: nowrap; }
-.rBtns { flex-wrap: wrap; }
-.rBtns .mid.honor { flex: 1 0 100%; padding: 5px 4px; }
+.kc { position: relative; }
+.kc .honor { position: absolute; left: 8px; right: 8px; bottom: 8px; padding: 7px 4px; font-size: 11.5px; letter-spacing: 0.08em; }
 #rHonor[hidden] { display: none; }
 /* Bildlaufleisten: schmal, Gold auf Nachtblau, ohne Pfeile; nie waagrecht */
-.rElsWrap, .mus, .sheet, .card.info .ifBody { scrollbar-width: thin; scrollbar-color: rgba(227,184,96,0.7) transparent; }
+@supports not selector(::-webkit-scrollbar) { .rElsWrap, .mus, .sheet, .card.info .ifBody { scrollbar-width: thin; scrollbar-color: rgba(227,184,96,0.7) transparent; } }
 .rElsWrap { overflow-x: hidden; padding-right: 4px; }
 .rElsWrap::-webkit-scrollbar, .mus::-webkit-scrollbar, .sheet::-webkit-scrollbar, .ifBody::-webkit-scrollbar { width: 4px; height: 0; }
 .rElsWrap::-webkit-scrollbar-track, .mus::-webkit-scrollbar-track, .sheet::-webkit-scrollbar-track, .ifBody::-webkit-scrollbar-track { background: rgba(227,184,96,0.08); border-radius: 2px; }
@@ -421,7 +421,6 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
 .card.res .els td.e i { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .card.res .els td.n { width: 42px; }
 .card.res .els td.g { width: 30px; }
-.card.res:has(#rHonor:not([hidden])) .rTip { -webkit-line-clamp: 1; }
 </style>
 </head>
 <body>
@@ -518,7 +517,7 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
   <section class="scr" id="scrSet" hidden>
     <div class="card">
       <div class="kicker">EINSTELLUNGEN</div>
-      <div class="srow">Hilfe <span class="opts" id="sHelp"></span></div>
+      <div class="srow">Stufe <span class="opts" id="sHelp"></span></div>
       <div class="srow">Klang <span class="opts" id="sPreset"></span></div>
       <div class="srow">Ton <span class="opts" id="sSound"></span></div>
       <div class="srow">Verzögerung <span class="opts"><button class="pill" id="sLm">−</button><b class="num" id="sLat"></b><button class="pill" id="sLp">+</button></span></div>
@@ -561,7 +560,7 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
 
   <section class="scr" id="scrRes" hidden>
     <div class="card res studio" id="rCard">
-      <div class="kc"><canvas id="rKC" width="360" height="560"></canvas></div>
+      <div class="kc"><canvas id="rKC" width="360" height="560"></canvas><button class="mid honor" id="rHonor" hidden>✦ Ehrenrunde</button></div>
       <div class="rMain">
         <div class="rHead">
           <div class="rHeadL"><div class="kicker" id="rKick"></div><div class="rTot"><b class="num" id="rTotal"></b><span id="rRank"></span></div><div class="rSplit" id="rSplit"></div></div>
@@ -571,7 +570,7 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
         <div class="rBody">
           <div class="rElsWrap"><table class="els" id="rEls"></table></div>
           <div class="rSide"><table class="board" id="rBoard"></table><div class="rTip" id="rTip"></div>
-            <div class="rBtns"><button class="mid honor" id="rHonor" hidden>✦ Ehrenrunde</button><button class="mid red" id="rAgain">Nochmal</button><button class="mid" id="rPaint">Kür-Bild</button><button class="mid" id="rMenu">Menü</button></div></div>
+            <div class="rBtns"><button class="mid red" id="rAgain">Nochmal</button><button class="mid" id="rPaint">Kür-Bild</button><button class="mid" id="rMenu">Menü</button></div></div>
         </div>
       </div>
     </div>
@@ -1531,6 +1530,9 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
   function judge(prog, bt, inputs, opt) {
     const k = (opt && opt.k) || 1, inp = inputs.slice().sort((a, b) => a.t - b.t);
     const els = prog.elements.map((e) => Object.assign({ id: e.id, name: e.name, kind: e.kind, base: e.base || 0, part: e.part, slot: e.slot, role: e.role }, JUDGE[e.kind](e, bt, inp, k)));
+    const level = (opt && opt.level) || { falls: true, factor: 1 };
+    // Anfänger: kein Sturz, sondern ein Wackler mit der Hand auf dem Eis
+    if (level.falls === false) els.forEach((x) => { if (x.status === "fall") Object.assign(x, { status: "under", goe: -3, score: r2(x.base * 0.7), land: "hand", note: x.note.replace(": Sturz", ": Wackler") }); });
     // Höhepunkt der Musik: sauberes Element dort +1 GOE
     const peak = (prog.sec && prog.sec.peak) || [];
     els.forEach((x) => {
@@ -1586,7 +1588,7 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
     const presParts = { takt: r2(takt), ausdruck: r2(ausdruck), ausstrahlung: r2(ausstrahlung), expr: ex.length, exprOk: ex.filter((x) => x.status === "ok").length };
     const pcsTotal = r2((pcs.comp + pcs.pres + pcs.skill) * PCS_FACTOR);
     const ded = falls;
-    return { els, tes, pcs, pcsTotal, ded, falls, total: r2(tes + pcsTotal - ded), timing: tim, devs: all, plan: pl, presParts, strokes };
+    return { els, tes, pcs, pcsTotal, ded, falls, factor: level.factor || 1, total: r2((tes + pcsTotal - ded) * (level.factor || 1)), timing: tim, devs: all, plan: pl, presParts, strokes };
   }
 
   // perfekte Eingaben für eine Kür (Tests, Vorführung); off = Abweichung in Sekunden
@@ -2824,7 +2826,7 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
 /* COLD MEDAL EISKUNSTLAUF – Ablauf, Bildschirme, Eingabe, Taktband, Ergebnis, Spielstand. */
 (function () {
   "use strict";
-  const VERSION = "0.28";
+  const VERSION = "0.29";
   // Seiten-Einstellungen aus dem Build (eigenes Hosting: Adresse, Hoster, Impressum); im claude.ai-Artefakt leer
   const SITE = Object.assign({ web: false, url: "", impressum: null }, {"web": true, "url": "https://matpeins-debug.github.io/cold-medal-eiskunstlauf/", "hoster": "GitHub Pages (GitHub Inc., USA)", "drittland": "GitHub ist nach dem EU-US Data Privacy Framework zertifiziert; die Übermittlung in die USA stützt sich auf den Angemessenheitsbeschluss der EU-Kommission dazu.", "impressum": {"name": "", "adresse": "", "mail": ""}} || {});
   const M = window.EKMusic, K = window.EKSkate, F = window.EKFig, SC = window.EKScene;
@@ -2844,14 +2846,15 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
 
   // ------------------------------------------------------------------ Spielstand (nur auf diesem Gerät; Aussehen zieht später in pass/ um)
   const KEY = "coldmedal-eiskunstlauf";
-  const DEF = { v: 1, prog: null, name: "", nat: "AUT", look: F.DEF_LOOK, help: "anf", sound: 1, preset: "salon", lat: 0, music: "donau", fx: [null, null, null, null, null, null, null, null], best: 0, bestTrain: 0, runs: 0, flowers: 0, toys: 0, album: [] };
+  const DEF = { v: 1, prog: null, name: "", nat: "AUT", look: F.DEF_LOOK, help: "norm", lv3: 1, sound: 1, preset: "salon", lat: 0, music: "donau", fx: [null, null, null, null, null, null, null, null], best: 0, bestTrain: 0, runs: 0, flowers: 0, toys: 0, album: [] };
   function sanitize(o) {
     const S = Object.assign({}, DEF, { look: F.cleanLook(null), prog: K.DEFAULT_SLOTS.slice(), album: [] });
     if (o && typeof o === "object") {
       if (typeof o.name === "string") S.name = o.name.replace(/[<>&"]/g, "").trim().slice(0, 14);
       if (NAT[o.nat]) S.nat = o.nat;
       S.look = F.cleanLook(o.look);
-      if (o.help === "pro" || o.help === "anf") S.help = o.help;
+      if (o.help === "pro" || o.help === "anf" || o.help === "norm") S.help = o.help;
+      if (o.help === "anf" && !o.lv3) S.help = "norm"; // bis 0.28 hieß die normale Stufe „Anfänger“
       S.sound = o.sound === 0 ? 0 : 1;
       if (M.PRESETS[o.preset]) S.preset = o.preset;
       if (Number.isFinite(o.lat)) S.lat = clamp(Math.round(o.lat / 10) * 10, -200, 400);
@@ -2978,7 +2981,15 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
   const useMusic = () => { SCORE = M.SCORES[M.KUER.includes(S.music) ? S.music : "donau"]; return SCORE; };
   let PROG = K.buildProgram(S.prog);
   let run = null, testMode = false;
-  const kHelp = () => (S.help === "anf" ? 1.3 : 1);
+  // Stufen: Anfänger langsamer, weite Fenster, kein Sturz, Wertung ×0,8; Normal; Experte schneller, enge Fenster,
+  // keine Zeichen über der Läuferin und keine Hinweise, Wertung ×1,15. Die Gegnerinnen werden genauso umgerechnet.
+  const LEVELS = {
+    anf: { name: "Anfänger", k: 1.45, tempo: 0.9, cues: true, hints: "immer", falls: false, factor: 0.8 },
+    norm: { name: "Normal", k: 1, tempo: 1, cues: true, hints: "start", falls: true, factor: 1 },
+    pro: { name: "Experte", k: 0.72, tempo: 1.06, cues: false, hints: "nie", falls: true, factor: 1.15 },
+  };
+  const LV = () => LEVELS[S.help] || LEVELS.norm;
+  const kHelp = () => LV().k;
   function songTime() {
     if (!run) return 0;
     if (run.fake) return run.fakeT;
@@ -3004,8 +3015,8 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
     opt = opt || {};
     const fake = !!opt.fake || testMode || !player;
     useMusic(); PROG = K.buildProgram(S.prog, SCORE.id); PROG.look = S.look; PROG.fx = S.fx.slice();
-    const bt = M.grid(SCORE, SCORE.bpm, true);
-    run = { mode, bt, marks: buildMarks(bt), inputs: [], fake, fakeT: -0.6, lastT: 0, done: {}, pops: [], p: 0, camX: WW / 2 - W / 2,
+    const lv = LV(), bt = M.grid(SCORE, Math.round(SCORE.bpm * lv.tempo), true);
+    run = { mode, lv, bt, marks: buildMarks(bt), inputs: [], fake, fakeT: -0.6, lastT: 0, done: {}, pops: [], p: 0, camX: WW / 2 - W / 2,
       dir: 1, face: 0, trail: [], trailT: 0, turn: 0, spinV: 0, jump: null, fallUntil: -1, landUntil: -1, lastSwipe: null, posed: false, finished: false, k: kHelp(), paint: { pts: [], marks: [], t: 0 }, sparks: [], burstQ: 0, lastQ: null, pos: null, intensity: 0.6, cheer: 0, burst: 0, streak: 0, bestStreak: 0, accI: 0, throws: null, intT: 0, seed: (Date.now() & 0xffff) || 7 };
     show(null); $("hud").hidden = false; buildChips();
     if (!fake) { run.entry = { t: 0, phase: 0, x: WW / 2 - 820, face: 0, sp: null }; ambience(true); }
@@ -3084,7 +3095,7 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
     const E = run.entry; run.entry = null;
     try { if (window.speechSynthesis) window.speechSynthesis.cancel(); } catch (e) { /* egal */ }
     run.face = E.face; run.sp = E.sp; run.trail = []; run.dim = E.dim || 0;
-    if (!run.fake) player.start(SCORE.id, { preset: S.preset, swing: true });
+    if (!run.fake) player.start(SCORE.id, { preset: S.preset, swing: true, bpm: Math.round(SCORE.bpm * run.lv.tempo) });
   }
   // Raumklang des Platzes: leises Gemurmel des Publikums, wird bei Jubel lauter
   let amb = null;
@@ -3159,7 +3170,8 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
       const dl = inp.t - r.jump.land, kw = k * (r.jump.el.w || 1);
       if (Math.abs(dl) <= K.WIN.fall * kw && Math.abs(dl) > K.WIN.wobble * kw) r.wobble = { t: inp.t, hand: Math.abs(dl) > K.WIN.hand * kw };
       if (r.pos) r.paint.marks.push({ x: r.pos[0], y: r.pos[1], kind: Math.abs(dl) > K.WIN.fall * kw ? "fall" : "jump", ok: Math.abs(dl) <= K.WIN.wobble * kw });
-      if (Math.abs(dl) > K.WIN.fall * kw) { r.wobble = null; r.fallUntil = Infinity; r.down = { t0: inp.t, hits: 0, last: -9, shake: -9 }; sfx("fall"); r.streak = 0; r.intensity = clamp(r.intensity - 0.35, 0, 1); r.burst = 0; } else { r.landUntil = inp.t + (r.wobble && r.wobble.t === inp.t ? 0.95 : 0.6); sfx("land"); }
+      if (Math.abs(dl) > K.WIN.fall * kw && !r.lv.falls) { r.wobble = { t: inp.t, hand: true }; r.landUntil = inp.t + 0.95; sfx("land"); pop("Wackler", "#F0A65A"); }
+      else if (Math.abs(dl) > K.WIN.fall * kw) { r.wobble = null; r.fallUntil = Infinity; r.down = { t0: inp.t, hits: 0, last: -9, shake: -9 }; sfx("fall"); r.streak = 0; r.intensity = clamp(r.intensity - 0.35, 0, 1); r.burst = 0; } else { r.landUntil = inp.t + (r.wobble && r.wobble.t === inp.t ? 0.95 : 0.6); sfx("land"); }
     }
     if (inp.type === "swipe") r.lastSwipe = { dir: inp.dir, t: inp.t };
     if (!best) return;
@@ -3256,7 +3268,7 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
       const ch = $("chips").querySelector(`[data-i="${i}"]`), [a, b] = elWindow(e, run.bt);
       if (t > b + 0.2) {
         if (!run.done[i]) {
-          res = res || K.judge(PROG, run.bt, run.inputs, { k: run.k });
+          res = res || K.judge(PROG, run.bt, run.inputs, { k: run.k, level: run.lv });
           const r = res.els[i]; run.done[i] = r;
           ch.className = "chip " + r.status;
           ch.textContent = e.kind === "pose" ? (r.status === "ok" ? "Pose ✓" : "Pose –") : e.kind === "expr" ? (r.status === "ok" ? "✦ ✓" : "✦ –") : e.kind === "glide" ? `${e.short} ${r.status === "ok" ? "✓" : "–"}` : `${e.short} ${r.status === "miss" ? "–" : dec(r.score)}`;
@@ -3483,7 +3495,7 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
     }
     // Hinweis zum nächsten Element
     const nx = PROG.elements.find((e) => { const [a, b] = elWindow(e, bt); return b > t && a - 2.6 < t; });
-    if (nx && !run.down && (S.help === "anf" || t < 8) && !(run.rate && performance.now() - run.rate.t < 1100)) {
+    if (nx && !run.down && (run.lv.hints === "immer" || (run.lv.hints === "start" && t < 8)) && !(run.rate && performance.now() - run.rate.t < 1100)) {
       const hint = { jump: canHover() ? "Leertaste bei ● drücken, halten, bei ○ loslassen" : "bei ● drücken, halten, bei ○ loslassen", spin: canHover() ? "kreisen oder Leertaste auf jedes ⟳" : "mit dem Finger kreisen, jede Runde auf ⟳",
         steps: canHover() ? "Pfeiltaste wie der Pfeil, wenn er im Ring ist" : "wisch in Pfeilrichtung, wenn er im Ring ist", pose: "tippen auf den Schlussakkord", expr: "tippen, wenn die Figur kommt",
         glide: nx.role === "entry" ? (canHover() ? "Leertaste halten, beim Eindrehen loslassen" : "halten, beim Eindrehen loslassen") : (canHover() ? "Leertaste halten, am Ende des Bogens loslassen" : "halten, am Ende des Bogens loslassen") }[nx.kind];
@@ -3491,7 +3503,7 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
       const txt = nx.name.toUpperCase() + "  ·  " + hint, tw = ctx.measureText(txt).width + 22;
       ctx.fillStyle = "rgba(241,231,210,0.92)"; ctx.fillRect(W / 2 - tw / 2, y0 - 30, tw, 22);
       ctx.fillStyle = "#141B25"; ctx.fillText(txt, W / 2, y0 - 18.5);
-    } else if (!nx && !run.down && (S.help === "anf" || t < 20) && !(run.rate && performance.now() - run.rate.t < 1100) && run.marks.some((m) => m.kind === "stroke" && m.t > t && m.t - t < 2.2)) {
+    } else if (!nx && !run.down && (run.lv.hints === "immer" || (run.lv.hints === "start" && t < 20)) && !(run.rate && performance.now() - run.rate.t < 1100) && run.marks.some((m) => m.kind === "stroke" && m.t > t && m.t - t < 2.2)) {
       ctx.font = "600 14px " + font();
       const txt = "ABSTOSS  ·  " + (canHover() ? "Leertaste, wenn der weiße Ring im Ring ist: gibt Schwung" : "tippen, wenn der weiße Ring im Ring ist: gibt Schwung"), tw = ctx.measureText(txt).width + 22;
       ctx.fillStyle = "rgba(241,231,210,0.92)"; ctx.fillRect(W / 2 - tw / 2, y0 - 30, tw, 22);
@@ -3684,7 +3696,7 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
   function drawThrows(t, sx, fy) {
     const end = run.bt[run.bt.length - 1];
     if (!run.throws && t > end + 0.5) {
-      const res = K.judge(PROG, run.bt, run.inputs, { k: run.k }), R = rngT(run.seed);
+      const res = K.judge(PROG, run.bt, run.inputs, { k: run.k, level: run.lv }), R = rngT(run.seed);
       const n = clamp(Math.round((res.total - 20) / 3), 2, 18), list = [];
       for (let i = 0; i < n; i++) {
         const kind = R() < 0.72 ? "rose" : R() < 0.8 ? "teddy" : "star";
@@ -3824,7 +3836,7 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
     run.spotP = (run.spotP || 0.6) + ((run.throws ? 1.25 : 0.55 + 0.45 * run.intensity + 0.25 * run.burst) - (run.spotP || 0.6)) * Math.min(1, dt * 2);
     scene.spot(ctx, fx, fy, s, run.spotP);
     ctx.fillStyle = "rgba(20,27,37,0.18)"; ctx.beginPath(); ctx.ellipse(fx, fy + 3, 18 * s * (1 - st.lift / 120), 4 * s, 0, 0, 7); ctx.fill();
-    drawCue(fx, fy, s, t, st.lift);
+    if (run.lv.cues || run.down) drawCue(fx, fy, s, t, st.lift);
     // Kufenspur auf dem Eis, verblasst
     {
       run.trailT += dt;
@@ -3875,13 +3887,13 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
   function finish() {
     const r = run; r.finished = true; r.finishT = r.lastT; r.finishAt = performance.now(); ambience(false);
     if (player && player.playing) player.stop();
-    const res = K.judge(PROG, r.bt, r.inputs, { k: r.k });
+    const res = K.judge(PROG, r.bt, r.inputs, { k: r.k, level: r.lv });
     S.runs++;
     const gifts = r.throws || [], fl = gifts.filter((g) => g.kind === "rose").length, toys = gifts.length - fl;
     S.flowers += fl; S.toys += toys; r.gifts = { fl, toys };
     let board = null, rank = 0;
     if (r.mode === "comp") {
-      board = K.field(r.seed, 5).concat([{ name: S.name || "Du", nat: S.nat, tes: res.tes, pcsTotal: res.pcsTotal, ded: res.ded, total: res.total, me: true }]);
+      board = K.field(r.seed, 5).map((b) => Object.assign({}, b, { total: Math.round(b.total * r.lv.factor * 100) / 100 })).concat([{ name: S.name || "Du", nat: S.nat, tes: res.tes, pcsTotal: res.pcsTotal, ded: res.ded, total: res.total, me: true }]);
       board.sort((a, b) => b.total - a.total); rank = board.findIndex((x) => x.me) + 1;
       if (res.total > S.best) S.best = res.total;
     } else if (res.total > S.bestTrain) S.bestTrain = res.total;
@@ -3940,7 +3952,7 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
     if (res.strokes && res.strokes.n && res.strokes.q < 0.5) return res.strokes.stray > 2 ? "Tipp nur auf die Zeichen: Tippen neben dem Takt kostet Schwung." : "Zwischen den Elementen auf die weißen Ringe tippen: jeder Abstoß im Takt gibt Schwung und Punkte fürs Können.";
     const weak = res.els.filter((e) => e.kind !== "pose" && e.kind !== "expr" && e.kind !== "glide" && !e.inCombo && (e.row || e).status !== "ok");
     if (weak.length) return `Am meisten Punkte liegen noch in: ${weak.map((e) => e.name).join(", ")}.`;
-    return tm.mean <= 60 ? "Stark im Takt. Probier „Experte“ in den Einstellungen: ohne Ring und mit engerem Fenster." : "Gut. Je genauer im Ring, desto mehr Ausführungspunkte (GOE).";
+    return tm.mean <= 60 ? (S.help === "pro" ? "Stark im Takt – auf Experten-Niveau." : "Stark im Takt. Probier die nächste Stufe in den Einstellungen: schneller, engere Fenster, mehr Punkte.") : "Gut. Je genauer im Ring, desto mehr Ausführungspunkte (GOE).";
   }
   // Ergebnis wie im Fernsehen: Kiss & Cry mit Trainerin, das Preisgericht gibt nacheinander seine Wertungen,
   // dann zählt die Punktzahl hoch und der Platz erscheint. Tippen zeigt alles sofort.
@@ -3985,7 +3997,7 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
     }
   }
   function showResult(res, board, rank) {
-    $("rKick").textContent = `WIEN · ${run.mode === "comp" ? "KÜR · WETTKAMPF" : "TRAINING"} · ${useMusic().short.toUpperCase()}`;
+    $("rKick").textContent = `WIEN · ${run.mode === "comp" ? "KÜR · WETTKAMPF" : "TRAINING"} · ${useMusic().short.toUpperCase()} · ${run.lv.name.toUpperCase()}${run.lv.factor !== 1 ? ` ×${dec(run.lv.factor)}` : ""}`;
     $("rSplit").innerHTML = nb(`Technik ${dec(res.tes)} · Komponenten ${dec(res.pcsTotal)}`) + (res.ded ? ` · <b>Abzug −${res.ded}</b>` : "")
       + `<br><small>${nb(`Komposition ${dec(res.pcs.comp)} · Präsentation ${dec(res.pcs.pres)} (Takt ${dec(res.presParts.takt)}, Ausdruck ${dec(res.presParts.ausdruck)}${res.presParts.expr ? ` ${res.presParts.exprOk}/${res.presParts.expr} ✦` : ""}, Ausstrahlung ${dec(res.presParts.ausstrahlung)}) · Können ${dec(res.pcs.skill)}${res.strokes && res.strokes.n ? ` (Abstöße ${res.strokes.hit}/${res.strokes.n})` : ""} · Choreo-Note ${dec(res.plan.total)}`)}</small>`;
     const tm = res.timing;
@@ -4297,7 +4309,7 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
   // Einstellungen
   function fillSet() {
     const pills = (id, list, cur, set) => { const el = $(id); el.innerHTML = ""; for (const [v, t] of list) { const b = document.createElement("button"); b.className = "pill" + (v === cur ? " on" : ""); b.textContent = t; b.onclick = () => { set(v); save(); fillSet(); }; el.appendChild(b); } };
-    pills("sHelp", [["anf", "Anfänger"], ["pro", "Experte"]], S.help, (v) => (S.help = v));
+    pills("sHelp", [["anf", "Anfänger"], ["norm", "Normal"], ["pro", "Experte"]], S.help, (v) => (S.help = v));
     pills("sPreset", Object.entries(M.PRESETS).map(([k, v]) => [k, v.name]), S.preset, (v) => (S.preset = v));
     pills("sSound", [[1, "An"], [0, "Aus"]], S.sound, (v) => (S.sound = v));
     $("sLat").textContent = nb(`${S.lat} ms`);
