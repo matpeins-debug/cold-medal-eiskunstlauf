@@ -425,6 +425,8 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
 #pDef:disabled { opacity: 0.55; cursor: default; font-size: 11px; }
 .srow.sub { font-size: 11px; font-style: italic; opacity: 0.75; margin-top: -4px; }
 #scrSet .note { padding-right: 130px; }
+.card.res .els tr.hd td { position: sticky; top: 0; background: #1A2340; font-family: var(--font-display); font-size: 9px; letter-spacing: 0.12em; text-transform: uppercase; color: #E3B860; font-weight: 600; padding-top: 2px; padding-bottom: 3px; z-index: 1; }
+.card.res .els tr.hd td.e i { text-transform: none; letter-spacing: 0; font-size: 9.5px; color: rgba(241,231,210,0.6); }
 </style>
 </head>
 <body>
@@ -1374,7 +1376,17 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
     return top.length ? pick(top).sl : DEFAULT_SLOTS.slice();
   }
   // aus dem Plan die Kür mit Schlägen bauen
-  function buildProgram(slots, music) {
+  // Zeit eines Schlags, auch zwischen zwei Schlägen („und“ = x,5)
+  const tB = (bt, b) => { const i = Math.floor(b), f = b - i; return f ? bt[i] + (bt[i + 1] - bt[i]) * f : bt[i]; };
+  // Schrittfolge je Stufe: Anfänger jeder zweite Pfeil, Experte zusätzlich Pfeile auf dem „und“ (Synkopen)
+  const OFFBEAT = [[1.5, "l"], [4.5, "r"], [10.5, "u"], [16.5, "l"], [22.5, "r"]];
+  function stepPattern(lvl) {
+    if (lvl === "anf") return STEP_PATTERN.filter((x, i) => i % 2 === 0);
+    if (lvl === "pro") return STEP_PATTERN.concat(OFFBEAT).sort((a, b) => a[0] - b[0]);
+    return STEP_PATTERN;
+  }
+  // lvl: "anf" | "norm" | "pro" – ändert Schrittfolge und Abstöße (Experte jeden Takt)
+  function buildProgram(slots, music, lvl) {
     music = music || "donau";
     if (!SECTIONS[music]) music = "donau";
     const sec = SECTIONS[music], els = [], choreo = {};
@@ -1394,10 +1406,10 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
         els.push(Object.assign({}, base, { short: "+" + b.short, base: b.base, w: b.w, tk: tk2, land: tk2 + b.hold, rot: b.rot, part: "b" }));
       } else if (c.kind === "jump") els.push(Object.assign(base, { base: c.base, tk: (bar + 2) * 3, land: (bar + 2) * 3 + c.hold, rot: c.rot }));
       else if (c.kind === "spin") els.push(Object.assign(base, { levels: c.levels, pose: c.pose, from: bar * 3, turns: 4 }));
-      else if (c.kind === "steps") els.push(Object.assign(base, { levels: c.levels, arrows: STEP_PATTERN.map(([o, d]) => [bar * 3 + o, d]) }));
+      else if (c.kind === "steps") els.push(Object.assign(base, { levels: c.levels, arrows: stepPattern(lvl).map(([o, d]) => [bar * 3 + o, d]) }));
     });
     els.push({ id: "Pose", kind: "pose", name: "Schlusspose", short: "Pose", at: sec.end });
-    return { id: "eigen", music, name: "Kür: " + (MUSIC_NAME[music] || music), elements: els, slots: slots.slice(), choreo, sec };
+    return { id: "eigen", music, name: "Kür: " + (MUSIC_NAME[music] || music), elements: els, slots: slots.slice(), choreo, sec, lvl: lvl || "norm", strokeEvery: lvl === "pro" ? 1 : 2 };
   }
   // Summe der höchsten Grundwerte (für den Editor)
   function maxBase(slots) {
@@ -1465,13 +1477,13 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
     k = k * (e.w || 1);
     const used = new Set(), devs = []; let wrong = 0;
     for (const [b, dir] of e.arrows) {
-      const tg = bt[b]; let best = -1;
+      const tg = tB(bt, b); let best = -1;
       inp.forEach((x, i) => { if (x.type === "swipe" && !used.has(i) && Math.abs(x.t - tg) <= WIN.step * k && (best < 0 || Math.abs(x.t - tg) < Math.abs(inp[best].t - tg))) best = i; });
       if (best < 0) continue;
       used.add(best);
       if (inp[best].dir === dir) devs.push(ms(inp[best].t - tg)); else wrong++;
     }
-    const lv = LEVEL_AT.steps.find(([n]) => devs.length >= n);
+    const lv = LEVEL_AT.steps.find(([n]) => devs.length >= Math.ceil(n * e.arrows.length / 12)); // Stufen relativ zur Zahl der Pfeile
     if (!lv) return { status: "miss", score: 0, goe: 0, devs, wrong, note: `nur ${devs.length} von ${e.arrows.length} Schritten` };
     const goe = clamp(goeFrom(mean(devs), k) - Math.round(wrong / 2), -5, 5), bv = (e.levels || CATALOG.StSq.levels)[lv[1]];
     return { status: "ok", level: lv[2], base: bv, goe, score: r2(bv * (1 + goe / 10)), devs, wrong,
@@ -1508,7 +1520,7 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
   function elWindow(e, bt) {
     if (e.kind === "jump") return [bt[e.tk] - 1.2, bt[e.land] + (e.part === "a" ? 0.15 : 0.7)];
     if (e.kind === "spin") return [bt[e.from] - 0.3, bt[e.from + 3 * e.turns] + 0.6];
-    if (e.kind === "steps") return [bt[e.arrows[0][0]] - 0.5, bt[e.arrows[e.arrows.length - 1][0]] + 0.5];
+    if (e.kind === "steps") return [tB(bt, e.arrows[0][0]) - 0.5, tB(bt, e.arrows[e.arrows.length - 1][0]) + 0.5];
     if (e.kind === "glide") return e.role === "entry" ? [bt[e.tk] - 1.0, bt[e.end] + 0.35] : [bt[e.tk] - 0.6, bt[e.end] + 0.6];
     return [bt[e.at] - 0.8, bt[e.at] + 0.6];
   }
@@ -1516,7 +1528,7 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
   // läuft mit Schwung (Können/Laufen); Tippen neben dem Takt zählt dagegen. Liefert die Schlag-Nummern (Index in bt).
   function strokeBeats(prog, bt) {
     const sec = prog.sec || SEC0, from = sec.first, to = sec.first + sec.len * sec.n, wins = prog.elements.map((e) => elWindow(e, bt)), out = [];
-    for (let bar = from; bar < to; bar += 2) {
+    for (let bar = from; bar < to; bar += prog.strokeEvery || 2) {
       const b = bar * 3; if (!bt[b]) continue;
       if (wins.some(([a, z]) => bt[b] > a - 0.5 && bt[b] < z + 0.5)) continue;
       out.push(b);
@@ -1604,7 +1616,7 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
     for (const e of prog.elements) {
       if (e.kind === "jump") out.push({ t: bt[e.tk] + off, type: "down" }, { t: bt[e.land] + off, type: "up" });
       else if (e.kind === "spin") for (let i = 1; i <= e.turns; i++) out.push({ t: bt[e.from + 3 * i] + off, type: "circle" });
-      else if (e.kind === "steps") for (const [b, dir] of e.arrows) out.push({ t: bt[b] + off, type: "swipe", dir });
+      else if (e.kind === "steps") for (const [b, dir] of e.arrows) out.push({ t: tB(bt, b) + off, type: "swipe", dir });
       else if (e.kind === "glide") out.push({ t: bt[e.tk] + off, type: "down" }, { t: bt[e.end] + off, type: "up" });
       else if (e.kind === "expr") out.push({ t: bt[e.at] + off, type: "down" }, { t: bt[e.at] + off + 0.15, type: "up" });
       else if (e.kind === "pose") out.push({ t: bt[e.at] + off, type: "down" }, { t: bt[e.at] + off + 0.2, type: "up" });
@@ -1658,7 +1670,7 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
     return list;
   }
 
-  root.EKSkate = { suggest, elWindow, strokeBeats, jury, JUDGES, PROGRAMS, CATALOG, RULES, SECTIONS, DEFAULT_SLOTS, check, cleanSlots, buildProgram, plan, MOODS, COSTUME, MUSIC_NAME, FX, FX_MAX, cleanFx, maxBase, WIN, judge, goeFrom, perfectInputs, field, PCS_FACTOR };
+  root.EKSkate = { tB, suggest, elWindow, strokeBeats, jury, JUDGES, PROGRAMS, CATALOG, RULES, SECTIONS, DEFAULT_SLOTS, check, cleanSlots, buildProgram, plan, MOODS, COSTUME, MUSIC_NAME, FX, FX_MAX, cleanFx, maxBase, WIN, judge, goeFrom, perfectInputs, field, PCS_FACTOR };
 })(typeof window !== "undefined" ? window : globalThis);
 
 /* Cold Medal Games · gemeinsame Figur (figur/figur.js, global CMFigur)
@@ -2833,7 +2845,7 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
 /* COLD MEDAL EISKUNSTLAUF – Ablauf, Bildschirme, Eingabe, Taktband, Ergebnis, Spielstand. */
 (function () {
   "use strict";
-  const VERSION = "0.32";
+  const VERSION = "0.33";
   // Seiten-Einstellungen aus dem Build (eigenes Hosting: Adresse, Hoster, Impressum); im claude.ai-Artefakt leer
   const SITE = Object.assign({ web: false, url: "", impressum: null }, {"web": true, "url": "https://matpeins-debug.github.io/cold-medal-eiskunstlauf/", "hoster": "GitHub Pages (GitHub Inc., USA)", "drittland": "GitHub ist nach dem EU-US Data Privacy Framework zertifiziert; die Übermittlung in die USA stützt sich auf den Angemessenheitsbeschluss der EU-Kommission dazu.", "impressum": {"name": "", "adresse": "", "mail": ""}} || {});
   const M = window.EKMusic, K = window.EKSkate, F = window.EKFig, SC = window.EKScene;
@@ -2998,7 +3010,7 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
   const LEVELS = {
     anf: { name: "Anfänger", k: 1.45, tempo: 0.9, cues: true, hints: "immer", falls: false, factor: 0.8, choreo: 0.1 },
     norm: { name: "Normal", k: 1, tempo: 1, cues: true, hints: "start", falls: true, factor: 1, choreo: 0.15 },
-    pro: { name: "Experte", k: 0.72, tempo: 1.06, cues: false, hints: "nie", falls: true, factor: 1.15, choreo: 0.3, own: true }, // Experte: ohne Vorschlag, jeder Abschnitt selbst belegt, Choreo-Note zählt doppelt
+    pro: { name: "Experte", k: 0.72, tempo: 1.06, cues: false, hints: "nie", falls: true, factor: 1.15, choreo: 0.3, own: true, reveal: 1.1 }, // Experte: ohne Vorschlag, jeder Abschnitt selbst belegt, Choreo-Note zählt doppelt
   };
   const LV = () => LEVELS[S.help] || LEVELS.norm;
   const kHelp = () => LV().k;
@@ -3016,7 +3028,7 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
     for (const e of PROG.elements) {
       if (e.kind === "jump") out.push({ t: bt[e.tk], t2: bt[e.land], kind: "hold", el: e });
       else if (e.kind === "spin") for (let i = 1; i <= e.turns; i++) out.push({ t: bt[e.from + 3 * i], kind: "spin", el: e });
-      else if (e.kind === "steps") for (const [b, d] of e.arrows) out.push({ t: bt[b], kind: "step", dir: d, el: e });
+      else if (e.kind === "steps") for (const [b, d] of e.arrows) out.push({ t: K.tB(bt, b), kind: "step", dir: d, el: e });
       else if (e.kind === "pose") out.push({ t: bt[e.at], kind: "pose", el: e });
       else if (e.kind === "expr") out.push({ t: bt[e.at], kind: "expr", el: e });
       else if (e.kind === "glide") out.push({ t: bt[e.tk], t2: bt[e.end], kind: "glide", el: e });
@@ -3028,7 +3040,7 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
   function startRun(mode, opt) {
     opt = opt || {};
     const fake = !!opt.fake || testMode || !player;
-    useMusic(); PROG = K.buildProgram(S.prog, SCORE.id); PROG.look = S.look; PROG.fx = S.fx.slice(); PROG.planCap = planCap();
+    useMusic(); PROG = K.buildProgram(S.prog, SCORE.id, S.help); PROG.look = S.look; PROG.fx = S.fx.slice(); PROG.planCap = planCap();
     const lv = LV(), bt = M.grid(SCORE, Math.round(SCORE.bpm * lv.tempo), true);
     run = { mode, lv, bt, marks: buildMarks(bt), inputs: [], fake, fakeT: -0.6, lastT: 0, done: {}, pops: [], p: 0, camX: WW / 2 - W / 2,
       dir: 1, face: 0, trail: [], trailT: 0, turn: 0, spinV: 0, jump: null, fallUntil: -1, landUntil: -1, lastSwipe: null, posed: false, finished: false, k: kHelp(), paint: { pts: [], marks: [], t: 0 }, sparks: [], burstQ: 0, lastQ: null, pos: null, intensity: 0.6, cheer: 0, burst: 0, streak: 0, bestStreak: 0, accI: 0, throws: null, intT: 0, seed: (Date.now() & 0xffff) || 7 };
@@ -3480,7 +3492,9 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
       const x = px + (m.t - t) * pps, x2 = m.t2 !== undefined ? px + (m.t2 - t) * pps : x;
       if (x2 < -20 || x > W + 20) continue;
       const yc = y0 + h / 2;
-      ctx.globalAlpha = x2 < px - 6 ? 0.35 : 1; // Vergangenes links vom Ring tritt zurück
+      // Experte: Zeichen tauchen erst kurz vor dem Ring auf – man muss die Musik hören, nicht nur schauen
+      const vis = run.lv.reveal ? clamp((run.lv.reveal - (m.t - t)) / 0.25, 0, 1) : 1; if (vis <= 0) continue;
+      ctx.globalAlpha = (x2 < px - 6 ? 0.35 : 1) * vis; // Vergangenes links vom Ring tritt zurück
       if (m.kind === "stroke") {
         // Abstoß: kleiner weißer Ring auf der Eins, getroffen wird er golden
         ctx.strokeStyle = m.hit ? "#F3C969" : "rgba(241,231,210,0.9)"; ctx.lineWidth = 2; ctx.fillStyle = m.hit ? "#F3C969" : "rgba(20,27,37,0.6)";
@@ -4019,7 +4033,7 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
       + `<br><small>${nb(`Komposition ${dec(res.pcs.comp)} · Präsentation ${dec(res.pcs.pres)} (Takt ${dec(res.presParts.takt)}, Ausdruck ${dec(res.presParts.ausdruck)}${res.presParts.expr ? ` ${res.presParts.exprOk}/${res.presParts.expr} ✦` : ""}, Ausstrahlung ${dec(res.presParts.ausstrahlung)}) · Können ${dec(res.pcs.skill)}${res.strokes && res.strokes.n ? ` (Abstöße ${res.strokes.hit}/${res.strokes.n})` : ""} · Choreo-Note ${dec(res.plan.total)}`)}</small>`;
     const tm = res.timing;
     $("rTime").innerHTML = tm ? `<b>Ø ${tm.mean}&nbsp;ms</b><span>Abweichung vom Takt<br>${tm.word} · ${tm.perfect} von ${tm.n} perfekt<br>Tendenz ${sg(tm.bias)}&nbsp;ms</span>` : `<b>–</b><span>keine Eingabe im Takt</span>`;
-    $("rEls").innerHTML = res.els.filter((e) => !e.inCombo && e.kind !== "expr" && e.kind !== "glide" && (e.kind !== "pose" || e.status === "ok")).map((e0) => {
+    $("rEls").innerHTML = `<tr class="hd" title="Punkte = Grundwert × (1 + GOE/10). GOE (Ausführung) −5 … +5 je nach Takt: +3 heißt 30 % mehr."><td class="e">Element</td><td class="n">Grund</td><td class="n g">GOE</td><td class="n s">Pkt</td></tr>` + res.els.filter((e) => !e.inCombo && e.kind !== "expr" && e.kind !== "glide" && (e.kind !== "pose" || e.status === "ok")).map((e0) => {
       const e = e0.row ? Object.assign({}, e0, e0.row) : e0;
       const lv = e.level ? ` <small>Stufe ${e.level}</small>` : "";
       const goe = e.status === "miss" || e.kind === "pose" ? "" : sg(e.goe);
