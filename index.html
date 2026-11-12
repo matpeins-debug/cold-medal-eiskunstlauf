@@ -365,6 +365,33 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
 .judge { padding: 5px 0 2px; }
 .judge b { font-size: 14px; }
 .card.res { position: absolute; inset: 12px 16px; flex: none; }
+
+/* Einführung vor der Kür: dunkel, Gold, ruhig wie das Studio */
+.card.intro { display: flex; flex-direction: column; gap: 10px; padding: 16px 22px 14px; }
+.intro .inHead { text-align: center; }
+.intro .kicker { color: #E3B860; letter-spacing: 0.32em; }
+.intro h2 { color: #FFF4D6; font-size: 24px; letter-spacing: 0.06em; margin: 4px 0 2px; }
+.intro .orn { display: flex; align-items: center; justify-content: center; gap: 8px; color: #E3B860; font-size: 8px; }
+.intro .orn i { width: 120px; height: 1px; background: linear-gradient(90deg, transparent, rgba(227,184,96,0.8), transparent); }
+.intro .how { gap: 10px 22px; flex: 1; min-height: 0; align-content: center; }
+.intro .how > div { grid-template-columns: 48px 1fr; padding: 8px 10px; border: 1px solid rgba(227,184,96,0.25); background: linear-gradient(180deg, rgba(255,255,255,0.05), rgba(255,255,255,0.01)); }
+.intro .how .mk { width: 40px; height: 40px; background: radial-gradient(circle at 50% 35%, #2A2440, #14111F 75%); border: 1.5px solid #E3B860; box-shadow: 0 0 12px rgba(243,213,138,0.25); color: #F3D58A; font-size: 18px; }
+.intro .how b { color: #F3D58A; font-size: 13px; letter-spacing: 0.18em; }
+.intro .how span { color: rgba(241,231,210,0.86); font-size: 12.5px; }
+.intro .inBand { display: grid; grid-template-columns: 200px 1fr; gap: 14px; align-items: center; border-top: 1px solid rgba(227,184,96,0.3); padding-top: 8px; }
+.intro .inBand p { font-size: 12px; line-height: 1.35; color: rgba(241,231,210,0.8); margin: 0; }
+.intro .inBand p b { display: block; font-family: var(--font-display); color: #F3D58A; letter-spacing: 0.18em; text-transform: uppercase; font-size: 11px; font-weight: 600; }
+.intro .inBand em { font-style: normal; color: #F3D58A; }
+.intro .lane { position: relative; height: 34px; background: rgba(20,27,37,0.8); border: 1px solid rgba(227,184,96,0.25); }
+.intro .lane i { position: absolute; }
+.intro .lane .tk { bottom: 3px; width: 1.5px; height: 3px; background: rgba(241,231,210,0.3); }
+.intro .lane .tk.one { height: 7px; background: rgba(241,231,210,0.5); }
+.intro .lane .tk:nth-child(1) { left: 12%; } .intro .lane .tk:nth-child(2) { left: 24%; } .intro .lane .tk:nth-child(4) { left: 46%; } .intro .lane .tk:nth-child(7) { left: 80%; } .intro .lane .tk:nth-child(8) { left: 92%; }
+.intro .lane .st { left: 35%; top: 50%; width: 12px; height: 12px; margin: -6px 0 0 -6px; border-radius: 50%; border: 2px solid #F1E7D2; box-sizing: border-box; }
+.intro .lane .ring { left: 58%; top: 50%; width: 28px; height: 28px; margin: -14px 0 0 -14px; border-radius: 50%; border: 2.5px solid #E3B860; box-sizing: border-box; box-shadow: 0 0 10px rgba(243,213,138,0.45); }
+.intro .lane .sym { left: 68%; top: 50%; width: 22px; height: 22px; margin: -11px 0 0 -11px; border-radius: 50%; background: #DDA43B; color: #141B25; font-style: normal; font-size: 12px; display: flex; align-items: center; justify-content: center; }
+.intro .go { position: static; align-self: center; min-width: 180px; align-items: center; background: linear-gradient(180deg, #F3D58A, #DDA43B); color: #141B25; border-color: #8C6A2A; box-shadow: 0 3px 0 #8C6A2A, 0 0 18px rgba(243,213,138,0.35); letter-spacing: 0.3em; }
+@media (max-height: 380px) { .card.intro { padding: 10px 16px; gap: 6px; } .intro h2 { font-size: 20px; } .intro .how > div { padding: 5px 8px; } .intro .how span { font-size: 11.5px; } }
 </style>
 </head>
 <body>
@@ -471,16 +498,18 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
   </section>
 
   <section class="scr" id="scrIntro" hidden>
-    <div class="card wide">
-      <div class="kicker" id="iKick"></div>
-      <h2>So läufst du deine Kür</h2>
+    <div class="card wide studio intro">
+      <div class="inHead"><div class="kicker" id="iKick"></div><h2>So läufst du deine Kür</h2><div class="orn"><i></i><span>◆</span><i></i></div></div>
       <div class="how">
         <div><i class="mk">●<em>○</em></i><b>Sprung</b><span id="hJump"></span></div>
         <div><i class="mk">⟳</i><b>Pirouette</b><span id="hSpin"></span></div>
         <div><i class="mk">➜</i><b>Schritte</b><span id="hStep"></span></div>
         <div><i class="mk">★</i><b>Pose</b><span id="hPose"></span></div>
       </div>
-      <p class="note">Unten läuft das Taktband: Gedrückt wird nur bei den farbigen Zeichen, genau wenn sie im Ring in der Mitte sind. Die feinen Striche zählen den Takt; die kleinen weißen Ringe zwischen den Elementen sind Abstöße: im Takt getippt gibt es Schwung und Punkte fürs Können.</p>
+      <div class="inBand">
+        <div class="lane"><i class="tk"></i><i class="tk one"></i><i class="st"></i><i class="tk"></i><i class="ring"></i><i class="sym">●</i><i class="tk one"></i><i class="tk"></i></div>
+        <p><b>Das Taktband</b> Alles kommt von rechts in den <em>goldenen Ring</em>. Gedrückt wird genau dann – bei den farbigen Zeichen und bei den kleinen <em>weißen Ringen</em> (Abstoß, gibt Schwung). Die feinen Striche zählen nur den Takt.</p>
+      </div>
       <button class="big red go" id="iGo"><span>Los</span></button>
     </div>
   </section>
@@ -491,7 +520,7 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
       <div class="ifBody">
         <h3>Fanspiel</h3><p>Inoffizielles Fanspiel ohne Verbindung zur Internationalen Eislaufunion (ISU), zu Verbänden oder Veranstaltern. Alle Läuferinnen und Läufer sind erfunden; Elemente und Wertung folgen dem echten Sport, in eigenen Worten.</p>
         <h3>Wertung</h3><p>Technik: Grundwert jedes Elements mal GOE (Abweichung vom Schlag). Komponenten: Komposition (Plan und Choreo-Note), Präsentation (Takt 60 %, Ausdruck 20 %: Choreo-Figuren ✦ auf den Schlag getippt, Ausstrahlung 20 %: Schlusspose, ohne Sturz, längste Serie sauberer Elemente) und läuferisches Können. Sturz −1.</p>
-        <h3>Musik</h3><p>Johann Strauss (Sohn), „An der schönen blauen Donau“ (1867); Émile Waldteufel, „Die Schlittschuhläufer“ (1882); Iosif Ivanovici, „Donauwellen“ (1880); Johannes Brahms, Wiegenlied „Guten Abend, gut' Nacht“ (1868). Alle gemeinfrei; eigener, vereinfachter Satz, im Browser erzeugt, keine Aufnahme.</p>
+        <h3>Musik</h3><p>Johann Strauss (Sohn), „An der schönen blauen Donau“ (1867); Émile Waldteufel, „Die Schlittschuhläufer“ (1882); Iosif Ivanovici, „Donauwellen“ (1880); Johannes Brahms, Wiegenlied „Guten Abend, gut' Nacht“ (1868); Johann Strauss (Sohn), „Rosen aus dem Süden“ (1880); Peter Tschaikowski, „Blumenwalzer“ aus dem Nussknacker (1892) und Walzer aus „Schwanensee“ (1877). Alle gemeinfrei; eigener, vereinfachter Satz, im Browser erzeugt, keine Aufnahme.</p>
         <h3>Ort</h3><p id="ifPlace"></p>
         <h3>Datenschutz</h3><p>Kein Konto, keine Werbung, keine Cookies, keine Analyse. Name, Aussehen, Bestwerte und Einstellungen speichert das Spiel nur im Browser auf diesem Gerät; es sendet nichts an einen Server.</p><p id="ifPriv"></p>
         <h3>Impressum</h3><p id="ifImp"></p>
@@ -2430,17 +2459,33 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
       const wg = g.createLinearGradient(0, 158, 0, 204); wg.addColorStop(0, "#2A1B17"); wg.addColorStop(1, "#1A1110"); g.fillStyle = wg; g.fillRect(x0 - 8, 158, x1 - x0 + 16, 46);
       g.strokeStyle = "rgba(227,184,96,0.35)"; g.lineWidth = 1; for (let x = x0; x < x1; x += 50) g.strokeRect(x + 3, 162, 44, 18);
       g.strokeStyle = "#E3B860"; g.lineWidth = 1.5; g.strokeRect(x0 - 8, 158, x1 - x0 + 16, 46);
-      const DRESS = ["#111318", "#111318", "#2A1E3A", "#111318", "#4A1424", "#111318", "#111318", "#1E2A3A", "#111318"], skins = ["#E6C2A0", "#C9966C", "#F0D5BC", "#9C6644", "#E6C2A0", "#F0D5BC", "#C9966C", "#E6C2A0", "#9C6644"];
-      const LADY = [false, true, false, false, true, false, true, false, false], HAIR = ["#3A2A1E", "#B0A79A", "#1C1F26", "#5B3A2E", "#3A2A1E", "#C8C0B4", "#1C1F26", "#3A2A1E", "#6E4A32"];
+      // Sitzordnung wie EKSkate.JUDGES: Gruber, Moreau, Lindqvist, Sato, Novak, Bradley, Rossi, Brandt, Solberg – fünf Richterinnen, vier Richter
+      const LADY = [true, false, true, false, true, false, true, false, true];
+      const DRESS = ["#4A1424", "#111318", "#1F4A3E", "#111318", "#2A1E3A", "#111318", "#6B1E2E", "#111318", "#1E2A3A"], skins = ["#F0D5BC", "#C9966C", "#F0D5BC", "#E6C2A0", "#E6C2A0", "#9C6644", "#C9966C", "#E6C2A0", "#F0D5BC"];
+      const HAIR = ["#B0A79A", "#3A2A1E", "#E2C27A", "#1C1F26", "#5B3A2E", "#3A2A1E", "#1C1F26", "#6E4A32", "#C9A06A"];
       for (let i = 0; i < 9; i++) {
         const x = x0 + 18 + i * ((x1 - x0 - 36) / 8), y = 180;
-        g.fillStyle = DRESS[i]; g.beginPath(); g.ellipse(x, y + 13, 9, 10, 0, Math.PI, 0); g.fill();
-        if (!LADY[i]) { g.fillStyle = "#F4EFE4"; g.beginPath(); g.moveTo(x - 2.6, y + 4.5); g.lineTo(x, y + 12); g.lineTo(x + 2.6, y + 4.5); g.closePath(); g.fill(); g.fillStyle = "#111318"; g.beginPath(); g.moveTo(x - 2.4, y + 4.4); g.lineTo(x, y + 5.6); g.lineTo(x - 2.4, y + 6.8); g.moveTo(x + 2.4, y + 4.4); g.lineTo(x, y + 5.6); g.lineTo(x + 2.4, y + 6.8); g.fill(); } // Hemdbrust und Fliege
-        else { g.fillStyle = "#F4EFE4"; for (let k = -3; k <= 3; k++) { g.beginPath(); g.arc(x + k * 1.3, y + 5.2 + Math.abs(k) * -0.25 + 0.8, 0.7, 0, 7); g.fill(); } } // Perlenkette
-        g.fillStyle = skins[i]; g.beginPath(); g.arc(x, y, 4.6, 0, 7); g.fill();
-        g.fillStyle = HAIR[i];
-        if (LADY[i]) { g.fillStyle = ["#111318", "#4A1424", "#2A1E3A"][i % 3]; g.beginPath(); g.ellipse(x, y - 1.2, 5.4, 5, 0, Math.PI, 0); g.fill(); g.fillRect(x - 5.8, y - 1.6, 11.6, 1.8); g.fillStyle = "#E3B860"; g.fillRect(x - 5.4, y - 2.8, 10.8, 1); }
-        else { g.beginPath(); g.arc(x, y - 1.4, 4.8, Math.PI, 0); g.fill(); g.fillRect(x - 4.8, y - 1.6, 1.4, 2.6); }
+        if (LADY[i]) {
+          // Abendkleid mit Ausschnitt und langer Perlenkette, schmale Schultern
+          g.fillStyle = DRESS[i]; g.beginPath(); g.ellipse(x, y + 13.5, 7.6, 9.5, 0, Math.PI, 0); g.fill();
+          g.fillStyle = skins[i]; g.beginPath(); g.moveTo(x - 3.2, y + 4.2); g.lineTo(x, y + 9); g.lineTo(x + 3.2, y + 4.2); g.closePath(); g.fill();
+          g.fillStyle = "#F4EFE4"; for (let k = 0; k <= 8; k++) { const a = Math.PI * (0.15 + 0.7 * k / 8); g.beginPath(); g.arc(x + Math.cos(a) * 3.4, y + 4.4 + Math.sin(a) * 4.6, 0.6, 0, 7); g.fill(); }
+          // Bubikopf: Pony und kinnlanges Haar an den Seiten, dazu bei manchen ein Stirnband mit Feder
+          g.fillStyle = HAIR[i]; g.beginPath(); g.arc(x, y - 0.6, 5.2, Math.PI * 0.95, Math.PI * 2.05); g.fill();
+          g.fillRect(x - 5.2, y - 1, 2.2, 5.6); g.fillRect(x + 3, y - 1, 2.2, 5.6);
+        }
+        else {
+          g.fillStyle = DRESS[i]; g.beginPath(); g.ellipse(x, y + 13, 9, 10, 0, Math.PI, 0); g.fill();
+          g.fillStyle = "#F4EFE4"; g.beginPath(); g.moveTo(x - 2.6, y + 4.5); g.lineTo(x, y + 12); g.lineTo(x + 2.6, y + 4.5); g.closePath(); g.fill(); g.fillStyle = "#111318"; g.beginPath(); g.moveTo(x - 2.4, y + 4.4); g.lineTo(x, y + 5.6); g.lineTo(x - 2.4, y + 6.8); g.moveTo(x + 2.4, y + 4.4); g.lineTo(x, y + 5.6); g.lineTo(x + 2.4, y + 6.8); g.fill(); // Hemdbrust und Fliege
+        }
+        g.fillStyle = skins[i]; g.beginPath(); g.arc(x, y, 4.4, 0, 7); g.fill();
+        if (LADY[i]) {
+          g.fillStyle = HAIR[i]; g.beginPath(); g.ellipse(x, y - 2.6, 4.8, 2.6, 0, Math.PI, 0); g.fill(); g.fillRect(x - 4.8, y - 2.8, 9.6, 1.6); // Pony
+          g.fillStyle = "#B8323A"; g.fillRect(x - 1, y + 2.2, 2, 0.8); // Lippenrot
+          g.fillStyle = "#F3D58A"; g.beginPath(); g.arc(x - 4.6, y + 2.4, 0.8, 0, 7); g.arc(x + 4.6, y + 2.4, 0.8, 0, 7); g.fill(); // Ohrringe
+          if (i % 4 === 0) { g.fillStyle = "#E3B860"; g.fillRect(x - 5, y - 2.6, 10, 1.1); g.strokeStyle = "#F4EFE4"; g.lineWidth = 0.9; g.beginPath(); g.moveTo(x + 3, y - 2.6); g.quadraticCurveTo(x + 7, y - 7, x + 4, y - 10); g.stroke(); } // Stirnband mit Feder
+          else if (i % 4 === 2) { g.fillStyle = DRESS[i]; g.beginPath(); g.ellipse(x, y - 2.4, 5.2, 4.4, 0, Math.PI, 0); g.fill(); g.fillRect(x - 5.6, y - 2.6, 11.2, 1.4); g.fillStyle = "#E3B860"; g.fillRect(x - 5.2, y - 3.6, 10.4, 0.9); } // Glockenhut über dem Bubikopf
+        } else { g.fillStyle = HAIR[i]; g.beginPath(); g.arc(x, y - 1.4, 4.7, Math.PI, 0); g.fill(); g.fillRect(x - 4.7, y - 1.6, 1.4, 2.4); g.fillStyle = "rgba(255,255,255,0.18)"; g.fillRect(x - 1.5, y - 5.6, 3, 1); } // pomadisiert
       }
       // Tisch mit Samtbehang, Goldborte und Fransen
       g.fillStyle = "#5A1420"; g.fillRect(x0 - 6, 190, x1 - x0 + 12, 14);
@@ -2693,7 +2738,7 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
 /* COLD MEDAL EISKUNSTLAUF – Ablauf, Bildschirme, Eingabe, Taktband, Ergebnis, Spielstand. */
 (function () {
   "use strict";
-  const VERSION = "0.25";
+  const VERSION = "0.26";
   // Seiten-Einstellungen aus dem Build (eigenes Hosting: Adresse, Hoster, Impressum); im claude.ai-Artefakt leer
   const SITE = Object.assign({ web: false, url: "", impressum: null }, {"web": true, "url": "https://matpeins-debug.github.io/cold-medal-eiskunstlauf/", "hoster": "GitHub Pages (GitHub Inc., USA)", "drittland": "GitHub ist nach dem EU-US Data Privacy Framework zertifiziert; die Übermittlung in die USA stützt sich auf den Angemessenheitsbeschluss der EU-Kommission dazu.", "impressum": {"name": "", "adresse": "", "mail": ""}} || {});
   const M = window.EKMusic, K = window.EKSkate, F = window.EKFig, SC = window.EKScene;
@@ -3924,10 +3969,10 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
     pendingMode = mode;
     $("iKick").textContent = mode === "comp" ? "KÜR · WETTKAMPF · WIEN" : "TRAINING · WIEN";
     const d = canHover();
-    $("hJump").textContent = (d ? "Leertaste auf ● drücken, halten, auf ○ loslassen." : "Auf ● drücken, halten, auf ○ loslassen.") + (PROG.elements.some((e) => e.part) ? " Kombination: gleich danach das nächste ●." : "") + (PROG.elements.some((e) => e.kind === "expr") ? " ✦ Choreo-Figur: tippen, wenn sie kommt." : "");
-    $("hSpin").textContent = d ? "Mit der Maus kreisen oder Leertaste auf jedes ⟳." : "Mit dem Finger kreisen: jede Runde endet auf einem ⟳.";
-    $("hStep").textContent = (d ? "Pfeiltaste in Pfeilrichtung (oder Maus schwingen)" : "In Pfeilrichtung wischen") + ", wenn der Pfeil im Ring ist: ← → zur Seite, ↑ Hüpfer, ↓ tief in die Knie.";
-    $("hPose").textContent = "Auf den Schlussakkord tippen.";
+    $("hJump").textContent = (d ? "Leertaste bei ● drücken, halten, bei ○ loslassen." : "Bei ● drücken, halten, bei ○ loslassen.") + (PROG.elements.some((e) => e.part) ? " Kombination: gleich das nächste ●." : "");
+    $("hSpin").textContent = d ? "Kreisen oder Leertaste auf jedes ⟳ – eine Runde je Takt." : "Mit dem Finger kreisen, jede Runde endet auf einem ⟳.";
+    $("hStep").textContent = (d ? "Pfeiltaste" : "Wischen") + " in Pfeilrichtung: ← → zur Seite, ↑ Hüpfer, ↓ in die Knie.";
+    $("hPose").textContent = "Auf den Schlussakkord tippen." + (PROG.elements.some((e) => e.kind === "expr") ? " ✦ Choreo-Figur: tippen, wenn sie kommt." : "");
     show("scrIntro");
   }
   $("bComp").onclick = () => { unlock(); if (!S.name) { openLook(() => intro("comp")); return; } intro("comp"); };
