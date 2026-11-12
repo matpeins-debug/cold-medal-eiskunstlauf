@@ -1620,6 +1620,8 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
     let run0 = 0, longest = 0; for (const x of scored) { const y = x.row || x; if (x.status === "ok" && y.goe >= 1) { run0++; longest = Math.max(longest, run0); } else run0 = 0; }
     const ausstrahlung = clamp(2 + (pose && pose.status === "ok" ? 3 : 0) + (falls ? 0 : 2) + 3 * (scored.length ? longest / scored.length : 0), 0, 10);
     pcs.pres = q4(clamp(0.6 * takt + 0.2 * ausdruck + 0.2 * ausstrahlung, 1.5, 9.75));
+    // Experte: Komposition und Können nie mehr als 1,5 über dem Takt – hohe Komponenten nur bei sehr genauem Laufen
+    if (level.strict) { pcs.comp = Math.min(pcs.comp, q4(takt + 1.5)); pcs.skill = Math.min(pcs.skill, q4(takt + 1.5)); }
     const presParts = { takt: r2(takt), ausdruck: r2(ausdruck), ausstrahlung: r2(ausstrahlung), expr: ex.length, exprOk: ex.filter((x) => x.status === "ok").length };
     const pcsTotal = r2((pcs.comp + pcs.pres + pcs.skill) * PCS_FACTOR);
     const ded = falls;
@@ -1647,10 +1649,11 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
     ["Clara Weissmüller", "SUI", 42], ["Aiko Tanabe", "JPN", 38], ["Pietro Valli", "ITA", 34],
   ];
   function rng(seed) { let s = seed >>> 0 || 1; return () => ((s = (s * 1664525 + 1013904223) >>> 0) / 4294967296); }
-  function field(seed, n) {
+  // boost: Stärke des Feldes je Stufe (Experte: Weltklasse, die Besten laufen nahe am Höchstwert)
+  function field(seed, n, boost) {
     const R = rng(seed);
     return FIELD.slice(0, n || 5).map(([name, nat, str]) => {
-      const total = r2(str + (R() - 0.5) * 6), tes = r2(total * (0.17 + R() * 0.06)), fall = R() < 0.12 ? 1 : 0;
+      const total = r2(str + (boost || 0) + (R() - 0.5) * 6), tes = r2(total * (0.17 + R() * 0.06)), fall = R() < 0.12 ? 1 : 0;
       return { name, nat, tes, pcsTotal: r2(total - tes + fall), ded: fall, total: r2(total), ai: true };
     });
   }
@@ -2861,7 +2864,7 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
 /* COLD MEDAL EISKUNSTLAUF – Ablauf, Bildschirme, Eingabe, Taktband, Ergebnis, Spielstand. */
 (function () {
   "use strict";
-  const VERSION = "0.35";
+  const VERSION = "0.36";
   // Seiten-Einstellungen aus dem Build (eigenes Hosting: Adresse, Hoster, Impressum); im claude.ai-Artefakt leer
   const SITE = Object.assign({ web: false, url: "", impressum: null }, {"web": true, "url": "https://matpeins-debug.github.io/cold-medal-eiskunstlauf/", "hoster": "GitHub Pages (GitHub Inc., USA)", "drittland": "GitHub ist nach dem EU-US Data Privacy Framework zertifiziert; die Übermittlung in die USA stützt sich auf den Angemessenheitsbeschluss der EU-Kommission dazu.", "impressum": {"name": "", "adresse": "", "mail": ""}} || {});
   const M = window.EKMusic, K = window.EKSkate, F = window.EKFig, SC = window.EKScene;
@@ -3026,9 +3029,9 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
   // Stufen: Anfänger langsamer, weite Fenster, kein Sturz, Wertung ×0,8; Normal; Experte schneller, enge Fenster,
   // keine Zeichen über der Läuferin und keine Hinweise, Wertung ×1,15. Die Gegnerinnen werden genauso umgerechnet.
   const LEVELS = {
-    anf: { name: "Anfänger", k: 1.45, tempo: 0.9, cues: true, hints: "immer", falls: false, factor: 0.8, choreo: 0.1 },
-    norm: { name: "Normal", k: 1, tempo: 1, cues: true, hints: "start", falls: true, factor: 1, choreo: 0.15 },
-    pro: { name: "Experte", k: 0.72, tempo: 1.06, cues: false, hints: "nie", falls: true, factor: 1.15, choreo: 0.3, own: true, reveal: 1.1 }, // Experte: ohne Vorschlag, jeder Abschnitt selbst belegt, Choreo-Note zählt doppelt
+    anf: { name: "Anfänger", k: 1.45, tempo: 0.9, cues: true, hints: "immer", falls: false, factor: 0.8, choreo: 0.1, field: -4 },
+    norm: { name: "Normal", k: 1, tempo: 1, cues: true, hints: "start", falls: true, factor: 1, choreo: 0.15, field: 0 },
+    pro: { name: "Experte", k: 0.6, strict: true, field: 9, tempo: 1.06, cues: false, hints: "nie", falls: true, factor: 1.15, choreo: 0.3, own: true, reveal: 1.1 }, // Experte: ohne Vorschlag, jeder Abschnitt selbst belegt, Choreo-Note zählt doppelt
   };
   const LV = () => LEVELS[S.help] || LEVELS.norm;
   const kHelp = () => LV().k;
@@ -3943,7 +3946,7 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
     S.flowers += fl; S.toys += toys; r.gifts = { fl, toys };
     let board = null, rank = 0;
     if (r.mode === "comp") {
-      board = K.field(r.seed, 5).map((b) => Object.assign({}, b, { total: Math.round(b.total * r.lv.factor * 100) / 100 })).concat([{ name: S.name || "Du", nat: S.nat, tes: res.tes, pcsTotal: res.pcsTotal, ded: res.ded, total: res.total, me: true }]);
+      board = K.field(r.seed, 5, r.lv.field || 0).map((b) => Object.assign({}, b, { total: Math.round(b.total * r.lv.factor * 100) / 100 })).concat([{ name: S.name || "Du", nat: S.nat, tes: res.tes, pcsTotal: res.pcsTotal, ded: res.ded, total: res.total, me: true }]);
       board.sort((a, b) => b.total - a.total); rank = board.findIndex((x) => x.me) + 1;
       if (res.total > S.best) S.best = res.total;
     } else if (res.total > S.bestTrain) S.bestTrain = res.total;
@@ -4384,7 +4387,7 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
       }
       S.help = v;
     });
-    $("sHelpTxt").textContent = { anf: "langsamer, weite Fenster, kein Sturz, Hinweise immer · Wertung ×0,8", norm: "Original-Tempo, Hinweise am Anfang, Vorschlag im Kürplan · Wertung ×1", pro: "schneller, enge Fenster, keine Zeichen über der Läuferin; leerer Kürplan zum Selbst-Choreografieren (der alte liegt in „Meine Küren“), Choreo-Note zählt doppelt · Wertung ×1,15" }[S.help] || "";
+    $("sHelpTxt").textContent = { anf: "langsamer, weite Fenster, kein Sturz, Hinweise immer · Wertung ×0,8", norm: "Original-Tempo, Hinweise am Anfang, Vorschlag im Kürplan · Wertung ×1", pro: "schneller, sehr enge Fenster, Weltklasse-Feld, keine Zeichen über der Läuferin; leerer Kürplan zum Selbst-Choreografieren (der alte liegt in „Meine Küren“), Choreo-Note zählt doppelt · Wertung ×1,15" }[S.help] || "";
     pills("sPreset", Object.entries(M.PRESETS).map(([k, v]) => [k, v.name]), S.preset, (v) => (S.preset = v));
     pills("sSound", [[1, "An"], [0, "Aus"]], S.sound, (v) => { S.sound = v; applySound(); });
     $("sLat").textContent = nb(`${S.lat} ms`);
