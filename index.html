@@ -2086,7 +2086,8 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
   };
   // fA/sA Spiel-/Standbein seitlich abgespreizt, aFA/aBA Arm vorn/hinten seitlich gehoben (Grad, frei, Standard 0):
   // Drehung um die Achse nach vorn durch Hüfte bzw. Schulter – sichtbar, sobald sich die Figur dreht (Eiskunstlauf 0.43)
-  const KEYS = ["lean", "crouch", "hd", "ao", "fA", "sA", "aFA", "aBA"], PAIRS = ["sL", "fL", "aF", "aB"];
+  // ao3: Arme seitlich für die 3D-Figur (figur3d.js), unabhängig von der Blickrichtung; 2D nutzt es nicht
+  const KEYS = ["lean", "crouch", "hd", "ao", "fA", "sA", "aFA", "aBA", "ao3"], PAIRS = ["sL", "fL", "aF", "aB"];
   const val = (o, k) => (o[k] == null ? 0 : o[k]);
   function mix(a, b, t) {
     const o = {};
@@ -2096,10 +2097,10 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
   }
   // Posen als Zahlenreihe (für weiche Kurven durch Schlüsselbilder); lift = Höhe über dem Boden (Sprung)
   const CH = 12;
-  const toVec = (p, lift) => [val(p, "lean"), val(p, "crouch"), val(p, "hd"), p.sL[0], p.sL[1], p.fL[0], p.fL[1], p.aF[0], p.aF[1], p.aB[0], p.aB[1], lift || 0, val(p, "ao"), val(p, "fA"), val(p, "sA"), val(p, "aFA"), val(p, "aBA")];
+  const toVec = (p, lift) => [val(p, "lean"), val(p, "crouch"), val(p, "hd"), p.sL[0], p.sL[1], p.fL[0], p.fL[1], p.aF[0], p.aF[1], p.aB[0], p.aB[1], lift || 0, val(p, "ao"), val(p, "fA"), val(p, "sA"), val(p, "aFA"), val(p, "aBA"), val(p, "ao3")];
   const toPose = (v) => {
     const o = { lean: v[0], crouch: v[1], hd: v[2], sL: [v[3], v[4]], fL: [v[5], v[6]], aF: [v[7], v[8]], aB: [v[9], v[10]], ao: v[12] || 0 };
-    ["fA", "sA", "aFA", "aBA"].forEach((k, i) => { if (v[13 + i]) o[k] = v[13 + i]; });
+    ["fA", "sA", "aFA", "aBA", "ao3"].forEach((k, i) => { if (v[13 + i]) o[k] = v[13 + i]; });
     return o;
   };
   // Weiche Kurve durch Schlüsselbilder K = [[t, Zahlenreihe], …]: Geschwindigkeit ohne Sprung (Hermite-Kurve), aber kein
@@ -2215,7 +2216,7 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
     return o;
   }
   // weich nachführen: Rumpf und Beine zügig, Arme etwas später (fließender Armzug); fast = Sprung, Sturz
-  const RATE = { lean: 9, crouch: 9, hd: 8, ao: 6.5, sL: 13, fL: 11, aF: 6.5, aB: 6, fA: 11, sA: 13, aFA: 6.5, aBA: 6 };
+  const RATE = { lean: 9, crouch: 9, hd: 8, ao: 6.5, sL: 13, fL: 11, aF: 6.5, aB: 6, fA: 11, sA: 13, aFA: 6.5, aBA: 6, ao3: 7 };
   function ease(cur, tgt, dt, fast) {
     if (!cur) return tgt;
     const o = {}, m = fast ? 2.4 : 1, a = (k) => 1 - Math.exp(-RATE[k] * m * dt);
@@ -2840,7 +2841,7 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
       const ax = J.hip[0], c = Math.cos(turn), s = Math.sin(turn);
       // seitlich abspreizen (wie figur.js): Drehung um die Achse nach vorn durch den Wurzelpunkt
       const abd = (pt, root, z, A, side) => { if (!A) return [pt[0], pt[1], z]; const dy = pt[1] - root[1], a = rad(A); return [pt[0], root[1] + dy * Math.cos(a), z + side * dy * Math.sin(a)]; };
-      const ao = rad(p.ao || 0);
+      const ao = rad(p.ao3 != null ? p.ao3 : p.ao || 0); // 3D: Arme seitlich nach der Pose (ao3), nicht nach der Blickrichtung
       const armAo = (pt, root, z, side) => { if (!ao) return [pt[0], pt[1], z]; const dx = pt[0] - root[0]; return [root[0] + dx * Math.cos(ao), pt[1], z + side * Math.abs(dx) * Math.sin(ao)]; };
       const W = (q) => { const x = q[0] - ax, z = q[2]; return [ax + x * c - z * s, -q[1] + lift, x * s + z * c]; }; // um die Hüftachse drehen, y nach oben
       const near = 1, far = -1, side = swap ? -1 : 1;
@@ -3541,64 +3542,64 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
   "use strict";
   const CM = root.CMFigur;
   const POSES = {
-    glide: { lean: 6, crouch: 1, sL: [0, 0], fL: [-62, 4], aF: [100, -12], aB: [-108, -10], fA: 12 },
-    stroke: { lean: 10, crouch: 3, sL: [5, 14], fL: [-34, 8], aF: [90, -6], aB: [-98, -6], fA: 16 },
-    prep: { lean: 18, crouch: 6, sL: [28, 58], fL: [-34, 18], aF: [62, 28], aB: [-72, 18] },
+    glide: { lean: 6, crouch: 1, sL: [0, 0], fL: [-62, 4], aF: [100, -12], aB: [-108, -10], fA: 12, ao3: 60 },
+    stroke: { lean: 10, crouch: 3, sL: [5, 14], fL: [-34, 8], aF: [90, -6], aB: [-98, -6], fA: 16, ao3: 60 },
+    prep: { lean: 18, crouch: 6, sL: [28, 58], fL: [-34, 18], aF: [62, 28], aB: [-72, 18], ao3: 35 },
     // Arme eng vor der Brust (gemeinsame Figur hat längere Arme: Ellbogen etwas hinter dem Körper, Unterarm schräg hoch)
-    air: { lean: 0, crouch: 0, sL: [2, 2], fL: [6, 2], aF: [-16, 132], aB: [-16, 132] },
-    land: { lean: 10, crouch: 5, sL: [14, 32], fL: [-80, 0], aF: [96, -10], aB: [-100, -10], hd: -6, fA: 22 },
-    spin: { lean: -2, crouch: 2, sL: [0, 2], fL: [30, 80], aF: [-18, 135], aB: [-18, 135] },
-    sitspin: { lean: 26, crouch: 0, sL: [86, 100], fL: [84, 0], aF: [86, -4], aB: [80, -2] },
-    camel: { lean: 84, crouch: 0, sL: [1, 1], fL: [-98, 0], aF: [96, -8], aB: [-118, -8], fA: 6 },
-    stepA: { lean: 9, crouch: 3, sL: [16, 34], fL: [-58, 4], aF: [100, -10], aB: [-100, -10], fA: 10 },
-    stepB: { lean: 9, crouch: 3, sL: [4, 30], fL: [44, 4], aF: [-96, -10], aB: [104, -10], fA: 8 },
-    stepU: { lean: -2, crouch: 0, sL: [24, 2], fL: [-48, 0], aF: [164, -6], aB: [-160, -6] },
-    stepD: { lean: 26, crouch: 9, sL: [44, 82], fL: [-84, 0], aF: [100, -16], aB: [-118, -16] },
-    edge: { lean: 14, crouch: 4, sL: [18, 38], fL: [-74, 0], aF: [106, -12], aB: [-110, -12], fA: 12 },
-    final: { lean: -8, crouch: 0, sL: [0, 0], fL: [-26, 0], aF: [168, 6], aB: [-102, -16], fA: 10 },
+    air: { lean: 0, crouch: 0, sL: [2, 2], fL: [6, 2], aF: [-16, 132], aB: [-16, 132], ao3: 0, aFA: -16, aBA: -16 },
+    land: { lean: 10, crouch: 5, sL: [14, 32], fL: [-80, 0], aF: [96, -10], aB: [-100, -10], hd: -6, fA: 22, ao3: 75 },
+    spin: { lean: -2, crouch: 2, sL: [0, 2], fL: [30, 80], aF: [-18, 135], aB: [-18, 135], ao3: 0, aFA: -14, aBA: -14 },
+    sitspin: { lean: 26, crouch: 0, sL: [86, 100], fL: [84, 0], aF: [86, -4], aB: [80, -2], ao3: 40 },
+    camel: { lean: 84, crouch: 0, sL: [1, 1], fL: [-98, 0], aF: [96, -8], aB: [-118, -8], fA: 6, ao3: 85 },
+    stepA: { lean: 9, crouch: 3, sL: [16, 34], fL: [-58, 4], aF: [100, -10], aB: [-100, -10], fA: 10, ao3: 55 },
+    stepB: { lean: 9, crouch: 3, sL: [4, 30], fL: [44, 4], aF: [-96, -10], aB: [104, -10], fA: 8, ao3: 55 },
+    stepU: { lean: -2, crouch: 0, sL: [24, 2], fL: [-48, 0], aF: [164, -6], aB: [-160, -6], ao3: 30 },
+    stepD: { lean: 26, crouch: 9, sL: [44, 82], fL: [-84, 0], aF: [100, -16], aB: [-118, -16], ao3: 60 },
+    edge: { lean: 14, crouch: 4, sL: [18, 38], fL: [-74, 0], aF: [106, -12], aB: [-110, -12], fA: 12, ao3: 65 },
+    final: { lean: -8, crouch: 0, sL: [0, 0], fL: [-26, 0], aF: [168, 6], aB: [-102, -16], fA: 10, ao3: 35 },
     // ---- nach echten Bewegungsabläufen (Biomechanik und Trainer, 12.11.2026) ----
     // rückwärts gleiten: Körper schaut gegen die Fahrt, Spielbein vorn (gegen die Fahrt), Knie gebeugt
-    backGlide: { lean: 6, crouch: 3, sL: [16, 34], fL: [34, 8], aF: [96, -8], aB: [-104, -8], hd: -4, fA: 16 },
+    backGlide: { lean: 6, crouch: 3, sL: [16, 34], fL: [34, 8], aF: [96, -8], aB: [-104, -8], hd: -4, fA: 16, ao3: 60 },
     // Absprung Zackensprung (Toeloop, Flip, Lutz): tief im Knie, Spielbein gestreckt nach hinten, Zacke ins Eis
-    pickReach: { lean: 22, crouch: 7, sL: [34, 66], fL: [-40, 0], aF: [84, 20], aB: [-50, 24], hd: -4, fA: 6 },
-    lutzReach: { lean: 26, crouch: 7, sL: [36, 70], fL: [-58, 0], aF: [100, 6], aB: [-84, 10], hd: -6, fA: 10 },
+    pickReach: { lean: 22, crouch: 7, sL: [34, 66], fL: [-40, 0], aF: [84, 20], aB: [-50, 24], hd: -4, fA: 6, ao3: 35 },
+    lutzReach: { lean: 26, crouch: 7, sL: [36, 70], fL: [-58, 0], aF: [100, 6], aB: [-84, 10], hd: -6, fA: 10, ao3: 30 },
     // Salchow: Spielbein schwingt von hinten nach vorn herum; Rittberger: Spielbein vorn gekreuzt, beide Knie tief
-    salSwing: { lean: 14, crouch: 6, sL: [30, 60], fL: [44, 34], aF: [70, 30], aB: [-30, 40], hd: -4, fA: 26 },
-    loopSet: { lean: 12, crouch: 6, sL: [32, 64], fL: [18, 30], aF: [76, 34], aB: [-18, 46], hd: -2 },
+    salSwing: { lean: 14, crouch: 6, sL: [30, 60], fL: [44, 34], aF: [70, 30], aB: [-30, 40], hd: -4, fA: 26, ao3: 40 },
+    loopSet: { lean: 12, crouch: 6, sL: [32, 64], fL: [18, 30], aF: [76, 34], aB: [-18, 46], hd: -2, ao3: 30 },
     // Axel: vorwärts, Spielbein schwingt mit hohem Knie nach vorn, Arme schwingen mit hoch
-    axelStep: { lean: 4, crouch: 4, sL: [22, 46], fL: [-44, 12], aF: [40, 20], aB: [-70, 16], hd: -2 },
-    axelUp: { lean: -4, crouch: 0, sL: [2, 4], fL: [70, 96], aF: [118, 40], aB: [96, 40], hd: -8 },
+    axelStep: { lean: 4, crouch: 4, sL: [22, 46], fL: [-44, 12], aF: [40, 20], aB: [-70, 16], hd: -2, ao3: 30 },
+    axelUp: { lean: -4, crouch: 0, sL: [2, 4], fL: [70, 96], aF: [118, 40], aB: [96, 40], hd: -8, ao3: 15 },
     // Flug: Arme eng an der Brust, Beine gekreuzt (beim Dreifachen noch enger)
-    air3: { lean: 0, crouch: 0, sL: [1, 1], fL: [8, 4], aF: [-20, 140], aB: [-20, 140], hd: -2 },
+    air3: { lean: 0, crouch: 0, sL: [1, 1], fL: [8, 4], aF: [-20, 140], aB: [-20, 140], hd: -2, ao3: 0, aFA: -20, aBA: -20 },
     // Landung: Spielbein erst nach vorn (bremst die Drehung), dann nach hinten herum; Knie federt
-    landCheck: { lean: 4, crouch: 6, sL: [24, 50], fL: [36, 8], aF: [76, -6], aB: [-60, -6], hd: -2, fA: 10 },
+    landCheck: { lean: 4, crouch: 6, sL: [24, 50], fL: [36, 8], aF: [76, -6], aB: [-60, -6], hd: -2, fA: 10, ao3: 55 },
     // Pirouette offen (Einlauf, Ausfahren): Arme weit, Spielbein vorn zur Seite
-    spinOpen: { lean: -2, crouch: 2, sL: [2, 6], fL: [56, 8], aF: [96, -6], aB: [-96, -6], hd: -4, fA: 30 },
-    sitOpen: { lean: 30, crouch: 0, sL: [84, 100], fL: [82, 0], aF: [110, -6], aB: [-80, -6], fA: 8 },
-    camelTight: { lean: 86, crouch: 0, sL: [1, 1], fL: [-100, 0], aF: [150, -4], aB: [-150, -4], fA: 4 },
+    spinOpen: { lean: -2, crouch: 2, sL: [2, 6], fL: [56, 8], aF: [96, -6], aB: [-96, -6], hd: -4, fA: 30, ao3: 75 },
+    sitOpen: { lean: 30, crouch: 0, sL: [84, 100], fL: [82, 0], aF: [110, -6], aB: [-80, -6], fA: 8, ao3: 70 },
+    camelTight: { lean: 86, crouch: 0, sL: [1, 1], fL: [-100, 0], aF: [150, -4], aB: [-150, -4], fA: 4, ao3: 85 },
     // Schritte: Gegendreier (Oberkörper gegen die Kurve), Choctaw (Fußwechsel tief), Twizzle (Arme hoch, schnell)
-    bracket: { lean: 12, crouch: 4, sL: [18, 38], fL: [-40, 20], aF: [-100, -12], aB: [104, -12], hd: -4, fA: 14 },
-    choctaw: { lean: 16, crouch: 6, sL: [30, 60], fL: [48, 6], aF: [90, -10], aB: [-110, -10], hd: -4, fA: 12 },
-    twizzleUp: { lean: -2, crouch: 1, sL: [4, 8], fL: [22, 60], aF: [168, 4], aB: [168, 4], hd: -6 },
+    bracket: { lean: 12, crouch: 4, sL: [18, 38], fL: [-40, 20], aF: [-100, -12], aB: [104, -12], hd: -4, fA: 14, ao3: 55 },
+    choctaw: { lean: 16, crouch: 6, sL: [30, 60], fL: [48, 6], aF: [90, -10], aB: [-110, -10], hd: -4, fA: 12, ao3: 60 },
+    twizzleUp: { lean: -2, crouch: 1, sL: [4, 8], fL: [22, 60], aF: [168, 4], aB: [168, 4], hd: -6, ao3: 10 },
     // Choreografie zwischen den Elementen
-    spiral: { lean: 72, crouch: 0, sL: [1, 1], fL: [-118, 0], aF: [112, -12], aB: [-96, -14], fA: 8 },
-    portUp: { lean: 2, crouch: 1, sL: [0, 0], fL: [-48, 2], aF: [150, -14], aB: [-150, -14] },
-    inaBauer: { lean: -22, crouch: 4, sL: [-8, 10], fL: [26, 4], aF: [150, -20], aB: [-120, -20], fA: 12 },
-    flick: { lean: 4, crouch: 2, sL: [2, 6], fL: [-50, 4], aF: [112, -14], aB: [-114, -14] },
-    twizzle: { lean: 0, crouch: 2, sL: [0, 2], fL: [18, 60], aF: [150, 8], aB: [150, 8] },
-    handDown: { lean: 30, crouch: 8, sL: [30, 70], fL: [-70, 10], aF: [20, 0], aB: [-120, -10] },
-    bow: { lean: 48, crouch: 3, sL: [4, 10], fL: [-24, 6], aF: [40, 10], aB: [-150, -10] },
+    spiral: { lean: 72, crouch: 0, sL: [1, 1], fL: [-118, 0], aF: [112, -12], aB: [-96, -14], fA: 8, ao3: 80 },
+    portUp: { lean: 2, crouch: 1, sL: [0, 0], fL: [-48, 2], aF: [150, -14], aB: [-150, -14], ao3: 45 },
+    inaBauer: { lean: -22, crouch: 4, sL: [-8, 10], fL: [26, 4], aF: [150, -20], aB: [-120, -20], fA: 12, ao3: 55 },
+    flick: { lean: 4, crouch: 2, sL: [2, 6], fL: [-50, 4], aF: [112, -14], aB: [-114, -14], ao3: 55 },
+    twizzle: { lean: 0, crouch: 2, sL: [0, 2], fL: [18, 60], aF: [150, 8], aB: [150, 8], ao3: 20 },
+    handDown: { lean: 30, crouch: 8, sL: [30, 70], fL: [-70, 10], aF: [20, 0], aB: [-120, -10], ao3: 40 },
+    bow: { lean: 48, crouch: 3, sL: [4, 10], fL: [-24, 6], aF: [40, 10], aB: [-150, -10], ao3: 30 },
     // langes Gleiten auf einer Kante zwischen zwei Abstößen: Spielbein lang nach hinten, Arme weit, wiegend
-    glideArc: { lean: 11, crouch: 2, sL: [10, 22], fL: [-76, 2], aF: [104, -8], aB: [-108, -8], hd: -4, fA: 14 },
-    glideArc2: { lean: 8, crouch: 1, sL: [6, 14], fL: [-84, 0], aF: [96, -18], aB: [-118, -6], hd: -9, fA: 18 },
+    glideArc: { lean: 11, crouch: 2, sL: [10, 22], fL: [-76, 2], aF: [104, -8], aB: [-108, -8], hd: -4, fA: 14, ao3: 65 },
+    glideArc2: { lean: 8, crouch: 1, sL: [6, 14], fL: [-84, 0], aF: [96, -18], aB: [-118, -6], hd: -9, fA: 18, ao3: 70 },
     // Einlauf und Auslauf der Pirouette: Mond (Fersen zueinander, Beine weit, Arme offen) und Auslauf auf der Rückwärts-Auswärtskante
-    moon: { lean: -6, crouch: 2, sL: [-16, 4], fL: [38, 2], aF: [118, -10], aB: [-118, -10], hd: -10, fA: 32 },
-    exitEdge: { lean: 4, crouch: 3, sL: [4, 10], fL: [-88, 0], aF: [110, -8], aB: [-120, -8], hd: -8, fA: 18 },
+    moon: { lean: -6, crouch: 2, sL: [-16, 4], fL: [38, 2], aF: [118, -10], aB: [-118, -10], hd: -10, fA: 32, ao3: 75 },
+    exitEdge: { lean: 4, crouch: 3, sL: [4, 10], fL: [-88, 0], aF: [110, -8], aB: [-120, -8], hd: -8, fA: 18, ao3: 75 },
     // Kiss & Cry: sitzen auf der Bank, winken
     kcSit: { lean: -6, crouch: 0, sL: [88, 90], fL: [84, 92], aF: [30, 60], aB: [14, 60], hd: -4 },
     kcWave: { lean: -6, crouch: 0, sL: [88, 88], fL: [80, 84], aF: [126, 54], aB: [14, 60], hd: -8 },
     kcCheer: { lean: -8, crouch: 0, sL: [88, 88], fL: [80, 84], aF: [150, 24], aB: [-150, -24], hd: -12 },
-    fallen: { lean: 10, crouch: 2, sL: [30, 60], fL: [-10, 50], aF: [60, 30], aB: [-30, 40] },
+    fallen: { lean: 10, crouch: 2, sL: [30, 60], fL: [-10, 50], aF: [60, 30], aB: [-30, 40], ao3: 30 },
   };
 
   // Laufschritt: ein Takt = ein Schritt. Abstoßen (Spielbein drückt nach hinten außen), Gleiten mit gestrecktem Spielbein,
@@ -3606,10 +3607,10 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
   // Wie echte Läuferinnen: beugen – abstoßen von der Innenkante – strecken; das Spielbein kommt mit dem Knie zuerst zurück,
   // nicht im weiten Schwung. Das Standbein bleibt deutlich gebeugt (vorher fast gestreckt: wirkte steif).
   const STROKE = [
-    [0.0, { lean: 12, crouch: 5, sL: [22, 46], fL: [12, 44], aF: [92, -6], aB: [-100, -6], fA: 4 }],
-    [0.32, { lean: 14, crouch: 4, sL: [24, 48], fL: [-68, 2], aF: [98, -10], aB: [-106, -10], fA: 28 }],
-    [0.72, { lean: 9, crouch: 1, sL: [12, 26], fL: [-60, 2], aF: [104, -14], aB: [-112, -14], fA: 16 }],
-    [1.0, { lean: 12, crouch: 5, sL: [22, 46], fL: [12, 46], aF: [92, -6], aB: [-100, -6], fA: 4 }],
+    [0.0, { lean: 12, crouch: 5, sL: [22, 46], fL: [12, 44], aF: [92, -6], aB: [-100, -6], fA: 4, ao3: 60 }],
+    [0.32, { lean: 14, crouch: 4, sL: [24, 48], fL: [-68, 2], aF: [98, -10], aB: [-106, -10], fA: 28, ao3: 60 }],
+    [0.72, { lean: 9, crouch: 1, sL: [12, 26], fL: [-60, 2], aF: [104, -14], aB: [-112, -14], fA: 16, ao3: 60 }],
+    [1.0, { lean: 12, crouch: 5, sL: [22, 46], fL: [12, 46], aF: [92, -6], aB: [-100, -6], fA: 4, ao3: 60 }],
   ];
   const POSES_ALL = Object.assign({}, CM.POSES, POSES);
   root.EKFig = Object.assign({}, CM, {
@@ -4195,7 +4196,7 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
 /* COLD MEDAL EISKUNSTLAUF – Ablauf, Bildschirme, Eingabe, Taktband, Ergebnis, Spielstand. */
 (function () {
   "use strict";
-  const VERSION = "0.47";
+  const VERSION = "0.48";
   // Seiten-Einstellungen aus dem Build (eigenes Hosting: Adresse, Hoster, Impressum); im claude.ai-Artefakt leer
   const SITE = Object.assign({ web: false, url: "", impressum: null }, {"web": true, "supabase": {"url": "https://pqpvgkslozsekjywpdrf.supabase.co", "key": "sb_publishable_KkKe9jchmXYp_-OEmB8WLQ_gZLXrRhF"}, "url": "https://matpeins-debug.github.io/cold-medal-eiskunstlauf/", "hoster": "GitHub Pages (GitHub Inc., USA)", "drittland": "GitHub ist nach dem EU-US Data Privacy Framework zertifiziert; die Übermittlung in die USA stützt sich auf den Angemessenheitsbeschluss der EU-Kommission dazu.", "impressum": {"name": "", "adresse": "", "mail": ""}} || {});
   const M = window.EKMusic, K = window.EKSkate, F = window.EKFig, SC = window.EKScene, PASS = window.CMPass;
@@ -4209,7 +4210,29 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
   const nb = (s) => String(s).replace(/(\d) (?=[A-Za-zäöü%·])/g, "$1 ").replace(/(Platz|Takt) (?=\d)/g, "$1 ");
   const smooth = (t) => { t = clamp(t, 0, 1); return t * t * (3 - 2 * t); };
   // Schrittfolge: jeder Pfeil ist eine Bewegung, die man an der Läuferin sieht
-  const STEP = { l: ["←", "nach links"], r: ["→", "nach rechts"], u: ["↑", "Hüpfer"], d: ["↓", "tief in die Knie"] };
+  // Schrittfolge: jede Wischrichtung ist eine echte Drehung (ISU verlangt Drehungen in beide Richtungen): → Dreier rechtsherum,
+  // ← Gegendreier linksherum, ↑ Twizzle (schnelle ganze Drehung), ↓ Choctaw (Fußwechsel mit Kantenwechsel)
+  const STEP = { l: ["←", "Gegendreier"], r: ["→", "Dreier"], u: ["↑", "Twizzle"], d: ["↓", "Choctaw"] };
+  // Zeichen der Drehung statt eines Pfeils: Bogen mit Spitze in Drehrichtung, Twizzle als Doppelbogen, Choctaw als zwei Kufenspuren;
+  // ein kleiner Winkel am Rand zeigt die Wischrichtung
+  function turnIcon(x, y, dir, R, col) {
+    ctx.save(); ctx.translate(x, y); ctx.strokeStyle = col; ctx.fillStyle = col; ctx.lineCap = "round"; ctx.lineWidth = Math.max(1.6, R * 0.13);
+    const r = R * 0.5, head = (a, rr, cw) => { const px = Math.cos(a) * rr, py = Math.sin(a) * rr, t = a + (cw ? Math.PI / 2 : -Math.PI / 2), k = R * 0.2;
+      ctx.beginPath(); ctx.moveTo(px + Math.cos(t) * k, py + Math.sin(t) * k); ctx.lineTo(px + Math.cos(t + 2.4) * k * 0.9, py + Math.sin(t + 2.4) * k * 0.9); ctx.lineTo(px + Math.cos(t - 2.4) * k * 0.9, py + Math.sin(t - 2.4) * k * 0.9); ctx.closePath(); ctx.fill(); };
+    if (dir === "r" || dir === "l") {
+      const cw = dir === "r", a0 = cw ? -Math.PI * 0.85 : -Math.PI * 0.15, a1 = cw ? Math.PI * 0.55 : Math.PI * 0.45 + Math.PI;
+      ctx.beginPath(); ctx.arc(0, 0, r, a0, cw ? a1 : -Math.PI * 1.55, !cw); ctx.stroke(); head(cw ? a1 : -Math.PI * 1.55, r, cw);
+    } else if (dir === "u") {
+      ctx.beginPath(); ctx.arc(0, 0, r, -Math.PI * 0.5, Math.PI * 1.1); ctx.stroke(); ctx.beginPath(); ctx.arc(0, 0, r * 0.5, -Math.PI * 0.5, Math.PI * 1.2); ctx.stroke(); head(Math.PI * 1.1, r, true);
+    } else {
+      ctx.lineWidth *= 1.1; ctx.beginPath(); ctx.moveTo(-r * 0.55, -r * 0.75); ctx.lineTo(-r * 0.55, r * 0.35); ctx.moveTo(r * 0.55, -r * 0.35); ctx.lineTo(r * 0.55, r * 0.75); ctx.stroke();
+      ctx.lineWidth *= 0.7; ctx.beginPath(); ctx.arc(0, r * 0.15, r * 0.55, Math.PI * 0.95, Math.PI * 0.05, true); ctx.stroke();
+    }
+    // Wischrichtung als kleiner Winkel am Rand
+    const d = { r: [1, 0], l: [-1, 0], u: [0, -1], d: [0, 1] }[dir], e = R * 0.86, k = R * 0.14;
+    ctx.lineWidth = Math.max(1.2, R * 0.09); ctx.beginPath(); ctx.moveTo(d[0] * e - d[1] * k - d[0] * k, d[1] * e + d[0] * k - d[1] * k); ctx.lineTo(d[0] * e, d[1] * e); ctx.lineTo(d[0] * e + d[1] * k - d[0] * k, d[1] * e - d[0] * k - d[1] * k); ctx.stroke();
+    ctx.restore();
+  }
   const NAT = { AUT: "Österreich", GER: "Deutschland", SUI: "Schweiz", ITA: "Italien", FRA: "Frankreich", NOR: "Norwegen", SWE: "Schweden",
     CZE: "Tschechien", SLO: "Slowenien", POL: "Polen", NED: "Niederlande", USA: "USA", CAN: "Kanada", JPN: "Japan" };
 
@@ -4816,7 +4839,7 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
     return false;
   }
   // rückwärts übersetzen: Abstoß nach vorn-außen (gegen die Fahrt), Spielbein vorn
-  const BACK_PUSH = { lean: 10, crouch: 5, sL: [26, 52], fL: [52, 4], aF: [96, -8], aB: [-104, -8], hd: -4, fA: 30 };
+  const BACK_PUSH = { lean: 10, crouch: 5, sL: [26, 52], fL: [52, 4], aF: [96, -8], aB: [-104, -8], hd: -4, fA: 30, ao3: 60 };
   function figureState(t, dt) {
     const r = run, bt = r.bt, el = phaseAt(t);
     if (r.honor) return honorState(t, dt);
@@ -5014,8 +5037,11 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
         ctx.fillStyle = "rgba(221,164,59,0.35)"; ctx.fillRect(x, yc - 5, x2 - x, 10);
         ctx.fillStyle = "#DDA43B"; ctx.beginPath(); ctx.arc(x, yc, 9, 0, 7); ctx.fill();
         ctx.strokeStyle = "#DDA43B"; ctx.lineWidth = 3; ctx.fillStyle = "#141B25"; ctx.beginPath(); ctx.arc(x2, yc, 8, 0, 7); ctx.fill(); ctx.stroke();
+      } else if (m.kind === "step") {
+        ctx.fillStyle = "#141B25"; ctx.strokeStyle = "#F3C969"; ctx.lineWidth = 1.6; ctx.beginPath(); ctx.arc(x, yc, 13, 0, 7); ctx.fill(); ctx.stroke();
+        turnIcon(x, yc, m.dir, 13, "#F1E7D2");
       } else {
-        ctx.fillStyle = m.kind === "step" ? "#F1E7D2" : m.kind === "expr" ? "#D8A9DE" : "#DDA43B"; ctx.beginPath(); ctx.arc(x, yc, 13, 0, 7); ctx.fill();
+        ctx.fillStyle = m.kind === "expr" ? "#D8A9DE" : "#DDA43B"; ctx.beginPath(); ctx.arc(x, yc, 13, 0, 7); ctx.fill();
         ctx.fillStyle = m.kind === "step" ? "#C23B2A" : "#141B25"; ctx.font = "bold 17px " + font();
         ctx.fillText(m.kind === "spin" ? "⟳" : m.kind === "pose" ? "★" : m.kind === "expr" ? "✦" : { l: "←", r: "→", u: "↑", d: "↓" }[m.dir], x, yc + 1);
       }
@@ -5109,12 +5135,12 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
       } else {
         const lead = m.t - t, hit = run.inputs.some((i) => Math.abs(i.t - m.t) < 0.3 && (m.kind === "step" ? i.type === "swipe" : m.kind === "spin" ? i.type === "circle" : i.type === "down"));
         ctx.globalAlpha = hit ? 0.35 : 1;
-        ctx.fillStyle = m.kind === "hold" || m.kind === "pose" ? "#DDA43B" : m.kind === "expr" ? "#D8A9DE" : m.kind === "glide" ? "#9EC3E6" : "#F1E7D2"; ctx.strokeStyle = "#141B25"; ctx.lineWidth = 2.5;
+        ctx.fillStyle = m.kind === "hold" || m.kind === "pose" ? "#DDA43B" : m.kind === "expr" ? "#D8A9DE" : m.kind === "glide" ? "#9EC3E6" : m.kind === "step" ? "#141B25" : "#F1E7D2"; ctx.strokeStyle = m.kind === "step" ? "#F3C969" : "#141B25"; ctx.lineWidth = 2.5;
         ctx.beginPath(); ctx.arc(fx, y, R, 0, 7); ctx.fill(); ctx.stroke();
         if (lead > 0) { ctx.strokeStyle = "#F3C969"; ctx.lineWidth = 3.5; ctx.beginPath(); ctx.arc(fx, y, R + 3 + lead * 28, 0, 7); ctx.stroke(); }
         ctx.fillStyle = m.kind === "step" ? "#C23B2A" : "#141B25"; ctx.font = "bold 24px " + font();
-        ctx.fillText(m.kind === "step" ? STEP[m.dir][0] : m.kind === "hold" ? "●" : SYM[m.kind], fx, y + 1);
-        label(fx, y + R + 12, m.kind === "step" ? STEP[m.dir][1].toUpperCase() : m.kind === "hold" ? (canHover() ? "LEERTASTE DRÜCKEN" : "DRÜCKEN") : m.kind === "spin" ? "RUNDE AUF DEN SCHLAG" : m.kind === "expr" ? `TIPPEN: ${m.el.name.toUpperCase()}` : m.kind === "glide" ? (canHover() ? "LEERTASTE: KANTE ANSETZEN" : "DRÜCKEN: KANTE ANSETZEN") : m.kind === "stroke" ? "ABSTOSS" : "POSE");
+        if (m.kind === "step") turnIcon(fx, y, m.dir, R, "#F1E7D2"); else ctx.fillText(m.kind === "hold" ? "●" : SYM[m.kind], fx, y + 1);
+        label(fx, y + R + 12, m.kind === "step" ? `${STEP[m.dir][1].toUpperCase()}  ${STEP[m.dir][0]}` : m.kind === "hold" ? (canHover() ? "LEERTASTE DRÜCKEN" : "DRÜCKEN") : m.kind === "spin" ? "RUNDE AUF DEN SCHLAG" : m.kind === "expr" ? `TIPPEN: ${m.el.name.toUpperCase()}` : m.kind === "glide" ? (canHover() ? "LEERTASTE: KANTE ANSETZEN" : "DRÜCKEN: KANTE ANSETZEN") : m.kind === "stroke" ? "ABSTOSS" : "POSE");
         ctx.globalAlpha = 1;
       }
     }
@@ -5446,7 +5472,7 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
   function skaterImg(o) {
     const R = sk3(); if (!R) return null;
     const look = o.look || S.look;
-    return R.render({ pose: Object.assign({}, o.pose, { ao: 50 }), turn: o.turn || 0, lift: o.lift || 0, look, swap: !!o.swap });
+    return R.render({ pose: o.pose, turn: o.turn || 0, lift: o.lift || 0, look, swap: !!o.swap });
   }
   function drawSkater(o, img) {
     if (!img) { F.draw(ctx, o); return; }
@@ -5794,7 +5820,7 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
     const d = canHover();
     $("hJump").textContent = (d ? "Leertaste bei ● drücken, halten, bei ○ loslassen." : "Bei ● drücken, halten, bei ○ loslassen.") + (PROG.elements.some((e) => e.part) ? " Kombination: gleich das nächste ●." : "");
     $("hSpin").textContent = d ? "Kreisen oder Leertaste auf jedes ⟳ – eine Runde je Takt." : "Mit dem Finger kreisen, jede Runde endet auf einem ⟳.";
-    $("hStep").textContent = (d ? "Pfeiltaste" : "Wischen") + " in Pfeilrichtung: → Dreier, ← Gegendreier, ↑ Twizzle, ↓ Choctaw.";
+    $("hStep").textContent = (d ? "Pfeiltaste" : "Wischen") + " wie der kleine Winkel am Zeichen: → Dreier rechtsherum, ← Gegendreier linksherum, ↑ Twizzle, ↓ Choctaw.";
     $("hPose").textContent = "Auf den Schlussakkord tippen." + (PROG.elements.some((e) => e.kind === "expr") ? " ✦ Choreo-Figur: tippen, wenn sie kommt." : "");
     show("scrIntro");
   }
