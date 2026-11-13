@@ -4198,7 +4198,7 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
 /* COLD MEDAL EISKUNSTLAUF – Ablauf, Bildschirme, Eingabe, Taktband, Ergebnis, Spielstand. */
 (function () {
   "use strict";
-  const VERSION = "0.50";
+  const VERSION = "0.51";
   // Seiten-Einstellungen aus dem Build (eigenes Hosting: Adresse, Hoster, Impressum); im claude.ai-Artefakt leer
   const SITE = Object.assign({ web: false, url: "", impressum: null }, {"web": true, "supabase": {"url": "https://pqpvgkslozsekjywpdrf.supabase.co", "key": "sb_publishable_KkKe9jchmXYp_-OEmB8WLQ_gZLXrRhF"}, "url": "https://matpeins-debug.github.io/cold-medal-eiskunstlauf/", "hoster": "GitHub Pages (GitHub Inc., USA)", "drittland": "GitHub ist nach dem EU-US Data Privacy Framework zertifiziert; die Übermittlung in die USA stützt sich auf den Angemessenheitsbeschluss der EU-Kommission dazu.", "impressum": {"name": "", "adresse": "", "mail": ""}} || {});
   const M = window.EKMusic, K = window.EKSkate, F = window.EKFig, SC = window.EKScene, PASS = window.CMPass;
@@ -4365,6 +4365,7 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
     let bin = ""; for (let i = 0; i < bytes.length; i += 0x8000) bin += String.fromCharCode.apply(null, bytes.subarray(i, i + 0x8000));
     return "data:audio/wav;base64," + btoa(bin);
   }
+  let speechReady = false;
   function unlock() {
     if (!S.sound || testMode) return;
     try { if (navigator.audioSession) navigator.audioSession.type = "playback"; } catch (e) { /* egal */ }
@@ -4380,6 +4381,13 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
         if (keep.paused) { const p = keep.play(); if (p && p.catch) p.catch(() => {}); }
       }
     } catch (e) { ctxA = null; player = null; }
+    // Sprachausgabe freischalten: Safari auf iPhone/iPad spricht nur, wenn die erste Ansage direkt aus einem Tippen kommt;
+    // die echte Ansage kommt Sekunden später, darum hier eine stumme leere Ansage im Tippen. Stimmen laden dabei mit.
+    try {
+      const sy = window.speechSynthesis;
+      if (sy && !speechReady) { speechReady = true; sy.getVoices(); if ("onvoiceschanged" in sy) sy.onvoiceschanged = () => sy.getVoices();
+        const u = new SpeechSynthesisUtterance(" "); u.volume = 0; u.lang = "de-DE"; sy.speak(u); }
+    } catch (e) { /* egal */ }
   }
   // kurze Geräusche: Kufe bei der Landung, Sturz, Applaus
   // ein gemeinsamer Rausch-Puffer für alle Geräusche (nicht bei jedem Klatschen neu erzeugen: das ruckelt am Handy)
