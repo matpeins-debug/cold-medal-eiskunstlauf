@@ -2704,6 +2704,44 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
     for (let i = 0; i < R; i++) for (let j = 0; j < n; j++) { const a = i * (n + 1) + j, b = a + n + 1; ix.push(a, b, a + 1, b, b + 1, a + 1); }
     return { p, nr, ix };
   }
+  // Kopf aus einem glatten Stück (statt aufgesetzter Kugeln, die Beulen machen): Ei-Form, Kiefer und Kinn verjüngt, sanfte Nase
+  // und Brauenbogen als weiche Erhebungen. x = vorn, y = oben, z = Seite. Normalen aus den Dreiecken gemittelt.
+  const sq = (v) => v * v;
+  function headMesh() {
+    const n = 28, p = [], ix = [];
+    for (let i = 0; i <= n; i++) {
+      const v = i / n * Math.PI;
+      for (let j = 0; j <= n * 2; j++) {
+        const u = j / (n * 2) * Math.PI * 2;
+        let x = Math.sin(v) * Math.cos(u), y = Math.cos(v), z = Math.sin(v) * Math.sin(u);
+        let X = x * 5.7, Y = y * 6.5, Z = z * 5.3;
+        const jaw = Math.max(0, Math.min(1, (-Y - 0.5) / 5.5)), jj = jaw * jaw * (3 - 2 * jaw);
+        Z *= 1 - 0.32 * jj; X *= 1 - 0.1 * jj + (X > 0 ? 0.04 * jj : 0);           // Kiefer schmaler, Kinn leicht vor
+        if (Y > 2) Z *= 1 + 0.04 * Math.min(1, (Y - 2) / 3);                       // Schläfen etwas voller
+        if (X > 0) {
+          const front = Math.max(0, x);
+          X += front * 0.75 * Math.exp(-sq((Y + 0.7) / 1.25) - sq(Z / 0.75));     // Nase
+          X += front * 0.35 * Math.exp(-sq((Y - 1.6) / 0.6) - sq(Z / 3.2));       // Brauenbogen
+          X -= front * 0.18 * Math.exp(-sq((Y - 0.45) / 0.7) - sq((Math.abs(Z) - 2.1) / 0.9)); // Augenhöhlen
+          X += front * 0.2 * Math.exp(-sq((Y + 2.8) / 0.55) - sq(Z / 1.4));        // Lippen
+        }
+        p.push(X, Y, Z);
+      }
+    }
+    for (let i = 0; i < n; i++) for (let j = 0; j < n * 2; j++) { const a = i * (n * 2 + 1) + j, b = a + n * 2 + 1; ix.push(a, a + 1, b, b, a + 1, b + 1); }
+    const nr = new Array(p.length).fill(0);
+    for (let k = 0; k < ix.length; k += 3) {
+      const [A, B, C] = [ix[k], ix[k + 1], ix[k + 2]].map((q) => [p[q * 3], p[q * 3 + 1], p[q * 3 + 2]]);
+      const nn = cross(sub(B, A), sub(C, A));
+      for (const q of [ix[k], ix[k + 1], ix[k + 2]]) { nr[q * 3] += nn[0]; nr[q * 3 + 1] += nn[1]; nr[q * 3 + 2] += nn[2]; }
+    }
+    // Naht der Kugel (gleiche Punkte am Anfang und Ende jedes Rings) und Pole glatt
+    for (let i = 0; i <= n; i++) { const a = i * (n * 2 + 1), b = a + n * 2; for (let c = 0; c < 3; c++) { const m = nr[a * 3 + c] + nr[b * 3 + c]; nr[a * 3 + c] = nr[b * 3 + c] = m; } }
+    for (let q = 0; q < p.length / 3; q++) { const l = Math.hypot(nr[q * 3], nr[q * 3 + 1], nr[q * 3 + 2]) || 1; for (let c = 0; c < 3; c++) nr[q * 3 + c] /= l; if (!isFinite(nr[q * 3])) { nr[q * 3] = 0; nr[q * 3 + 1] = p[q * 3 + 1] > 0 ? 1 : -1; nr[q * 3 + 2] = 0; } }
+    // Pole: Normale gerade nach oben/unten
+    for (let j = 0; j <= n * 2; j++) { nr[j * 3] = 0; nr[j * 3 + 1] = 1; nr[j * 3 + 2] = 0; const q = n * (n * 2 + 1) + j; nr[q * 3] = 0; nr[q * 3 + 1] = -1; nr[q * 3 + 2] = 0; }
+    return { p, nr, ix };
+  }
   // Kapsel als offene Röhre (Enden schließen Kugeln, die extra gezeichnet werden)
   function tube(n) {
     const p = [], nr = [], ix = [];
@@ -2718,7 +2756,7 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
   // Kostüm im Shader (uMode): 1 Rumpf – Farbverlauf, Ausschnitt mit Steinbesatz, Ranken, Taillenband; 2 Oberarm; 3 Unterarm –
   // Ärmel werden zum Handgelenk durchscheinend (Farbe zur Haut), Manschette mit Steinen; 4 Bein (Muster aus dem Pass:
   // Längsstreifen, Beine in der Zweitfarbe); 5 Band (Seidenglanz). Dazu funkelnde Strasssteinchen (uT = Zeit).
-  const FS = `precision mediump float; uniform vec3 uC, uC2, uL, uE, uA; uniform float uFlat, uBand, uT, uPat; varying vec3 vN; varying vec3 vW; varying vec3 vL;
+  const FS = `precision mediump float; uniform vec3 uC, uC2, uL, uE, uA, uBl, uBr, uLp; uniform float uFlat, uBand, uT, uPat; varying vec3 vN; varying vec3 vW; varying vec3 vL;
     float hash(vec3 p) { return fract(sin(dot(p, vec3(12.9898, 78.233, 37.719))) * 43758.5453); }
     void main(){ if (uFlat > 0.5) { gl_FragColor = vec4(uC, 1.0); return; }
       vec3 col = uC; const vec3 STONE = vec3(1.0, 0.97, 0.88); float glit = 0.0; vec3 gs = vec3(3.0, 16.0, 3.0);
@@ -2746,10 +2784,24 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
         if (vL.y > 0.86) { col = uA; if (fract(atan(vL.z, vL.x) * 1.5) < 0.3) col = STONE; }
         glit = 0.6;
       }
+      if (m == 6) {
+        // Gesicht aufgemalt auf den glatten Kopf: Rouge, mandelförmige Augen mit Iris und Glanzpunkt, Wimpernlinie, Brauen, Lippen
+        float u = vL.y, az = abs(vL.z);
+        if (vL.x > 1.5) {
+          float bl = exp(-((az - 2.9) * (az - 2.9) + (u + 1.3) * (u + 1.3)) / 1.4); col = mix(col, uBl, 0.5 * bl);
+          float ex = (az - 2.05) / 1.05, ey = (u - 0.42) / 0.58, e = ex * ex + ey * ey;
+          if (e < 1.0) { col = vec3(0.97, 0.96, 0.94); float ir = length(vec2(az - 2.0, u - 0.36)); if (ir < 0.5) col = vec3(0.32, 0.22, 0.14); if (ir < 0.22) col = vec3(0.06); if (length(vec2(az - 1.86, u - 0.56)) < 0.1) col = vec3(1.0); }
+          if (e >= 0.82 && e < 1.4 && u > 0.36) col = vec3(0.08, 0.09, 0.13);
+          float bx = (az - 2.25) / 1.3, by = 2.0 + 0.3 * (1.0 - bx * bx);
+          if (abs(bx) < 1.0 && abs(u - by) < 0.16 + 0.05 * (1.0 - abs(bx))) col = uBr;
+          float lx = vL.z / 1.25, ly = (u + 2.85) / 0.44, le = lx * lx + ly * ly;
+          if (le < 1.0) { col = uLp; if (abs(u + 2.85) < 0.07 && abs(lx) < 0.92) col = uLp * 0.62; }
+        }
+      }
       if (glit > 0.0) { vec3 q = vL * gs; float h = hash(floor(q)); vec3 fq = fract(q) - 0.5; if (h > 0.955 && length(fq.xz) < 0.3 && abs(fq.y) < 0.3) { float tw = 0.5 + 0.5 * sin(uT * 7.0 + h * 60.0); col = mix(col, STONE, glit * (0.45 + 0.55 * tw)); } }
       vec3 n = normalize(vN); float d = dot(n, normalize(uL));
       float band = d > 0.45 ? 1.0 : d > -0.05 ? 0.84 : 0.66;                     // Stufen wie im Plakat …
-      float s = mix(band, 0.66 + 0.34 * max(d, 0.0), 0.55);                       // … mit etwas weichem Verlauf
+      float s = mix(band, 0.66 + 0.34 * max(d, 0.0), m == 6 ? 0.9 : 0.55);         // Gesicht weich, ohne harte Stufen                       // … mit etwas weichem Verlauf
       float rim = pow(1.0 - max(dot(n, normalize(uE - vW)), 0.0), 3.0) * (m == 5 ? 0.45 : 0.18);  // Lichtkante, Seide glänzt mehr
       gl_FragColor = vec4(col * s + rim, 1.0); }`;
 
@@ -2760,7 +2812,7 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
     if (!gl) return null;
     const sh = (t, s) => { const o = gl.createShader(t); gl.shaderSource(o, s); gl.compileShader(o); if (!gl.getShaderParameter(o, gl.COMPILE_STATUS)) throw new Error(gl.getShaderInfoLog(o)); return o; };
     const pr = gl.createProgram(); gl.attachShader(pr, sh(gl.VERTEX_SHADER, VS)); gl.attachShader(pr, sh(gl.FRAGMENT_SHADER, FS)); gl.linkProgram(pr); gl.useProgram(pr);
-    const U = {}; for (const k of ["uM", "uV", "uP", "uGrow", "uC", "uC2", "uL", "uE", "uFlat", "uA", "uBand", "uTaper", "uT", "uPat"]) U[k] = gl.getUniformLocation(pr, k);
+    const U = {}; for (const k of ["uM", "uV", "uP", "uGrow", "uC", "uC2", "uL", "uE", "uFlat", "uA", "uBand", "uTaper", "uT", "uPat", "uBl", "uBr", "uLp"]) U[k] = gl.getUniformLocation(pr, k);
     const aP = gl.getAttribLocation(pr, "aP"), aN = gl.getAttribLocation(pr, "aN");
     const upload = (m) => {
       const b = { p: gl.createBuffer(), n: gl.createBuffer(), i: gl.createBuffer(), c: m.ix.length };
@@ -2769,7 +2821,7 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
       gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, b.i); gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, new Uint16Array(m.ix), gl.STATIC_DRAW);
       return b;
     };
-    const SPH = upload(sphere(opts.ortho ? 8 : 10)), TUB = upload(tube(opts.ortho ? 12 : 18)), TOR = upload(torsoMesh());
+    const SPH = upload(sphere(opts.ortho ? 8 : 10)), TUB = upload(tube(opts.ortho ? 12 : 18)), TOR = upload(torsoMesh()), HEAD = upload(headMesh());
     // Eis: eine flache Scheibe (Kugel stark gestaucht) reicht für den Vergleich
     function drawMesh(b, M, col, grow, flat, band, taper) {
       gl.uniform1f(U.uBand, +band || 0); gl.uniform1f(U.uTaper, taper || 1);
@@ -2881,27 +2933,11 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
       const H = (f, u, sd) => [sk.head[0] + hf[0] * f + hu[0] * u + hs[0] * sd, sk.head[1] + hf[1] * f + hu[1] * u + hs[1] * sd, sk.head[2] + hf[2] * f + hu[2] * u + hs[2] * sd];
       const hM = (c, rf, ru, rs) => [hf[0] * rf, hf[1] * rf, hf[2] * rf, 0, hu[0] * ru, hu[1] * ru, hu[2] * ru, 0, hs[0] * rs, hs[1] * rs, hs[2] * rs, 0, c[0], c[1], c[2], 1];
       cap(sk.nk, H(-0.8, -4.5, 0), 1.75, skin);                                         // Hals
-      parts.push([SPH, hM(H(0, 0.4, 0), 5.9, 6.5, 5.5), skin]);                          // Schädel
-      // Gesicht leicht modelliert: Kinn und Kiefer, Wangenknochen mit etwas Rouge, Brauenbogen, Nasenrücken und -spitze,
-      // mandelförmige Augen mit Iris und Wimpernlinie, Brauen in Haarfarbe, Lippen. Nur Andeutungen, im Plakatstil.
+      // Kopf aus einem glatten Stück, Gesicht aufgemalt (Shader m == 6) – keine aufgesetzten Teile, keine Beulen
       const mixC = (a, b, k) => [a[0] + (b[0] - a[0]) * k, a[1] + (b[1] - a[1]) * k, a[2] + (b[2] - a[2]) * k];
-      const blush = mixC(skin, [0.86, 0.45, 0.45], 0.16), lip = mixC(skin, [0.72, 0.2, 0.25], 0.55), brow = mixC(hair, [0, 0, 0], 0.25);
-      const FACE = (c, rf, ru, rs, col, flat) => parts.push([SPH, hM(c, rf, ru, rs), col, 0, 1, !!flat, true]);
-      FACE(H(2.9, -4.1, 0), 2.6, 1.9, 2.3, skin);                         // Kinn
-      for (const sd of [-1, 1]) {
-        FACE(H(1.6, -2.7, sd * 2.2), 2.7, 2.2, 1.8, skin);                 // Kiefer
-        FACE(H(4.6, -1.0, sd * 2.75), 0.95, 0.85, 1.1, blush);          // Wangenknochen
-        FACE(H(5.3, 0.45, sd * 2.2), 0.35, 0.78, 1.1, [0.97, 0.96, 0.94], true);   // Auge (weiß, mandelförmig)
-        FACE(H(5.5, 0.38, sd * 2.12), 0.3, 0.68, 0.6, [0.24, 0.17, 0.12], true);  // Iris
-        FACE(H(5.5, 1.12, sd * 2.2), 0.24, 0.17, 1.2, F.INK ? hex(F.INK) : [0.08, 0.1, 0.14], true); // Wimpernlinie
-        FACE(H(5.4, 2.2, sd * 2.3), 0.28, 0.2, 1.25, brow, true);       // Braue
-        parts.push([SPH, hM(H(-0.2, -0.2, sd * 5.5), 1.2, 1.7, 0.6), skin, 0, 1, false, true]); // Ohren
-      }
-      FACE(H(4.95, 1.55, 0), 1.0, 0.75, 3.7, skin);                       // Brauenbogen
-      FACE(H(5.75, -0.25, 0), 0.6, 1.55, 0.62, skin);                     // Nasenrücken
-      FACE(H(6.2, -1.25, 0), 0.85, 0.75, 0.85, skin);                     // Nasenspitze
-      FACE(H(5.38, -2.75, 0), 0.5, 0.42, 1.45, lip);                      // Lippen
-      FACE(H(5.2, -3.15, 0), 0.45, 0.3, 1.05, mixC(lip, skin, 0.4));      // Unterlippe
+      gl.uniform3fv(U.uBl, mixC(skin, [0.88, 0.42, 0.44], 0.5)); gl.uniform3fv(U.uBr, mixC(hair, [0, 0, 0], 0.2)); gl.uniform3fv(U.uLp, mixC(skin, [0.74, 0.22, 0.28], 0.6));
+      parts.push([HEAD, hM(H(0, 0.4, 0), 1, 1, 1), skin, 6]);
+      for (const sd of [-1, 1]) parts.push([SPH, hM(H(-0.2, -0.3, sd * 5.15), 1.1, 1.6, 0.55), skin, 0, 1, false, true]); // Ohren
       // Frisur nach Pass (figur.js HAIRS): Dutt, Kurz, Zopf, Locken, Bubikopf, Lang, Scheitel, Stoppeln, Afro
       const hs2 = L.hair | 0, big = hs2 === 3 || hs2 === 8 ? (hs2 === 8 ? 2.2 : 1.1) : 0, thin = hs2 === 7 ? -0.6 : 0;
       parts.push([SPH, hM(H(-1.6, 2.9, 0), 6.3 + big + thin, 5.7 + big + thin, 6.05 + big + thin), hair]);
@@ -2910,7 +2946,7 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
       const bowC = hs2 === 0 ? H(-3.6, 7.6, 0) : hs2 === 2 ? H(-6.0, 3.6, 0) : H(-2.0, 8.0, 0);
       for (const sd of [-1, 1]) parts.push([SPH, hM([bowC[0] + hs[0] * sd * 1.9, bowC[1] + hs[1] * sd * 1.9, bowC[2] + hs[2] * sd * 1.9], 1.1, 1.3, 1.9), acc, 5]);
       ball(bowC, 0.85, acc);
-      for (const sd of [-1, 1]) parts.push([SPH, hM(H(0.1, -2.3, sd * 5.6), 0.5, 0.5, 0.5), [1, 0.97, 0.88], 0, 1, true, true]);
+      for (const sd of [-1, 1]) parts.push([SPH, hM(H(0.1, -2.3, sd * 5.3), 0.5, 0.5, 0.5), [1, 0.97, 0.88], 0, 1, true, true]);
       if (hs2 === 2) { cap(H(-6.2, 3.2, 0), H(-7.6, -2.5, 0), 1.9, hair); cap(H(-7.6, -2.5, 0), H(-8.6, -8.5, 0), 1.6, hair); }
       if (hs2 === 4) parts.push([SPH, hM(H(-1.2, -0.8, 0), 6.0, 4.2, 6.5), hair]);
       if (hs2 === 5) parts.push([SPH, hM(H(-3.6, -5.5, 0), 3.2, 8.5, 5.8), hair]);
@@ -4159,7 +4195,7 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
 /* COLD MEDAL EISKUNSTLAUF – Ablauf, Bildschirme, Eingabe, Taktband, Ergebnis, Spielstand. */
 (function () {
   "use strict";
-  const VERSION = "0.46";
+  const VERSION = "0.47";
   // Seiten-Einstellungen aus dem Build (eigenes Hosting: Adresse, Hoster, Impressum); im claude.ai-Artefakt leer
   const SITE = Object.assign({ web: false, url: "", impressum: null }, {"web": true, "supabase": {"url": "https://pqpvgkslozsekjywpdrf.supabase.co", "key": "sb_publishable_KkKe9jchmXYp_-OEmB8WLQ_gZLXrRhF"}, "url": "https://matpeins-debug.github.io/cold-medal-eiskunstlauf/", "hoster": "GitHub Pages (GitHub Inc., USA)", "drittland": "GitHub ist nach dem EU-US Data Privacy Framework zertifiziert; die Übermittlung in die USA stützt sich auf den Angemessenheitsbeschluss der EU-Kommission dazu.", "impressum": {"name": "", "adresse": "", "mail": ""}} || {});
   const M = window.EKMusic, K = window.EKSkate, F = window.EKFig, SC = window.EKScene, PASS = window.CMPass;
