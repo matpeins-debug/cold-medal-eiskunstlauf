@@ -4198,7 +4198,7 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
 /* COLD MEDAL EISKUNSTLAUF – Ablauf, Bildschirme, Eingabe, Taktband, Ergebnis, Spielstand. */
 (function () {
   "use strict";
-  const VERSION = "0.51";
+  const VERSION = "0.52";
   // Seiten-Einstellungen aus dem Build (eigenes Hosting: Adresse, Hoster, Impressum); im claude.ai-Artefakt leer
   const SITE = Object.assign({ web: false, url: "", impressum: null }, {"web": true, "supabase": {"url": "https://pqpvgkslozsekjywpdrf.supabase.co", "key": "sb_publishable_KkKe9jchmXYp_-OEmB8WLQ_gZLXrRhF"}, "url": "https://matpeins-debug.github.io/cold-medal-eiskunstlauf/", "hoster": "GitHub Pages (GitHub Inc., USA)", "drittland": "GitHub ist nach dem EU-US Data Privacy Framework zertifiziert; die Übermittlung in die USA stützt sich auf den Angemessenheitsbeschluss der EU-Kommission dazu.", "impressum": {"name": "", "adresse": "", "mail": ""}} || {});
   const M = window.EKMusic, K = window.EKSkate, F = window.EKFig, SC = window.EKScene, PASS = window.CMPass;
@@ -4508,12 +4508,31 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
   }
   // Auftritt: Läuferin gleitet zum Startpunkt, Publikum jubelt; Gong und Ansage aus dem alten Lautsprecher;
   // Stille, sie nimmt die Ausgangspose ein; dann setzt die Musik ein. Tippen überspringt.
+  // Stimme für die Ansage: lieber österreichisch und männlich (klingt am natürlichsten), lieber hochwertige Stimmen
+  // (Natural/Online/Premium/Erweitert) als die kompakten. Apple hat keine österreichische Stimme, dort Markus oder Yannick.
+  const MALE = /michael|jonas|markus|yannick|conrad|killian|stefan|florian|hans|viktor|\bmale|\bmann\b/i;
+  const FEMALE = /ingrid|katja|hedda|anna|petra|helena|marlene|vicki|seraphina|amala|female|frau|google deutsch/i;
+  function bestVoice(vs) {
+    let best = null, bs = -1e9;
+    for (const x of vs || []) {
+      if (!/^de/i.test(x.lang)) continue;
+      const n = x.name || "";
+      let sc = 0;
+      if (/^de-AT/i.test(x.lang)) sc += 50;
+      if (/natural|online|neural|premium|erweitert|enhanced|verbessert/i.test(n)) sc += 30;
+      if (MALE.test(n)) sc += 35; else if (FEMALE.test(n)) sc -= 5;
+      if (/eloquence|novelty|bells|bubbles|whisper|zarvox|trinoids|organ|bahh|boing|cellos|jester|superstar/i.test(n)) sc -= 100; // Spaßstimmen
+      if (x.localService) sc += 2;
+      if (sc > bs) { bs = sc; best = x; }
+    }
+    return best;
+  }
   function speak(text, done) {
     const sy = window.speechSynthesis;
     if (!sy || !S.sound || run.entry.fake) { setTimeout(done, 3200); return 3.2; }
     try {
       sy.cancel();
-      const u = new SpeechSynthesisUtterance(text), vs = sy.getVoices(), v = vs.find((x) => /^de-AT/i.test(x.lang)) || vs.find((x) => /^de/i.test(x.lang));
+      const u = new SpeechSynthesisUtterance(text), v = bestVoice(sy.getVoices());
       if (v) u.voice = v; u.lang = v ? v.lang : "de-DE"; u.rate = 0.9; u.pitch = 0.85; u.volume = 0.9;
       let fin = false; const end = () => { if (!fin) { fin = true; done(); } };
       u.onend = end; u.onerror = end; setTimeout(end, 9000); sy.speak(u);
