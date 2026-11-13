@@ -279,9 +279,9 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
 .showRow .tg:disabled { opacity: 0.3; }
 .fxB { position: absolute; right: 5px; bottom: 3px; font-style: normal; font-size: 12px; color: #F3C969; text-shadow: 0 0 6px rgba(243,201,105,0.8); }
 .fxB.r2 { right: calc(50% + 5px); }
-.choose .showRow { margin-top: auto; padding-top: 6px; border-top: 1px solid rgba(243,201,105,0.2); gap: 6px; }
+.choose .showRow { margin-top: auto; padding-top: 6px; border-top: 1px solid rgba(243,201,105,0.2); gap: 4px 5px; flex-wrap: wrap; white-space: normal; }
 .choose .showRow small { font-family: var(--font-display); font-size: 10px; letter-spacing: 0.12em; color: #F3C969; margin-right: 4px; }
-.choose .showRow .tg { font-size: 11px; padding: 3px 9px; }
+.choose .showRow .tg { font-size: 10.5px; padding: 2px 7px; white-space: nowrap; }
 .choose .showRow em { margin-left: auto; font-style: normal; font-family: var(--font-display); font-size: 11px; color: rgba(241,231,210,0.6); }
 
 /* Ergebnis: Kiss & Cry links, rechts Punkte, Preisgericht, Elemente und Rangliste – Abendbühne in Blau und Gold */
@@ -852,6 +852,9 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
     C: { b: ["C2", "G2"], c: ["G3", "C4", "E4"] },
     "C#7": { b: ["C#2", "G#1"], c: ["F3", "G#3", "B3"] },
     "F#7": { b: ["F#1", "C#2"], c: ["A#3", "C#4", "E4"] },
+    G7: { b: ["G1", "D2"], c: ["F3", "B3", "D4"] },
+    F: { b: ["F1", "C2"], c: ["F3", "A3", "C4"] },
+    C7: { b: ["C2", "G1"], c: ["E3", "G3", "Bb3"] },
   };
   // Takt eine Oktave höher (für Wiederholungen mit mehr Glanz)
   const up = (bar) => [bar[0], bar[1] === "." ? "." : bar[1].replace(/([A-G][#b]?)(\d)/g, (_, n, o) => n + (+o + 1))];
@@ -1021,9 +1024,45 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
       ["D", "1:D5 2:F#5:2"], ["D", "1:F#5 2:C#5:2"], ["Em", "1:C#5:0.75 1.75:E5:0.25 2:E5:0.5 3:E5:0.5"], ["Em", "1:B4:3"], ["F#7", "1:G5 2:F#5:1.5 3.5:C#5:0.5"], ["Bm", "1:E5 2:D5:1.5 3.5:B4:0.5"], ["A7", "1:B4:2 3:A4"], ["A7", "1:A4:3"]],
     end: "D",
   };
+  // Juventino Rosas, „Über den Wellen“ (Sobre las olas, 1888, gemeinfrei), erster Walzer in C-Dur. Melodie nach der freien
+  // Abschrift von Ira Ford (Traditional Tune Archive), eigener Satz und eigene Harmonien.
+  const WAVES = {
+    id: "wogen", title: "Über den Wellen", short: "Über den Wellen", composer: "Juventino Rosas, 1888",
+    bpm: 156, meter: 3, pulse: 1, acc: "waltz", swing: true, finNote: "C5",
+    bars: [["C", "."], ["C", "."], ["G7", "."], ["G7", "."],
+      ["C", "1:E4:3"], ["C", "1:D#4 2:E4 3:G4"], ["C", "1:C5:4"], ["C", "2:B4 3:C5"], ["G7", "1:D5 2:C5 3:B4"], ["C", "1:C5 2:E4 3:G4"], ["G7", "1:B4:4"], ["G7", "."],
+      ["G7", "1:E4:3"], ["G7", "1:E4 2:F4 3:G4"], ["G7", "1:B4:4"], ["G7", "2:A#4 3:B4"], ["G7", "1:C5 2:B4 3:A#4"], ["G7", "1:B4 2:F4 3:A4"], ["C", "1:E4:4"], ["C", "."],
+      ["C", "1:E4:3"], ["C", "1:D#4 2:E4 3:G4"], ["C", "1:C5:4"], ["C", "2:B4 3:C5"], ["G7", "1:D5 2:C5 3:B4"], ["C7", "1:C5 2:B4 3:Bb4"], ["F", "1:A4:4"], ["F", "."],
+      ["F", "1:A4:3"], ["Dm", "1:D5 2:F5 3:A5"], ["G7", "1:G5:4"], ["G7", "2:F5 3:E5"], ["C", "1:E5 2:D5 3:C5"], ["G7", "1:B4 2:C5 3:D5"], ["C", "1:C5:6"], ["C", "."]],
+    end: "C",
+  };
+  // Leo Friedman, „Let Me Call You Sweetheart“ (1910, gemeinfrei) – der Ballsaal-Walzer der 1910er und 20er. Melodie nach der freien
+  // Abschrift von John Chambers (2006), eigener Satz in G-Dur.
+  const SWEET = {
+    id: "sweet", title: "Let Me Call You Sweetheart", short: "Sweetheart", composer: "Leo Friedman, 1910",
+    bpm: 138, meter: 3, pulse: 1, acc: "waltz", swing: false, finNote: "G5",
+    bars: [["G", "."], ["G", "."], ["D7", "."], ["D7", "."],
+      ["G", "1:B4:2 3:D5"], ["G", "1:G5:2 3:A5"], ["G", "1:B5 2:D5:2"], ["G", "1:C#5:2 3:D5"], ["C", "1:E5:3"], ["E7", "1:E5:3"], ["A7", "1:E5:6"], ["A7", "."],
+      ["D7", "1:F#5:2 3:F5"], ["D7", "1:F#5:2 3:G5"], ["D7", "1:A5 2:F#5:2"], ["D7", "1:E5:2 3:F#5"], ["G", "1:D5:9"], ["E7", "."], ["Am", "."], ["D7", "1:D5 2:C#5 3:C5"],
+      ["G", "1:B4:2 3:D5"], ["G", "1:G5:2 3:A5"], ["G", "1:B5 2:D5:2"], ["G", "1:C#5:2 3:D5"], ["C", "1:E5:3"], ["E7", "1:E5:3"], ["A7", "1:A5:6"], ["A7", "."],
+      ["C", "1:A5:2 3:G5"], ["F#7", "1:F#5:2 3:G5"], ["G", "1:B5 2:D5:2"], ["E7", "1:C6:2 3:B5"], ["A7", "1:E5:3"], ["D7", "1:F#5:3"], ["G", "1:G5:6"], ["G", "."]],
+    end: "G",
+  };
+  // Anita Owen, „Sweet Bunch of Daisies“ (1894, gemeinfrei) – ein Strauß Gänseblümchen. Melodie nach der freien Abschrift von
+  // Moshe Braner (Fiddler's Fakebook), eigener Satz in C-Dur.
+  const DAISY = {
+    id: "daisy", title: "Sweet Bunch of Daisies", short: "Gänseblümchen", composer: "Anita Owen, 1894",
+    bpm: 144, meter: 3, pulse: 1, acc: "waltz", swing: false, finNote: "C5",
+    bars: [["C", "."], ["C", "."], ["G7", "."], ["G7", "1:G4 2:F#4 3:F4"],
+      ["C", "1:E4:3"], ["G7", "1:F4:2 3:F#4"], ["C", "1:G4:3"], ["C7", "1:E5:3"], ["F", "1:D5:1.5 2.5:C5:0.5 3:D5:0.5 3.5:E5:0.5"], ["D7", "1:C5:2 3:A4:0.33 3.33:C5:0.33 3.67:A4:0.33"], ["C", "1:G4:3"], ["G7", "1:G4 2:F#4 3:F4"],
+      ["C", "1:E4:3"], ["G7", "1:F4:2 3:F#4"], ["C", "1:G4:3"], ["Am", "1:E5:3"], ["D", "1:D5:3"], ["D7", "1:E5:2 3:D#5:0.5 3.5:E5:0.5"], ["G", "1:D5:2.5 3.5:C5:0.5"], ["G7", "1:B4:0.5 1.5:G4:1.5 3:F4"],
+      ["C", "1:E4:3"], ["G7", "1:F4:2 3:F#4"], ["C", "1:G4:3"], ["C7", "1:E5:3"], ["F", "1:D5:1.5 2.5:C5:0.5 3:D5:0.5 3.5:E5:0.5"], ["D7", "1:C5:2 3:A4:0.33 3.33:C5:0.33 3.67:A4:0.33"], ["C", "1:G4:3"], ["C7", "1:G4 2:F#4 3:G4"],
+      ["F", "1:A4:3"], ["D7", "1:C5:2 3:D5"], ["C", "1:E5:3"], ["Am", "1:C5:1.5 2.5:B4:0.5 3:C5:0.5 3.5:C#5:0.5"], ["D7", "1:D5:2 3:E5:0.33 3.33:D5:0.33 3.67:C5:0.33"], ["G7", "1:B4 2:A4 3:G4"], ["C", "1:C5:6"], ["C", "."]],
+    end: "C",
+  };
   DONAU.short = "Donauwalzer"; BARCA.short = "Barcarole";
-  const SCORES = { donau: DONAU, barca: BARCA, skaters: SKATERS, brahms: BRAHMS, wellen: WELLEN, rosen: ROSEN, blumen: FLOWER, schwan: SWAN, witwe: WIDOW, wald: WALD, kaiser: KAISER };
-  const KUER = ["donau", "kaiser", "wald", "rosen", "witwe", "skaters", "blumen", "wellen", "schwan", "brahms"]; // Stücke für die Kür: je 36 Takte im 3/4-Takt, Melodie ab Takt 4
+  const SCORES = { donau: DONAU, barca: BARCA, skaters: SKATERS, brahms: BRAHMS, wellen: WELLEN, rosen: ROSEN, blumen: FLOWER, schwan: SWAN, witwe: WIDOW, wald: WALD, kaiser: KAISER, wogen: WAVES, sweet: SWEET, daisy: DAISY };
+  const KUER = ["donau", "kaiser", "wald", "rosen", "witwe", "skaters", "blumen", "wellen", "schwan", "brahms", "wogen", "sweet", "daisy"]; // Stücke für die Kür: je 36 Takte im 3/4-Takt, Melodie ab Takt 4
 
   // Stück → Ereignisliste in Schlägen: { beat, m, dur, part: "mel"|"bass"|"chord", acc }
   function events(score) {
@@ -1121,6 +1160,9 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
     piano: { gain: 0.75, name: "Klavier", mel: ["piano"], acc: "piano", pad: false },
     strings: { gain: 1.3, name: "Streicher", mel: ["strings"], acc: "pizz", pad: true },
     box: { gain: 1.3, name: "Spieluhr", mel: ["box"], acc: "box", pad: false },
+    // Tanzorchester wie auf einer Schellackplatte der 1920er: Geige und gedämpfte Trompete, Klarinette eine Oktave tiefer,
+    // Banjo nach, Tuba auf der Eins, Besen auf der Trommel; schmaler Klang wie aus dem Trichter, leises Knistern
+    band: { gain: 1.45, name: "Orchester 1920er", mel: ["strings", "trumpet", "clarinet"], acc: "band", pad: false, retro: true },
   };
 
   function Player(ctx, out) {
@@ -1230,6 +1272,47 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
       o2.connect(g2); g2.connect(dest); o2.start(t); o2.stop(t + 0.15);
     }
 
+    // gedämpfte Trompete (Wah-Dämpfer): Sägezahn durch einen wandernden Bandpass, schnelles Vibrato
+    function trumpet(t, m, dur, vel, dest) {
+      const f = mf(m), len = Math.max(0.1, dur), o = c.createOscillator(), bp = c.createBiquadFilter(), g = c.createGain();
+      o.type = "sawtooth"; o.frequency.value = f;
+      bp.type = "bandpass"; bp.Q.value = 2.2; bp.frequency.setValueAtTime(900, t); bp.frequency.linearRampToValueAtTime(1700, t + 0.08); bp.frequency.setTargetAtTime(1300, t + 0.1, 0.2);
+      g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(0.11 * vel, t + 0.03); g.gain.setTargetAtTime(0.07 * vel, t + 0.04, 0.15); g.gain.setTargetAtTime(0, t + len, 0.06);
+      const vib = c.createOscillator(), vg = c.createGain(); vib.frequency.value = 6.2; vg.gain.setValueAtTime(0, t); vg.gain.linearRampToValueAtTime(len > 0.4 ? 9 : 0, t + Math.min(0.4, len));
+      vib.connect(vg); vg.connect(o.detune); vib.start(t); vib.stop(t + len + 0.4);
+      o.connect(bp); bp.connect(g); g.connect(dest); o.start(t); o.stop(t + len + 0.4);
+    }
+    // Klarinette: Rechteck (ungerade Obertöne), weich, eine Oktave tiefer als die Melodie
+    function clarinet(t, m, dur, vel, dest) {
+      const f = mf(m - 12), len = Math.max(0.1, dur), o = c.createOscillator(), lp = c.createBiquadFilter(), g = c.createGain();
+      o.type = "square"; o.frequency.value = f; lp.type = "lowpass"; lp.frequency.value = Math.min(2600, f * 5); lp.Q.value = 0.3;
+      g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(0.045 * vel, t + 0.05); g.gain.setTargetAtTime(0, t + len, 0.08);
+      o.connect(lp); lp.connect(g); g.connect(dest); o.start(t); o.stop(t + len + 0.5);
+    }
+    // Banjo: hell gezupft, sehr kurz, mit metallischem Oberton
+    function banjo(t, m, vel, dest) {
+      const f = mf(m + 12), o = c.createOscillator(), o2 = c.createOscillator(), hp = c.createBiquadFilter(), g = c.createGain();
+      o.type = "sawtooth"; o.frequency.value = f; o2.type = "square"; o2.frequency.value = f * 2.01;
+      hp.type = "highpass"; hp.frequency.value = 500;
+      g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(0.06 * vel, t + 0.002); g.gain.setTargetAtTime(0, t + 0.004, 0.07);
+      o.connect(hp); o2.connect(hp); hp.connect(g); g.connect(dest); o.start(t); o2.start(t); o.stop(t + 0.5); o2.stop(t + 0.5);
+    }
+    // Tuba: rund und weich auf der Eins
+    function tuba(t, m, dur, vel, dest) {
+      const f = mf(m), len = Math.min(dur, 0.6), o = c.createOscillator(), o2 = c.createOscillator(), lp = c.createBiquadFilter(), g = c.createGain();
+      o.type = "triangle"; o.frequency.value = f; o2.type = "sawtooth"; o2.frequency.value = f; lp.type = "lowpass"; lp.frequency.value = f * 4;
+      const g2 = c.createGain(); g2.gain.value = 0.25;
+      g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(0.3 * vel, t + 0.04); g.gain.setTargetAtTime(0, t + len, 0.08);
+      o.connect(lp); o2.connect(g2); g2.connect(lp); lp.connect(g); g.connect(dest); o.start(t); o2.start(t); o.stop(t + len + 0.5); o2.stop(t + len + 0.5);
+    }
+    // Besen auf der kleinen Trommel
+    function brush(t, vel, dest) {
+      const nb = c.createBufferSource(); nb.buffer = noise; const bp = c.createBiquadFilter(), g = c.createGain();
+      bp.type = "bandpass"; bp.frequency.value = 4200; bp.Q.value = 0.7;
+      g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(0.05 * vel, t + 0.015); g.gain.setTargetAtTime(0, t + 0.03, 0.05);
+      nb.loop = true; nb.connect(bp); bp.connect(g); g.connect(dest); nb.start(t); nb.stop(t + 0.3);
+    }
+
     // Liegeakkord der Streicher, sehr leise, füllt den Raum
     function pad(t, chord, dur, dest) {
       const g = c.createGain(), lp = c.createBiquadFilter();
@@ -1260,7 +1343,20 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
         opt = opt || {};
         this.score = typeof id === "string" ? SCORES[id] : id; this.preset = opt.preset || this.preset; this.swing = opt.swing !== undefined ? opt.swing : this.swing;
         this.bpm = opt.bpm || this.score.bpm; this.all = !!opt.all;
-        this.voices = c.createGain(); this.voices.gain.value = PRESETS[this.preset].gain || 1; this.voices.connect(bus);
+        this.voices = c.createGain(); this.voices.gain.value = PRESETS[this.preset].gain || 1;
+        if (PRESETS[this.preset].retro) {
+          // Schellack: nur die Mitten (wie aus dem Trichter des Grammofons), dazu leises Knistern, solange die Platte läuft
+          const hp2 = c.createBiquadFilter(), lp2 = c.createBiquadFilter(), pk = c.createBiquadFilter();
+          hp2.type = "highpass"; hp2.frequency.value = 220; lp2.type = "lowpass"; lp2.frequency.value = 4200; pk.type = "peaking"; pk.frequency.value = 1500; pk.gain.value = 4;
+          this.voices.connect(hp2); hp2.connect(pk); pk.connect(lp2); lp2.connect(bus);
+          try {
+            const sr = c.sampleRate, b = c.createBuffer(1, sr * 2, sr), d = b.getChannelData(0);
+            for (let i = 0; i < d.length; i++) d[i] = (Math.random() < 0.0007 ? (Math.random() * 2 - 1) * 0.9 : 0) + (Math.random() * 2 - 1) * 0.012;
+            const cr = c.createBufferSource(), cg = c.createGain(), cf = c.createBiquadFilter(); cr.buffer = b; cr.loop = true;
+            cf.type = "highpass"; cf.frequency.value = 900; cg.gain.value = 0.35;
+            cr.connect(cf); cf.connect(cg); cg.connect(this.voices); cr.start(); this.crackle = cr;
+          } catch (e) { /* ohne Knistern */ }
+        } else this.voices.connect(bus);
         // Ebene, die der Leistung folgt: Streicher (bzw. ein heller Oberton bei Klavier und Spieluhr) schwellen an, wenn man im Takt ist
         this.rich = c.createGain(); this.rich.gain.value = 0.7; this.rich.connect(this.voices);
         this.ev = events(this.score); this.idx = 0;
@@ -1285,8 +1381,9 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
           if (e.raw) {
             const v = 0.45 + 0.55 * (e.vel || 0.8);
             if (e.part === "mel") pr.mel.forEach((ins) => ins === "piano" ? piano(t, e.m, dur, v * (pr.mel.length > 1 ? 0.8 : 1), d)
-              : ins === "strings" ? strings(t, e.m, dur, v, d, e.dur <= 0.5) : box(t, e.m, dur, v, d));
+              : ins === "strings" ? strings(t, e.m, dur, v, d, e.dur <= 0.5) : ins === "trumpet" ? trumpet(t, e.m, dur, v, d) : ins === "clarinet" ? clarinet(t, e.m, dur, v, d) : box(t, e.m, dur, v, d));
             else if (pr.acc === "box") box(t, e.m + 12, dur, v * 0.45, d);
+            else if (pr.acc === "band") { if (e.part === "bass") tuba(t, e.m, dur, v, d); else banjo(t, e.m, v * 0.6, d); }
             else if (pr.acc === "pizz") pizz(t, e.m, dur, v * (e.part === "bass" ? 0.9 : 0.45), d);
             else piano(t, e.m, dur, v * (e.part === "bass" ? 0.75 : 0.45), d);
             continue;
@@ -1295,16 +1392,20 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
             const vel = e.fin ? 0.8 : e.acc ? 1 : 0.85, short = e.dur <= 0.5;
             pr.mel.forEach((ins) => {
               if (ins === "piano") piano(t, e.m, dur, vel * (pr.mel.length > 1 ? 0.8 : 1), d);
-              else if (ins === "strings") strings(t, e.m, short ? dur * 0.9 : dur, vel, pr.mel.length > 1 ? rd : d, short);
+              else if (ins === "strings") strings(t, e.m, short ? dur * 0.9 : dur, vel * (pr.acc === "band" ? 0.8 : 1), pr.mel.length > 1 ? rd : d, short);
+              else if (ins === "trumpet") trumpet(t, e.m, short ? dur * 0.85 : dur, vel, d);
+              else if (ins === "clarinet") clarinet(t, e.m, dur, vel, rd);
               else box(t, e.m, dur, vel, d);
             });
             if (!pr.mel.includes("strings")) box(t, e.m + 12, dur, vel * 0.32, rd);
           } else if (e.part === "bass") {
-            if (pr.acc === "box") box(t, e.m + 12, dur, 0.55, d);
+            if (pr.acc === "band") { tuba(t, e.m, dur, 0.9, d); if (!e.fin) brush(t, 0.6, d); }
+            else if (pr.acc === "box") box(t, e.m + 12, dur, 0.55, d);
             else if (pr.acc === "pizz") pizz(t, e.m, dur, 0.9, d);
             else piano(t, e.m, Math.max(dur, sp * 0.9), 0.75, d);
           } else if (e.part === "chord") {
-            if (pr.acc === "box") { if (e.m === Math.max(...CH_LAST(e))) box(t, e.m, dur, 0.3, d); }
+            if (pr.acc === "band") { banjo(t, e.m, e.fin ? 0.6 : 0.8, d); if (e.beat !== this.lastBrush) { this.lastBrush = e.beat; brush(t, 1, d); } }
+            else if (pr.acc === "box") { if (e.m === Math.max(...CH_LAST(e))) box(t, e.m, dur, 0.3, d); }
             else if (pr.acc === "pizz") pizz(t, e.m, dur, 0.42, d);
             else piano(t, e.m, e.fin ? dur : e.arp ? sp * 1.6 : sp * 0.55, e.fin ? 0.5 : e.arp ? 0.3 : 0.36, d);
           } else if (e.part === "pad" && pr.pad) pad(t, e.chord, dur, rd);
@@ -1330,6 +1431,7 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
           const g = this.voices.gain; g.cancelScheduledValues(c.currentTime); g.setTargetAtTime(0, c.currentTime, 0.08);
           const v = this.voices; setTimeout(() => { try { v.disconnect(); } catch (e) { /* egal */ } }, 1500);
         }
+        if (this.crackle) { const cr = this.crackle; this.crackle = null; try { cr.stop(c.currentTime + 1.2); } catch (e) { /* egal */ } }
         this.playing = false;
         if (this.onEnd) this.onEnd(!!natural);
       },
@@ -1431,8 +1533,11 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
     witwe: Object.assign({ peak: [3, 4] }, SEC0), // E5, dann Fis5 und Gis5
     wald: Object.assign({ peak: [6, 7] }, SEC0), // zweites Thema bis G5
     kaiser: Object.assign({ peak: [6, 7] }, SEC0), // das große Thema, G5
+    wogen: Object.assign({ peak: [6, 7] }, SEC0), // Aufstieg D–F–A zum A5
+    sweet: Object.assign({ peak: [5, 6] }, SEC0), // A5, dann das C6
+    daisy: Object.assign({ peak: [3, 6] }, SEC0), // E5 nach dem Lauf, zuletzt das E5 vor dem Schluss
   };
-  const MUSIC_NAME = { donau: "Donauwalzer", skaters: "Schlittschuhläufer", wellen: "Donauwellen", brahms: "Wiegenlied", rosen: "Rosen aus dem Süden", blumen: "Blumenwalzer", schwan: "Schwanensee", witwe: "Lustige Witwe", wald: "Wienerwald", kaiser: "Kaiserwalzer" };
+  const MUSIC_NAME = { donau: "Donauwalzer", skaters: "Schlittschuhläufer", wellen: "Donauwellen", brahms: "Wiegenlied", rosen: "Rosen aus dem Süden", blumen: "Blumenwalzer", schwan: "Schwanensee", witwe: "Lustige Witwe", wald: "Wienerwald", kaiser: "Kaiserwalzer", wogen: "Über den Wellen", sweet: "Sweetheart", daisy: "Gänseblümchen" };
   // Choreografie wie im Tanzsport durchplanen: jeder Abschnitt hat eine Stimmung, zu der manche Elemente besser passen
   const MOODS = {
     donau: [
@@ -1475,6 +1580,18 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
       ["zart, Einzug", ["choreo", "spin"]], ["verneigt sich", ["spin", "choreo"]], ["Thema noch einmal", ["jump", "choreo"]], ["Kadenz", ["spin", "jump"]],
       ["das große Thema", ["jump", "steps"]], ["schwingt", ["steps", "jump"]], ["Glanz", ["jump", "steps"]], ["Prunk zum Schluss", ["steps", "jump", "spin"]],
     ],
+    wogen: [
+      ["die erste Welle", ["choreo", "jump"]], ["Welle rollt aus", ["spin", "choreo"]], ["Welle hebt sich", ["jump", "spin"]], ["Ruhe", ["spin", "choreo"]],
+      ["die Welle noch einmal", ["jump", "choreo"]], ["Wendung", ["steps", "spin"]], ["Höhepunkt", ["jump", "steps"]], ["Schluss", ["steps", "jump", "spin"]],
+    ],
+    sweet: [
+      ["Einladung", ["choreo", "jump"]], ["Sehnsucht", ["spin", "choreo"]], ["fragt", ["jump", "steps"]], ["wartet", ["spin", "choreo"]],
+      ["noch einmal", ["jump", "choreo"]], ["Herz geht auf", ["steps", "jump"]], ["Höhepunkt", ["jump", "steps"]], ["„I'm in love with you“", ["spin", "choreo"]],
+    ],
+    daisy: [
+      ["pflückt Blumen", ["choreo", "jump"]], ["hüpft", ["jump", "spin"]], ["noch ein Blümchen", ["choreo", "spin"]], ["Lauf", ["steps", "jump"]],
+      ["wieder das Thema", ["jump", "choreo"]], ["dreht sich", ["spin", "jump"]], ["Strauß ist voll", ["steps", "jump"]], ["verbeugt sich", ["spin", "choreo"]],
+    ],
   };
   // Kostüm zur Musik (Index wie CMFigur.SUIT: Rot, Blau, Grün, Gold, Violett, Nachtblau): Wert 0 … 10 und ein Wort dazu
   const COSTUME = {
@@ -1488,9 +1605,13 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
     witwe: { fit: [9, 6, 5, 8, 10, 7], best: "Ballkleid-Farben: Violett, Rot oder Gold" },
     wald: { fit: [5, 7, 10, 7, 6, 6], best: "Waldgrün, dazu Gold oder Blau" },
     kaiser: { fit: [8, 7, 5, 10, 9, 8], best: "kaiserlich: Gold, Violett oder Rot" },
+    wogen: { fit: [6, 10, 7, 6, 7, 9], best: "Meerfarben: Blau oder Nachtblau, dazu Grün" },
+    sweet: { fit: [10, 6, 5, 9, 9, 6], best: "Ballsaal der Zwanziger: Rot, Gold oder Violett" },
+    daisy: { fit: [6, 7, 10, 10, 7, 4], best: "Wiesenfarben: Grün oder Gold wie Gänseblümchen" },
   };
-  // Show-Effekte je Abschnitt (höchstens 3): Lasershow, Feuerwerk, Kostümwechsel (Farben von Kostüm und Streifen tauschen)
-  const FX = { laser: "Lasershow", fire: "Feuerwerk", swap: "Kostümwechsel" }, FX_MAX = 3;
+  // Show-Effekte je Abschnitt (höchstens 3): Lasershow, Feuerwerk, Kostümwechsel (Farben von Kostüm und Streifen tauschen),
+  // Konfettiregen, Trockeneisnebel, Funkenfontänen
+  const FX = { laser: "Lasershow", fire: "Feuerwerk", swap: "Kostümwechsel", confetti: "Konfetti", fog: "Trockeneis", sparks: "Funken" }, FX_MAX = 3;
   function cleanFx(a) {
     const o = [null, null, null, null, null, null, null, null];
     if (Array.isArray(a)) { let n = 0; a.slice(0, 8).forEach((x, i) => { if (FX[x] && n < FX_MAX) { o[i] = x; n++; } }); }
@@ -1573,12 +1694,14 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
     if (best >= 4 || (sec.peak || []).includes(best)) arc += 3; else if (best >= 0) arcWhy.push("das stärkste Element kommt früh");
     if (ids[ids.length - 1]) arc += 2; else arcWhy.push("am Schluss nur Gleiten");
     if (ids[0] && val(ids[0]) > bv * 0.9 && best > 0 && bv > 2) { arc -= 1; arcWhy.push("gleich am Anfang das Schwerste"); } else arc += 1;
-    // Show: Feuerwerk am Höhepunkt oder zum Schluss, Laser in lebhaften Abschnitten, Kostümwechsel in der Mitte
+    // Show: Feuerwerk und Konfetti am Höhepunkt oder zum Schluss, Laser und Funken in lebhaften Abschnitten, Nebel in ruhigen,
+    // Kostümwechsel in der Mitte
     const lively = (i) => moods[i][1].includes("steps") || moods[i][1].includes("jump");
     let showGood = 0, showBad = 0;
     (fx || []).forEach((f, i) => {
       if (!f) return;
-      const okF = f === "fire" ? (sec.peak || []).includes(i) || i === sec.n - 1 : f === "laser" ? lively(i) : i >= 2 && i <= 5;
+      const calm = (j) => moods[j][1][0] === "spin" || moods[j][1][0] === "choreo";
+      const okF = f === "fire" || f === "confetti" ? (sec.peak || []).includes(i) || i === sec.n - 1 : f === "laser" || f === "sparks" ? lively(i) : f === "fog" ? calm(i) : i >= 2 && i <= 5;
       if (okF) showGood++; else showBad++;
     });
     arc += 0.5 * showGood - 0.75 * showBad;
@@ -2656,6 +2779,9 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
  *   Figur3D.make(canvas, { ortho })  → { draw(o) }   o: pose, turn, lift, look, swap, az, el, shadow
  *   Figur3D.sprite(px)               → { canvas, render(o) }  Figur als Bild zum Einsetzen in eine 2D-Szene: Knöchel des Standbeins
  *                                      bei (SPR.cx, SPR.cy) im Bild, SPR.u Figur-Einheiten über die ganze Breite (wie figur.js: x, y, s)
+ *   o.hold (frei): { roses, toys, cols }  Strauß Rosen in der vorderen Hand, Stofftiere im hinteren Arm (Eiskunstlauf 0.53)
+ *   Figur3D.gift(px)                 → { canvas, render(kind, col, yaw, tilt) }  ein Geschenk allein als Bild ("rose", "teddy", "star"),
+ *                                      Mitte des Bildes = Mitte des Geschenks, GIFT_U Einheiten über die ganze Breite
  */
 (function (root) {
   "use strict";
@@ -2809,6 +2935,36 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
       gl_FragColor = vec4(col * s + rim, 1.0); }`;
 
   const SPR = { x0: -100, x1: 100, y0: -30, y1: 170 }; // Ausschnitt des Bildes in Figur-Einheiten (Knöchel bei 0, 0)
+  const GIFT_U = 26; // Breite des Geschenk-Bildes in Figur-Einheiten
+  // Geschenke aus Kugeln und Röhren (Figur-Einheiten): Rose mit Blüte aus Blättern, Kelch und Stiel; Teddy; Stern aus Plüsch.
+  // G: Werkzeuge aus draw (limb, ball, ell), b: Mitte bzw. Fuß des Geschenks, u/f/s: Achsen oben/vorn/Seite
+  function giftParts(G, kind, col, b, u, f, s) {
+    const P = (x, y, z) => [b[0] + f[0] * x + u[0] * y + s[0] * z, b[1] + f[1] * x + u[1] * y + s[1] * z, b[2] + f[2] * x + u[2] * y + s[2] * z];
+    const E = (c, rf, ru, rs, colr, mode) => G.ell(c, f, u, s, rf, ru, rs, colr, mode);
+    const green = [0.25, 0.48, 0.3];
+    if (kind === "rose") {
+      G.limb(P(0, 0, 0), P(0, 9, 0), 0.32, 0.32, green);
+      E(P(0.6, 4.5, 0.6), 0.9, 0.35, 1.6, green); E(P(-0.5, 6.2, -0.6), 0.8, 0.3, 1.4, green); // Blätter am Stiel
+      E(P(0, 9.4, 0), 1.6, 1.0, 1.6, green);                                                       // Kelch
+      for (let k = 0; k < 5; k++) { const a = k * 1.2566; E(P(Math.cos(a) * 1.3, 10.6, Math.sin(a) * 1.3), 1.55, 1.4, 1.55, col, 5); }
+      E(P(0, 11.6, 0), 1.5, 1.6, 1.5, col.map((x) => x * 0.82), 5);                               // Knospe innen, dunkler
+    } else if (kind === "teddy") {
+      const br = col, lt = [Math.min(1, br[0] * 1.35 + 0.1), Math.min(1, br[1] * 1.35 + 0.1), Math.min(1, br[2] * 1.35 + 0.1)], dk = [0.08, 0.06, 0.05];
+      E(P(0, 3.2, 0), 2.4, 3.0, 2.3, br); E(P(0.9, 2.8, 0), 1.6, 1.9, 1.5, lt);                  // Bauch
+      E(P(0, 7.3, 0), 2.1, 2.0, 2.1, br);                                                        // Kopf
+      for (const sd of [-1, 1]) { G.ball(P(-0.2, 9.0, sd * 1.6), 0.85, br); G.ball(P(0.2, 9.0, sd * 1.6), 0.45, lt); }
+      E(P(1.8, 6.8, 0), 0.9, 0.7, 0.9, lt); G.ball(P(2.55, 7.1, 0), 0.35, dk);                 // Schnauze, Nase
+      for (const sd of [-1, 1]) G.ball(P(1.7, 7.9, sd * 0.85), 0.28, dk);                        // Augen
+      for (const sd of [-1, 1]) { E(P(0.6, 4.3, sd * 2.4), 0.9, 1.6, 0.9, br); E(P(1.3, 0.6, sd * 1.3), 1.4, 0.9, 1.0, br); }
+      E(P(0.4, 5.6, 0), 0.5, 0.45, 1.6, [0.85, 0.2, 0.25], 5);                                   // Schleife am Hals
+    } else {
+      // Plüschstern: fünf Zacken um die Mitte, liegt in der Ebene oben/Seite
+      G.ball(P(0, 0, 0), 2.0, col);
+      for (let k = 0; k < 5; k++) { const a = k * 1.2566 - Math.PI / 2, c = Math.cos(a), sn = Math.sin(a);
+        G.limb(P(0, -c * 1.2, sn * 1.2), P(0, -c * 5.2, sn * 5.2), 1.5, 0.35, col); }
+      for (const sd of [-1, 1]) G.ball(P(1.6, 0.6, sd * 0.7), 0.3, [0.08, 0.06, 0.05]);
+    }
+  }
   function make(canvas, opts) {
     opts = opts || {};
     const gl = canvas.getContext("webgl", { antialias: true, alpha: true, premultipliedAlpha: true, preserveDrawingBuffer: !!opts.ortho });
@@ -2859,7 +3015,30 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
     const state = {};
     const lerp = (a, b, t) => [a[0] + (b[0] - a[0]) * t, a[1] + (b[1] - a[1]) * t, a[2] + (b[2] - a[2]) * t];
 
+    // ein Geschenk allein (für geworfene Rosen und Stofftiere): von vorn, ohne Perspektive, gedreht um yaw, geneigt um tilt
+    function drawGift(o) {
+      const w = canvas.width, h = canvas.height, ink = hex(F.INK);
+      gl.viewport(0, 0, w, h); gl.clearColor(0, 0, 0, 0); gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT); gl.enable(gl.DEPTH_TEST); gl.enable(gl.CULL_FACE);
+      const r = GIFT_U / 2;
+      gl.uniformMatrix4fv(U.uP, false, [1 / r, 0, 0, 0, 0, 1 / r, 0, 0, 0, 0, -2 / 800, 0, 0, 0, -1, 1]);
+      gl.uniformMatrix4fv(U.uV, false, M4.look([0, 0, 400], [0, 0, 0], [0, 1, 0])); gl.uniform3fv(U.uE, [0, 0, 400]); gl.uniform3fv(U.uL, [0.4, 0.9, 0.55]);
+      gl.uniform1f(U.uT, 0); gl.uniform1f(U.uPat, 0);
+      const parts = [];
+      const limb = (a, b, r0, r1, col) => { parts.push([TUB, segM(a, b, r0, r0), col, 0, r1 / r0]); parts.push([SPH, ellM(a, r0, r0, r0), col]); parts.push([SPH, ellM(b, r1, r1, r1), col]); };
+      const ball = (c, rr, col) => parts.push([SPH, ellM(c, rr, rr, rr), col]);
+      const ell = (c, f, u, s, rf, ru, rs, colr, mode) => parts.push([SPH, [f[0] * rf, f[1] * rf, f[2] * rf, 0, u[0] * ru, u[1] * ru, u[2] * ru, 0, s[0] * rs, s[1] * rs, s[2] * rs, 0, c[0], c[1], c[2], 1], colr, mode || 0]);
+      const cy = Math.cos(o.yaw || 0), sy = Math.sin(o.yaw || 0), ct = Math.cos(o.tilt || 0), st = Math.sin(o.tilt || 0);
+      // Achsen: oben um tilt in der Bildebene geneigt, vorn/Seite um yaw gedreht
+      const u = [-st, ct, 0], f0 = [cy, 0, sy], s0 = [-sy, 0, cy];
+      const rot = (v) => [v[0] * ct - v[1] * st, v[0] * st + v[1] * ct, v[2]], f = rot(f0), s = rot(s0);
+      const ofs = o.kind === "rose" ? 5.5 : o.kind === "teddy" ? 4.8 : 0, b = [-u[0] * ofs, -u[1] * ofs, -u[2] * ofs];
+      giftParts({ limb, ball, ell }, o.kind, hex(o.col || "#C23B2A"), b, u, f, s);
+      gl.depthMask(false); gl.cullFace(gl.FRONT); for (const [m, M, , , tp] of parts) drawMesh(m, M, ink, 0.32, true, false, tp);
+      gl.depthMask(true); gl.uniform3fv(U.uA, [1, 1, 1]);
+      gl.cullFace(gl.BACK); for (const [m, M, col, band, tp] of parts) drawMesh(m, M, col, 0, false, band, tp);
+    }
     function draw(o) {
+      if (o.gift) return drawGift(o);
       const w = canvas.width, h = canvas.height;
       gl.viewport(0, 0, w, h); gl.clearColor(0, 0, 0, 0); gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT); gl.enable(gl.DEPTH_TEST); gl.enable(gl.CULL_FACE);
       const L = F.cleanLook(o.look), skin = hex(F.SKIN[L.skin] || F.SKIN[1]), suit = hex(typeof L.suit === "number" ? F.SUIT[L.suit] : L.suit), acc = hex(typeof L.accent === "number" ? F.SUIT[L.accent] : L.accent);
@@ -2908,6 +3087,32 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
         const bt = [toe[0] + down[0] * 2.5 + fd[0] * 1.8, toe[1] + down[1] * 2.5 + fd[1] * 1.8, toe[2] + down[2] * 2.5 + fd[2] * 1.8];
         cap(bh, bt, 0.42, blade); ball([bt[0] - down[0] * 0.6 + fd[0] * 0.2, bt[1] - down[1] * 0.6 + fd[1] * 0.2, bt[2] - down[2] * 0.6 + fd[2] * 0.2], 0.7, blade); // Zacke
         cap(lerp(heel, bh, 0.45), lerp(heel, bh, 0.95), 0.35, blade); cap(lerp(toe, bt, 0.4), lerp(toe, bt, 0.95), 0.35, blade);     // Halter
+      }
+      // Geschenke in der Hand: Strauß Rosen vorn, Stofftiere im hinteren Arm (nur, wenn o.hold gesetzt ist)
+      if (o.hold && (o.hold.roses || o.hold.toys)) {
+        const ell = (c, f, u, s, rf, ru, rs, colr, mode) => parts.push([SPH, [f[0] * rf, f[1] * rf, f[2] * rf, 0, u[0] * ru, u[1] * ru, u[2] * ru, 0, s[0] * rs, s[1] * rs, s[2] * rs, 0, c[0], c[1], c[2], 1], colr, mode || 0]);
+        const G = { limb, ball, ell }, cols = (o.hold.cols || ["#C23B2A"]).map(hex);
+        const A = sk.AF, d = norm(sub(A[2], A[1])), hand = [A[2][0] + d[0] * 2.4, A[2][1] + d[1] * 2.4, A[2][2] + d[2] * 2.4];
+        const nR = Math.min(9, o.hold.roses | 0);
+        if (nR) {
+          const uB = norm([fx[0] * 0.55 + zs[0] * 0.45, 0.75, fx[2] * 0.55 + zs[2] * 0.45]) /* schräg nach vorn und außen, nicht vors Gesicht */, fB = norm(cross(zs, uB)), sB = cross(uB, fB);
+          const foot = [hand[0] - uB[0] * 3, hand[1] - uB[1] * 3, hand[2] - uB[2] * 3];
+          limb(foot, [foot[0] + uB[0] * 9, foot[1] + uB[1] * 9, foot[2] + uB[2] * 9], 1.0, 3.2, [0.96, 0.93, 0.84]); // Papier um den Strauß
+          for (let k = 0; k < nR; k++) {
+            const a = (k / nR) * Math.PI * 2 + 0.4, r = nR === 1 ? 0 : 1.1 + (k % 2) * 0.7, tilt = nR === 1 ? 0 : 0.22;
+            const uk = norm([uB[0] + (fB[0] * Math.cos(a) + sB[0] * Math.sin(a)) * tilt, uB[1] + (fB[1] * Math.cos(a) + sB[1] * Math.sin(a)) * tilt, uB[2] + (fB[2] * Math.cos(a) + sB[2] * Math.sin(a)) * tilt]);
+            const fk = norm(cross(zs, uk)), skk = cross(uk, fk);
+            const bk = [foot[0] + (fB[0] * Math.cos(a) + sB[0] * Math.sin(a)) * r * 0.3, foot[1] + (fB[1] * Math.cos(a) + sB[1] * Math.sin(a)) * r * 0.3, foot[2] + (fB[2] * Math.cos(a) + sB[2] * Math.sin(a)) * r * 0.3];
+            const sc = 1.35; giftParts(G, "rose", cols[k % cols.length], bk, uk.map((x) => x * sc), fk.map((x) => x * sc), skk.map((x) => x * sc));
+          }
+        }
+        const nT = Math.min(3, o.hold.toys | 0);
+        for (let k = 0; k < nT; k++) {
+          // Stofftiere vor dem Bauch im Arm, nebeneinander zur Kamera hin, damit man sie sieht
+          const ch = lerp(sk.hip, sk.nk, 0.22), sc = 1.5, sp = (k - (nT - 1) / 2) * 7;
+          const base = [ch[0] + fx[0] * 8 + zs[0] * (sp + 3), ch[1] - 2 + (k === 1 ? 2 : 0), ch[2] + fx[2] * 8 + zs[2] * (sp + 3)];
+          giftParts(G, k === 2 ? "star" : "teddy", k === 2 ? hex("#F3C969") : hex(k ? "#C9A27A" : "#9C6A3E"), base, [0, sc, 0], fx.map((x) => x * sc), zs.map((x) => x * sc));
+        }
       }
       // Rumpf aus einem Stück mit Schrägstreifen
       const up = norm(sub(sk.nk, sk.hip)), Lt = Math.hypot(...sub(sk.nk, sk.hip)), at = (u) => [sk.hip[0] + up[0] * Lt * u, sk.hip[1] + up[1] * Lt * u, sk.hip[2] + up[2] * Lt * u];
@@ -2974,7 +3179,15 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
     if (!R) return null;
     return { canvas: c, render(o) { R.draw(Object.assign({ shadow: false }, o)); return c; } };
   }
-  root.Figur3D = { make, sprite, SPR };
+  // ein Geschenk als Bild (eigener kleiner WebGL-Kontext)
+  function gift(px) {
+    const c = typeof document !== "undefined" ? document.createElement("canvas") : null; if (!c) return null;
+    c.width = c.height = px;
+    let R = null; try { R = make(c, { ortho: true }); } catch (e) { R = null; }
+    if (!R) return null;
+    return { canvas: c, render(kind, col, yaw, tilt) { R.draw({ gift: true, kind, col, yaw, tilt }); return c; } };
+  }
+  root.Figur3D = { make, sprite, gift, SPR, GIFT_U };
 })(typeof window !== "undefined" ? window : globalThis);
 
 /* Cold Medal Games · Pass (pass/pass.js, global CMPass)
@@ -3580,6 +3793,10 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
     sitOpen: { lean: 30, crouch: 0, sL: [84, 100], fL: [82, 0], aF: [110, -6], aB: [-80, -6], fA: 8, ao3: 70 },
     camelTight: { lean: 86, crouch: 0, sL: [1, 1], fL: [-100, 0], aF: [150, -4], aB: [-150, -4], fA: 4, ao3: 85 },
     // Schritte: Gegendreier (Oberkörper gegen die Kurve), Choctaw (Fußwechsel tief), Twizzle (Arme hoch, schnell)
+    // Schrittfolge als Schlangenlinie: auf jeder Kante tief im Knie, Spielbein lang nach hinten, die Arme gegengleich (Gegendrehung
+    // des Oberkörpers), Blick in die Kurve; R = Bogen nach rechts, L = Bogen nach links
+    edgeR: { lean: 12, crouch: 3, sL: [14, 30], fL: [-56, 4], aF: [96, -8], aB: [-86, -8], hd: -6, fA: 10, ao3: 62 },
+    edgeL: { lean: 10, crouch: 3, sL: [12, 28], fL: [-40, 12], aF: [-82, -8], aB: [100, -6], hd: 3, fA: 8, ao3: 60 },
     bracket: { lean: 12, crouch: 4, sL: [18, 38], fL: [-40, 20], aF: [-100, -12], aB: [104, -12], hd: -4, fA: 14, ao3: 55 },
     choctaw: { lean: 16, crouch: 6, sL: [30, 60], fL: [48, 6], aF: [90, -10], aB: [-110, -10], hd: -4, fA: 12, ao3: 60 },
     twizzleUp: { lean: -2, crouch: 1, sL: [4, 8], fL: [22, 60], aF: [168, 4], aB: [168, 4], hd: -6, ao3: 10 },
@@ -4198,7 +4415,7 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
 /* COLD MEDAL EISKUNSTLAUF – Ablauf, Bildschirme, Eingabe, Taktband, Ergebnis, Spielstand. */
 (function () {
   "use strict";
-  const VERSION = "0.52";
+  const VERSION = "0.53";
   // Seiten-Einstellungen aus dem Build (eigenes Hosting: Adresse, Hoster, Impressum); im claude.ai-Artefakt leer
   const SITE = Object.assign({ web: false, url: "", impressum: null }, {"web": true, "supabase": {"url": "https://pqpvgkslozsekjywpdrf.supabase.co", "key": "sb_publishable_KkKe9jchmXYp_-OEmB8WLQ_gZLXrRhF"}, "url": "https://matpeins-debug.github.io/cold-medal-eiskunstlauf/", "hoster": "GitHub Pages (GitHub Inc., USA)", "drittland": "GitHub ist nach dem EU-US Data Privacy Framework zertifiziert; die Übermittlung in die USA stützt sich auf den Angemessenheitsbeschluss der EU-Kommission dazu.", "impressum": {"name": "", "adresse": "", "mail": ""}} || {});
   const M = window.EKMusic, K = window.EKSkate, F = window.EKFig, SC = window.EKScene, PASS = window.CMPass;
@@ -4218,23 +4435,32 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
   const stepName = (m) => (m.tw ? "Twizzle" : STEP[m.dir][1]);
   // Großer Pfeil in Wischrichtung als Hauptsache; die Drehung nur als feiner Bogen darum:
   // Dreier/Gegendreier ein Bogen im bzw. gegen den Uhrzeigersinn, Twizzle ein doppelter Bogen, Choctaw zwei versetzte Halbbögen
+  // Schrittzeichen als Schwung, wie die Spur einer Kufe: ein goldener, sich verjüngender Bogen mit feiner Spitze in Wischrichtung,
+  // beim Twizzle mit einer Schlinge in der Mitte. Gezeichnet als Fläche (Breite wächst zur Mitte, wird zur Spitze wieder schmal).
   function turnIcon(x, y, dir, R, col, tw) {
-    ctx.save(); ctx.translate(x, y); ctx.strokeStyle = col; ctx.fillStyle = col; ctx.lineCap = "round"; ctx.lineJoin = "round";
-    const ring = R * 0.78;
-    ctx.globalAlpha = 0.55; ctx.lineWidth = Math.max(1, R * 0.07);
-    const arcHead = (a, rr, cw) => { const px = Math.cos(a) * rr, py = Math.sin(a) * rr, t = a + (cw ? Math.PI / 2 : -Math.PI / 2), k = R * 0.15;
-      ctx.beginPath(); ctx.moveTo(px + Math.cos(t) * k, py + Math.sin(t) * k); ctx.lineTo(px + Math.cos(t + 2.5) * k, py + Math.sin(t + 2.5) * k); ctx.lineTo(px + Math.cos(t - 2.5) * k, py + Math.sin(t - 2.5) * k); ctx.closePath(); ctx.fill(); };
-    if (tw && (dir === "r" || dir === "l")) { const cw = dir === "r"; ctx.beginPath(); ctx.arc(0, 0, ring, cw ? Math.PI * 0.2 : Math.PI * 0.8, cw ? Math.PI * 1.75 : -Math.PI * 0.75, !cw); ctx.stroke(); ctx.beginPath(); ctx.arc(0, 0, ring * 0.84, cw ? Math.PI * 0.35 : Math.PI * 0.65, cw ? Math.PI * 1.6 : -Math.PI * 0.6, !cw); ctx.stroke(); arcHead(cw ? Math.PI * 1.75 : -Math.PI * 0.75, ring, cw); }
-    else if (dir === "r") { ctx.beginPath(); ctx.arc(0, 0, ring, -Math.PI * 0.35, Math.PI * 1.1); ctx.stroke(); arcHead(Math.PI * 1.1, ring, true); }
-    else if (dir === "l") { ctx.beginPath(); ctx.arc(0, 0, ring, Math.PI * 1.35, -Math.PI * 0.1, true); ctx.stroke(); arcHead(-Math.PI * 0.1, ring, false); }
-    else if (dir === "u") { ctx.beginPath(); ctx.arc(0, 0, ring, Math.PI * 0.2, Math.PI * 1.75); ctx.stroke(); ctx.beginPath(); ctx.arc(0, 0, ring * 0.86, Math.PI * 0.35, Math.PI * 1.65); ctx.stroke(); arcHead(Math.PI * 1.75, ring, true); }
-    else { ctx.beginPath(); ctx.arc(-R * 0.06, 0, ring, Math.PI * 0.65, Math.PI * 1.35); ctx.stroke(); ctx.beginPath(); ctx.arc(R * 0.06, 0, ring, -Math.PI * 0.35, Math.PI * 0.35); ctx.stroke(); }
-    // Pfeil: schlanker Schaft, geschwungene Spitze
-    ctx.globalAlpha = 1; ctx.rotate({ r: 0, d: Math.PI / 2, l: Math.PI, u: -Math.PI / 2 }[dir]);
-    const L = R * 0.5, h = R * 0.3; ctx.lineWidth = Math.max(1.8, R * 0.14);
-    ctx.beginPath(); ctx.moveTo(-L, 0); ctx.lineTo(L - h * 0.5, 0); ctx.stroke();
-    ctx.beginPath(); ctx.moveTo(L + R * 0.04, 0); ctx.quadraticCurveTo(L - h * 0.55, -h * 0.25, L - h * 1.05, -h * 1.05); ctx.quadraticCurveTo(L - h * 0.75, -h * 0.2, L - h * 0.9, 0);
-    ctx.quadraticCurveTo(L - h * 0.75, h * 0.2, L - h * 1.05, h * 1.05); ctx.quadraticCurveTo(L - h * 0.55, h * 0.25, L + R * 0.04, 0); ctx.fill();
+    const N = 28, pts = [];
+    for (let i = 0; i <= N; i++) {
+      const t = i / N;
+      const px = tw ? R * (-0.78 + 1.56 * t + 0.4 * Math.sin(2 * Math.PI * t)) : R * (-0.8 + 1.6 * t);
+      const py = tw ? R * (0.22 - 0.44 * t - 0.4 * (1 - Math.cos(2 * Math.PI * t)) * 0.5) : R * (0.3 * Math.sin(Math.PI * (1.25 * t - 0.12)) * -1 + 0.18 - 0.36 * t);
+      pts.push([px, py]);
+    }
+    ctx.save(); ctx.translate(x, y); if (dir === "l") ctx.scale(-1, 1); else if (dir === "u") ctx.rotate(-Math.PI / 2); else if (dir === "d") ctx.rotate(Math.PI / 2);
+    const g = ctx.createLinearGradient(-R, 0, R, 0); g.addColorStop(0, "#FFF4D0"); g.addColorStop(0.55, "#F3C969"); g.addColorStop(1, "#E0A23A");
+    const L = [], Rr = [];
+    for (let i = 0; i <= N; i++) {
+      const a = pts[Math.max(0, i - 1)], b = pts[Math.min(N, i + 1)], tx = b[0] - a[0], ty = b[1] - a[1], l = Math.hypot(tx, ty) || 1;
+      const t = i / N, w = R * (0.03 + 0.15 * Math.sin(Math.PI * Math.min(1, t * 1.15))) * (i === N ? 0.2 : 1);
+      L.push([pts[i][0] - ty / l * w, pts[i][1] + tx / l * w]); Rr.push([pts[i][0] + ty / l * w, pts[i][1] - tx / l * w]);
+    }
+    ctx.shadowColor = "rgba(243,201,105,0.55)"; ctx.shadowBlur = R * 0.35;
+    ctx.fillStyle = g; ctx.beginPath(); L.forEach(([px, py], i) => (i ? ctx.lineTo(px, py) : ctx.moveTo(px, py))); for (let i = N; i >= 0; i--) ctx.lineTo(Rr[i][0], Rr[i][1]); ctx.closePath(); ctx.fill();
+    // feine Spitze am Ende, entlang der Richtung der Spur
+    const e = pts[N], q = pts[N - 3], ang = Math.atan2(e[1] - q[1], e[0] - q[0]), k = R * 0.3;
+    ctx.shadowBlur = 0; ctx.strokeStyle = "#E0A23A"; ctx.lineWidth = Math.max(1.3, R * 0.09); ctx.lineCap = "round"; ctx.lineJoin = "round";
+    ctx.beginPath(); ctx.moveTo(e[0] + Math.cos(ang + 2.55) * k, e[1] + Math.sin(ang + 2.55) * k); ctx.lineTo(e[0] + Math.cos(ang) * R * 0.06, e[1] + Math.sin(ang) * R * 0.06); ctx.lineTo(e[0] + Math.cos(ang - 2.55) * k, e[1] + Math.sin(ang - 2.55) * k); ctx.stroke();
+    // kleiner Funke am Anfang der Spur
+    ctx.fillStyle = "#FFF8E6"; ctx.beginPath(); ctx.arc(pts[0][0], pts[0][1], Math.max(1, R * 0.06), 0, 7); ctx.fill();
     ctx.restore();
   }
   const NAT = { AUT: "Österreich", GER: "Deutschland", SUI: "Schweiz", ITA: "Italien", FRA: "Frankreich", NOR: "Norwegen", SWE: "Schweden",
@@ -4829,11 +5055,16 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
       if (k !== r.honor.k) { r.honor.k = k; sfx("cheer", 0.9); sfx("woo", 0.6); run.burst = 1; }
     }
     const df = want - r.face; r.face += Math.sign(df) * Math.min(Math.abs(df), dt * 3);
+    // mit Geschenken im Arm: Strauß vor der Brust, Stofftiere im anderen Arm (nur die Arme, Beine und Rumpf wie gehabt)
+    if (r.hold) pose = Object.assign({}, pose, { aF: [34, 66], aB: [22, 104], aFA: 0, aBA: 0, ao3: 10 });
     if (u > 10.3) endHonor();
     return { x, d, pose, lift: 0, turn: r.face, tilt: 0, swap: false };
   }
   function startHonor(myRun) {
     if (run !== myRun || !run.finished || $("scrRes").hidden || run.honor) return;
+    // Dankeslauf mit Geschenken im Arm: ein paar Rosen (Farben wie die geworfenen) und manchmal Stofftiere, Anzahl zufällig
+    const th = run.throws || [], rc = th.filter((g) => g.kind === "rose").map((g) => g.col);
+    run.hold = { roses: 1 + Math.floor(Math.random() * 7), toys: Math.floor(Math.random() * 3.4), cols: rc.length ? rc.slice(0, 6) : ["#C23B2A", "#E07A8B"] };
     run.honor = { t0: songTime(), k: -1 }; show("none"); ambience(true); sfx("applause", 1); sfx("woo", 1);
   }
   function endHonor() {
@@ -4989,26 +5220,31 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
       r.turn += dt * Math.PI * 2 * maxRev * (0.28 + 0.72 * pull) * (0.75 + 0.25 * Math.min(1, r.spinV)); turn = r.turn;
     } else if (r.turn) { r.face += r.turn % (2 * Math.PI); r.turn = 0; } // nach der Pirouette ohne Ruck weiter
     if (el && el.kind === "steps") {
-      // Antwort auf das Wischen, groß und fließend: ← → tiefe Kante mit weitem Armzug, Gleiten zur Seite und halbe Drehung (Dreier);
-      // ↑ Hüpfer mit gestreckten Beinen; ↓ tiefer Ausfallschritt, Spielbein lang auf dem Eis
-      const sw = r.lastSwipe && t - r.lastSwipe.t < 0.6 ? r.lastSwipe : null, k2 = sw ? Math.sin(Math.PI * clamp((t - sw.t) / 0.6, 0, 1)) : 0;
-      pose = F.mix(F.POSES.stepA, F.POSES.stepB, (Math.sin(Math.PI * (bi + ph)) + 1) / 2);
-      // Schlangenlinie: jede Richtung setzt einen neuen Bogen übers Eis (Kantenwechsel, Lage in die Kurve), dazu die Drehung:
-      // Richtungswechsel = Dreier/Gegendreier (halbe Drehung), dieselbe Richtung nochmal = Twizzle (ganze Drehung weiter)
+      // Schrittfolge wie ein Tanz auf zwei Kanten: jede Eingabe setzt einen neuen Bogen übers Eis (Schlangenlinie) und eine neue
+      // Kante – sie gleitet weich von der einen Haltung in die andere (kein Treten auf jeden Schlag), Arme gegengleich, Blick in
+      // die Kurve. Dieselbe Richtung zweimal = Twizzle: ganze schnelle Drehung, Arme kurz eng nach oben.
+      const sw = r.lastSwipe && t - r.lastSwipe.t < 1.6 ? r.lastSwipe : null;
       const fresh = sw && r.lastTurnSwipe !== sw.t; if (fresh) r.lastTurnSwipe = sw.t;
+      if (!r.edgeTo) { r.edgeTo = F.POSES.glideArc; r.edgeFrom = F.POSES.glideArc; r.edgeT0 = t; }
       if (sw && fresh) {
         const sg = sw.dir === "r" ? 1 : sw.dir === "l" ? -1 : (r.snakeTo || 0) >= 0 ? -1 : 1, tw = r.prevStepDir === sg;
+        r.edgeFrom = r.edgeCur || r.edgeTo; r.edgeTo = sg > 0 ? F.POSES.edgeR : F.POSES.edgeL; r.edgeT0 = t;
         r.prevStepDir = sg; r.snakeTo = sg * 4.5; r.stepTw = tw;
-        r.stepTurnTo = (r.stepTurnTo || 0) + sg * (tw ? 2 : 1) * Math.PI; if (tw) r.twzT = sw.t;
+        if (tw) { r.stepBase = (r.stepBase || 0) + sg * 2 * Math.PI; r.twzT = sw.t; }
+        r.stepTurnTo = (r.stepBase || 0) + sg * 0.45;
       }
-      if (sw) pose = F.mix(pose, r.stepTw ? F.POSES.twizzleUp : (r.prevStepDir > 0 ? F.POSES.edge : F.POSES.bracket), k2);
-    } else { r.snakeTo = 0; r.prevStepDir = 0; }
+      r.edgeCur = F.mix(r.edgeFrom, r.edgeTo, smooth(clamp((t - r.edgeT0) / 0.55, 0, 1)));
+      pose = r.edgeCur;
+      // Atmen mit der Musik: über den Takt etwas tiefer und wieder hoch
+      pose = Object.assign({}, pose, { crouch: (pose.crouch || 0) + 1.5 * Math.sin(Math.PI * inBar) });
+      if (r.stepTw && r.twzT !== undefined && t - r.twzT < 0.7) pose = F.mix(pose, F.POSES.twizzleUp, Math.sin(Math.PI * (t - r.twzT) / 0.7));
+    } else { r.snakeTo = 0; r.prevStepDir = 0; r.edgeTo = null; r.edgeCur = null; }
     // weich wie eine gedämpfte Feder: kein Knick beim neuen Bogen
     { const h = Math.min(dt, 0.05); r.snakeV = (r.snakeV || 0) + (9 * ((r.snakeTo || 0) - (r.snake || 0)) - 6 * (r.snakeV || 0)) * h; r.snake = (r.snake || 0) + r.snakeV * h; }
-    if (el && el.kind === "steps") tilt = clamp((r.snakeV || 0) * 0.04, -0.3, 0.3); // Lage in die Kurve, am stärksten am Anfang des Bogens
-    // nach der Schrittfolge wieder vorwärts: ungerade Zahl halber Drehungen ausgleichen
-    if (!(el && el.kind === "steps") && Math.round((r.stepTurnTo || 0) / Math.PI) % 2) r.stepTurnTo += Math.PI;
-    r.stepTurn = (r.stepTurn || 0) + ((r.stepTurnTo || 0) - (r.stepTurn || 0)) * (1 - Math.exp(-dt * (r.twzT !== undefined && t - r.twzT < 0.7 ? 13 : 8)));
+    if (el && el.kind === "steps") tilt = clamp((r.snakeV || 0) * 0.03, -0.22, 0.22); // Lage in die Kurve, am stärksten am Anfang des Bogens
+    // nach der Schrittfolge wieder vorwärts in die Laufrichtung
+    if (!(el && el.kind === "steps")) r.stepTurnTo = r.stepBase || 0;
+    r.stepTurn = (r.stepTurn || 0) + ((r.stepTurnTo || 0) - (r.stepTurn || 0)) * (1 - Math.exp(-dt * (r.twzT !== undefined && t - r.twzT < 0.7 ? 11 : 4.5)));
     turn += r.stepTurn;
     r.slide = (r.slide || 0) + (r.slideV || 0) * dt; r.slideV = (r.slideV || 0) * Math.pow(0.04, dt); r.slide *= Math.pow(0.5, dt);
     if (el && el.kind === "pose" && (r.posed || t > bt[el.at] + 0.4)) pose = F.mix(pose, F.POSES.final, smooth((t - bt[el.at] + 0.3) / 0.4));
@@ -5072,8 +5308,10 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
         ctx.fillStyle = "#DDA43B"; ctx.beginPath(); ctx.arc(x, yc, 9, 0, 7); ctx.fill();
         ctx.strokeStyle = "#DDA43B"; ctx.lineWidth = 3; ctx.fillStyle = "#141B25"; ctx.beginPath(); ctx.arc(x2, yc, 8, 0, 7); ctx.fill(); ctx.stroke();
       } else if (m.kind === "step") {
-        ctx.fillStyle = "#141B25"; ctx.strokeStyle = "#F3C969"; ctx.lineWidth = 1.6; ctx.beginPath(); ctx.arc(x, yc, 13, 0, 7); ctx.fill(); ctx.stroke();
-        turnIcon(x, yc, m.dir, 13, "#F1E7D2", m.tw);
+        // im Taktband ohne Scheibe: nur der goldene Schwung auf einem weichen dunklen Hauch
+        const hz = ctx.createRadialGradient(x, yc, 0, x, yc, 16); hz.addColorStop(0, "rgba(10,14,30,0.55)"); hz.addColorStop(1, "rgba(10,14,30,0)");
+        ctx.fillStyle = hz; ctx.beginPath(); ctx.arc(x, yc, 16, 0, 7); ctx.fill();
+        turnIcon(x, yc, m.dir, 15, "#F1E7D2", m.tw);
       } else {
         ctx.fillStyle = m.kind === "expr" ? "#D8A9DE" : "#DDA43B"; ctx.beginPath(); ctx.arc(x, yc, 13, 0, 7); ctx.fill();
         ctx.fillStyle = m.kind === "step" ? "#C23B2A" : "#141B25"; ctx.font = "bold 17px " + font();
@@ -5169,9 +5407,9 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
       } else {
         const lead = m.t - t, hit = run.inputs.some((i) => Math.abs(i.t - m.t) < 0.3 && (m.kind === "step" ? i.type === "swipe" : m.kind === "spin" ? i.type === "circle" : i.type === "down"));
         ctx.globalAlpha = hit ? 0.35 : 1;
-        ctx.fillStyle = m.kind === "hold" || m.kind === "pose" ? "#DDA43B" : m.kind === "expr" ? "#D8A9DE" : m.kind === "glide" ? "#9EC3E6" : m.kind === "step" ? "#141B25" : "#F1E7D2"; ctx.strokeStyle = m.kind === "step" ? "#F3C969" : "#141B25"; ctx.lineWidth = 2.5;
+        ctx.fillStyle = m.kind === "hold" || m.kind === "pose" ? "#DDA43B" : m.kind === "expr" ? "#D8A9DE" : m.kind === "glide" ? "#9EC3E6" : m.kind === "step" ? "rgba(12,16,32,0.6)" : "#F1E7D2"; ctx.strokeStyle = m.kind === "step" ? "rgba(243,201,105,0.55)" : "#141B25"; ctx.lineWidth = m.kind === "step" ? 1.2 : 2.5;
         ctx.beginPath(); ctx.arc(fx, y, R, 0, 7); ctx.fill(); ctx.stroke();
-        if (lead > 0) { ctx.strokeStyle = "#F3C969"; ctx.lineWidth = 3.5; ctx.beginPath(); ctx.arc(fx, y, R + 3 + lead * 28, 0, 7); ctx.stroke(); }
+        if (lead > 0) { ctx.strokeStyle = m.kind === "step" ? "rgba(243,201,105,0.7)" : "#F3C969"; ctx.lineWidth = m.kind === "step" ? 1.6 : 3.5; ctx.beginPath(); ctx.arc(fx, y, R + 3 + lead * 28, 0, 7); ctx.stroke(); }
         ctx.fillStyle = m.kind === "step" ? "#C23B2A" : "#141B25"; ctx.font = "bold 24px " + font();
         if (m.kind === "step") turnIcon(fx, y, m.dir, R, "#F1E7D2", m.tw); else ctx.fillText(m.kind === "hold" ? "●" : SYM[m.kind], fx, y + 1);
         label(fx, y + R + 12, m.kind === "step" ? `${stepName(m).toUpperCase()}  ${STEP[m.dir][0]}` : m.kind === "hold" ? (canHover() ? "LEERTASTE DRÜCKEN" : "DRÜCKEN") : m.kind === "spin" ? "RUNDE AUF DEN SCHLAG" : m.kind === "expr" ? `TIPPEN: ${m.el.name.toUpperCase()}` : m.kind === "glide" ? (canHover() ? "LEERTASTE: KANTE ANSETZEN" : "DRÜCKEN: KANTE ANSETZEN") : m.kind === "stroke" ? "ABSTOSS" : "POSE");
@@ -5404,6 +5642,9 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
     for (const o of all) {
       if (t < o.t0) continue;
       const u = clamp((t - o.t0) / o.dur, 0, 1), x = o.x0 + (o.x1 - o.x0) * u - run.camX, y = o.y0 + (o.y1 - o.y0) * u - Math.sin(Math.PI * u) * 90;
+      // in 3D: fliegt taumelnd (dreht um die Hochachse), liegt nach der Landung flach auf dem Eis
+      const sz = 30 * SC.scaleAt(clamp((o.y1 - 216) / 118, 0.1, 1));
+      if (drawGift3d(o.kind, o.col, x, y, o.rot * 3 + u * 9 * (1 - u * 0.6), u >= 1 ? Math.PI / 2 * (o.rot > 3 ? 1 : -1) : o.rot + u * 5 * (1 - u * 0.7), sz)) continue;
       ctx.save(); ctx.translate(x, y); ctx.rotate(o.rot + u * 6 * (1 - u * 0.7)); ctx.scale(1.6, 1.6);
       ctx.strokeStyle = "#141B25"; ctx.lineWidth = 1;
       if (o.kind === "rose") {
@@ -5460,7 +5701,67 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
       for (let k = 0; k < 80; k++) { const a = (k / 80) * Math.PI * 2 + Math.random() * 0.05, v = 95 + Math.random() * 65; run.fw.push({ x: cx, y: cy, vx: Math.cos(a) * v, vy: Math.sin(a) * v, life: 0, max: 1.3 + Math.random() * 0.5, c: k % 3 ? col : col2 }); }
       run.flash = 1;
     }
+    // Konfetti: auf der Eins des Abschnitts ein Schwall aus der Kuppel, danach rieselt es weiter
+    if (S0.fx === "confetti" && S0.rel < 11.5) {
+      run.conf = run.conf || [];
+      const first = run.cfDone !== S0.i; if (first) { run.cfDone = S0.i; sfx("cheer", 0.5); run.burst = Math.max(run.burst, 0.5); }
+      const n = first ? 160 : Math.random() < 0.7 ? 2 : 0;
+      for (let k = 0; k < n && run.conf.length < 260; k++) run.conf.push({ x: run.camX + Math.random() * W, y: first ? -5 - Math.random() * 70 : -8, vx: (Math.random() - 0.5) * 30, vy: 60 + Math.random() * 50, a: Math.random() * 6, va: (Math.random() - 0.5) * 9, w: 6 + Math.random() * 5, c: CONF_C[Math.floor(Math.random() * CONF_C.length)], ph: Math.random() * 6 });
+    }
+    // Funkenfontänen: an der Bande, auf jedem Schlag ein Stoß goldener Funken
+    if (S0.fx === "sparks" && S0.rel < 11.5 && run.spDone !== S0.bi) {
+      run.spDone = S0.bi; run.fount = run.fount || [];
+      const big = S0.bi % 3 === 0; if (big) sfx("woo", 0.25);
+      for (const fxw of [W * 0.12, W * 0.88]) for (let k = 0; k < (big ? 60 : 26) && run.fount.length < 500; k++) {
+        const a = -Math.PI / 2 + (Math.random() - 0.5) * 0.35, v = (big ? 230 : 160) + Math.random() * 90;
+        run.fount.push({ x: fxw, y: 214, vx: Math.cos(a) * v, vy: Math.sin(a) * v, life: 0, max: 0.7 + Math.random() * 0.6 });
+      }
+    }
+    // Trockeneis: weicher Nebel kriecht über das Eis
+    run.fogA = clamp((run.fogA || 0) + (S0.fx === "fog" && S0.rel < 11 ? 0.012 : -0.008), 0, 1);
     return S0;
+  }
+  const CONF_C = ["#F3C969", "#FFFFFF", "#E07A8B", "#9EC3E6", "#C23B2A", "#B9E3A8", "#D8A9DE"];
+  function drawConfetti(dt) {
+    const a = run.conf; if (!a || !a.length) return;
+    ctx.save();
+    for (let i = a.length - 1; i >= 0; i--) {
+      const p = a[i]; p.ph += dt * 5; p.a += p.va * dt; p.x += (p.vx + Math.sin(p.ph) * 25) * dt; p.y += p.vy * dt;
+      if (p.y > H + 10) { a[i] = a[a.length - 1]; a.pop(); continue; }
+      const x = p.x - run.camX, sq = Math.cos(p.a); // Blättchen drehen sich: mal breit, mal schmal
+      ctx.save(); ctx.translate(x, p.y); ctx.rotate(p.a * 0.4); ctx.fillStyle = p.c; ctx.globalAlpha = 0.9;
+      ctx.fillRect(-p.w / 2 * sq, -p.w * 0.35, p.w * sq, p.w * 0.7); ctx.restore();
+    }
+    ctx.restore();
+  }
+  function drawFountains(dt) {
+    const a = run.fount; if (!a || !a.length) return;
+    for (const fxw of [W * 0.12, W * 0.88]) { ctx.fillStyle = "#2A2F3A"; ctx.fillRect(fxw - 6, 208, 12, 8); ctx.fillStyle = "#FFE7A0"; ctx.fillRect(fxw - 3, 206, 6, 2); }
+    ctx.save(); // nicht „lighter“: vor dem hellen Konzerthaus würden goldene Funken sonst unsichtbar
+    for (let i = a.length - 1; i >= 0; i--) {
+      const p = a[i]; p.life += dt; if (p.life > p.max) { a[i] = a[a.length - 1]; a.pop(); continue; }
+      p.vy += 260 * dt; p.x += p.vx * dt; p.y += p.vy * dt;
+      const u = p.life / p.max, x = p.x; // Fontänen stehen am Bildrand (wie Bühnentechnik), nicht auf der Bahn
+      const al = (1 - u) * (0.75 + 0.25 * Math.sin(p.life * 50));
+      ctx.beginPath(); ctx.moveTo(x, p.y); ctx.lineTo(x - p.vx * 0.06, p.y - p.vy * 0.06);
+      ctx.globalAlpha = al * 0.5; ctx.strokeStyle = "#B4520F"; ctx.lineWidth = 5; ctx.stroke();       // dunkler Saum
+      ctx.globalAlpha = al; ctx.strokeStyle = u < 0.3 ? "#FFF2C0" : "#FFB830"; ctx.lineWidth = 2.8; ctx.stroke();
+    }
+    ctx.restore();
+  }
+  // Nebel in zwei Lagen: hinter der Läuferin und eine dünne vor den Kufen
+  function drawFog(front) {
+    const A = run.fogA || 0; if (A <= 0.01) return;
+    const now = performance.now() / 1000;
+    ctx.save();
+    if (!front) { const lg = ctx.createLinearGradient(0, 214, 0, H); lg.addColorStop(0, `rgba(214,222,246,${0.45 * A})`); lg.addColorStop(0.5, `rgba(214,222,246,${0.18 * A})`); lg.addColorStop(1, "rgba(214,222,246,0)"); ctx.fillStyle = lg; ctx.fillRect(0, 214, W, H - 214); }
+    for (let k = 0; k < (front ? 6 : 12); k++) {
+      const sx = ((k * 173 + now * (12 + k * 3)) % (W + 300)) - 150, y = front ? H - 40 + (k % 2) * 12 : 236 + (k % 3) * 34, rx = 150 + (k % 4) * 45, ry = front ? 18 : 26;
+      const g = ctx.createRadialGradient(sx, y, 0, sx, y, rx);
+      g.addColorStop(0, `rgba(205,214,240,${(front ? 0.6 : 0.9) * A})`); g.addColorStop(0.6, `rgba(220,228,248,${(front ? 0.3 : 0.5) * A})`); g.addColorStop(1, "rgba(225,232,250,0)");
+      ctx.fillStyle = g; ctx.save(); ctx.translate(sx, y); ctx.scale(1, ry / rx); ctx.translate(-sx, -y); ctx.beginPath(); ctx.arc(sx, y, rx, 0, 7); ctx.fill(); ctx.restore();
+    }
+    ctx.restore();
   }
   function drawFireworks(dt) {
     const a = run.fw; if (!a || !a.length) return;
@@ -5506,7 +5807,28 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
   function skaterImg(o) {
     const R = sk3(); if (!R) return null;
     const look = o.look || S.look;
-    return R.render({ pose: o.pose, turn: o.turn || 0, lift: o.lift || 0, look, swap: !!o.swap });
+    return R.render({ pose: o.pose, turn: o.turn || 0, lift: o.lift || 0, look, swap: !!o.swap, hold: o.hold || null });
+  }
+  // Geschenke in 3D (Figur3D.gift): einmal vorab je Art und Farbe 16 Ansichten rundherum in ein Bild gerechnet, dann nur noch kopiert
+  const GIFT_KINDS = [["rose", "#C23B2A"], ["rose", "#E07A8B"], ["rose", "#F3C969"], ["rose", "#F1E7D2"], ["teddy", "#9C6A3E"], ["star", "#F3C969"]], GN = 16, GPX = 72;
+  let GIFTS = null, giftTried = false;
+  function giftAtlas() {
+    if (giftTried) return GIFTS; giftTried = true;
+    if (!sk3() || !window.Figur3D.gift) return null;
+    try {
+      const R = window.Figur3D.gift(GPX); if (!R) return null;
+      const at = document.createElement("canvas"); at.width = GPX * GN; at.height = GPX * GIFT_KINDS.length; const g = at.getContext("2d");
+      GIFT_KINDS.forEach(([k, c], row) => { for (let i = 0; i < GN; i++) g.drawImage(R.render(k, c, (i / GN) * Math.PI * 2, 0), i * GPX, row * GPX); });
+      GIFTS = at;
+    } catch (e) { GIFTS = null; }
+    return GIFTS;
+  }
+  function drawGift3d(kind, col, x, y, yaw, roll, size) {
+    const A = giftAtlas(); if (!A) return false;
+    let row = GIFT_KINDS.findIndex(([k, c]) => k === kind && (kind !== "rose" || c === col)); if (row < 0) row = kind === "rose" ? 0 : kind === "teddy" ? 4 : 5;
+    const i = ((Math.round((yaw / (Math.PI * 2)) * GN) % GN) + GN) % GN;
+    ctx.save(); ctx.translate(x, y); ctx.rotate(roll); ctx.drawImage(A, i * GPX, row * GPX, GPX, GPX, -size / 2, -size / 2, size, size); ctx.restore();
+    return true;
   }
   function drawSkater(o, img) {
     if (!img) { F.draw(ctx, o); return; }
@@ -5543,6 +5865,7 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
     const SH = showUpdate(t, st.x - run.camX, SC.footY(st.d)); run.lastX = st.x;
     drawFireworks(dt);
     scene.crowd(ctx, run.camX, now, run.cheer);
+    drawFountains(dt);
     scene.snow(ctx, run.camX, now, [0, 1], 0.4 + 0.4 * run.cheer);
     if (run.dim > 0.005) { run.dim *= 1 - Math.min(1, dt * 0.35); ctx.fillStyle = `rgba(8,12,30,${run.dim})`; ctx.fillRect(0, 0, W, H); } // mit der Musik geht das Licht wieder an
     run.intT += dt; if (player && player.playing && run.intT > 0.2) { run.intT = 0; player.setIntensity(run.intensity); if (amb) amb.g.gain.setTargetAtTime(0.03 + 0.05 * run.cheer, ctxA.currentTime, 0.4); }
@@ -5575,8 +5898,9 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
     }
     run.sp = F.ease(run.sp, st.pose, dt, st.lift > 1 || st.tilt < -0.3);
     drawLaser(SH, fx, fy);
+    drawFog(false);
     const swT = run.swapT !== undefined ? t - run.swapT : 9, look = run.swapped ? Object.assign({}, run.look, { suit: run.look.accent, accent: run.look.suit }) : run.look;
-    const fo = { x: fx, y: fy, s, dir: 1, pose: openArms(run.sp, st.turn), lift: st.lift, turn: st.turn + (swT < 0.6 ? smooth(swT / 0.6) * Math.PI * 2 : 0), tilt: st.tilt, swap: st.swap, look };
+    const fo = { x: fx, y: fy, s, dir: 1, pose: openArms(run.sp, st.turn), lift: st.lift, turn: st.turn + (swT < 0.6 ? smooth(swT / 0.6) * Math.PI * 2 : 0), tilt: st.tilt, swap: st.swap, look, hold: run.honor ? run.hold : null };
     // Bewegungsunschärfe bei schnellen Drehungen (Pirouette bis 5 U/s, Sprünge): bei 60 Bildern je Sekunde springt die Figur sonst
     // 30° und mehr je Bild und wirkt wie eine Pappe, die umklappt. Wie bei einer Fernsehkamera: zwei, drei blasse Zwischenstände.
     {
@@ -5599,7 +5923,9 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
       if (run.throws && Math.random() < dt * 30) emitSparks(1, run.camX + Math.random() * W, -5, 0, -20, true);
       drawSparks(dt);
     }
+    drawFog(true);
     drawThrows(t, st.x, fy);
+    drawConfetti(dt);
     scene.snow(ctx, run.camX, now, [2], 0.4 + 0.4 * run.cheer);
     ctx.restore();
     // perfekt gestanden: Lichtblitz und goldener Ring
@@ -6182,6 +6508,7 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
     donau: "festlich · Wiener Ballsaal", skaters: "beschwingt · ein Wintertag auf dem Eis",
     wellen: "leidenschaftlich · in Moll", brahms: "zart und ruhig · zum Träumen",
     rosen: "schwungvoll · Olympiasieg 1936", kaiser: "prunkvoll · Hofball in Wien", wald: "ländlich und heiter · Wienerwald", witwe: "verliebt · Operettenwalzer", blumen: "verspielt · aus dem Nussknacker", schwan: "anmutig · Ballett-Walzer",
+    wogen: "wiegend · der Zirkuswalzer aus Mexiko", sweet: "verliebt · Ballsaal der Zwanziger", daisy: "fröhlich · ein Strauß Gänseblümchen",
   };
   const KIND = { jump: ["●○", "Sprung"], spin: ["⟳", "Pirouette"], steps: ["➜", "Schritte"], choreo: ["✦", "Choreo"], glide: ["⌒", "Gleiten"] };
   let listenOn = false;
@@ -6222,7 +6549,7 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
   // Unten links steht, was im gewählten Abschnitt in der Musik passiert, rechts wählt man: erst die Art, dann das Element.
   let pCat = null, pSheet = null;
   const fitK = (k, m) => (k === "glide" ? m.includes("spin") || m.includes("choreo") : m.includes(k));
-  const FXI = { laser: "✳", fire: "✺", swap: "⇄" };
+  const FXI = { laser: "✳", fire: "✺", swap: "⇄", confetti: "❋", fog: "☁", sparks: "⁂" };
   const CATS = [["jump", "●○", "Sprung"], ["spin", "⟳", "Pirouette"], ["steps", "➜", "Schritte"], ["choreo", "✦", "Choreo"], ["none", "～", "Gleiten"]];
   // kurze, lesbare Namen für die Abschnitte (höchstens zwei Zeilen)
   const JN = { T: "Toeloop", S: "Salchow", Lo: "Rittberger", F: "Flip", Lz: "Lutz", A: "Axel" };
