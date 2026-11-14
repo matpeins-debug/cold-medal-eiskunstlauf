@@ -1172,7 +1172,7 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
     const dry = c.createGain(), wet = c.createGain(), comp = c.createDynamicsCompressor();
     comp.threshold.value = -15; comp.knee.value = 12; comp.ratio.value = 3; comp.attack.value = 0.006; comp.release.value = 0.25;
     dry.gain.value = 0.82; wet.gain.value = 0.5;
-    const bus = c.createGain(); bus.gain.value = 0.9;
+    const bus = c.createGain(); bus.gain.value = 0.85; // etwas Luft nach oben: das Hammergeräusch des Klaviers ist zufällig und lag sonst knapp über 0 dB
     const hp = c.createBiquadFilter(), lpS = c.createBiquadFilter();
     hp.type = "highpass"; hp.frequency.value = 70; lpS.type = "lowpass"; lpS.frequency.value = 9500;
     bus.connect(hp); hp.connect(lpS); lpS.connect(dry); dry.connect(comp);
@@ -1910,13 +1910,16 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
 
   function judgeSteps(e, bt, inp, k) {
     k = k * (e.w || 1);
-    const used = new Set(), devs = []; let wrong = 0;
-    for (const [b, dir] of e.arrows) {
+    // seit 0.55: Tippen auf den Schlag genügt (Mat: „den Richtungswechsel versteht niemand“); die Richtung läuft die Läuferin
+    // von selbst nach der Choreografie. Wischen in irgendeine Richtung zählt ebenso, eine falsche Richtung gibt es nicht mehr.
+    const used = new Set(), devs = []; const wrong = 0;
+    for (const [b] of e.arrows) {
       const tg = tB(bt, b); let best = -1;
-      inp.forEach((x, i) => { if (x.type === "swipe" && !used.has(i) && Math.abs(x.t - tg) <= WIN.step * k && (best < 0 || Math.abs(x.t - tg) < Math.abs(inp[best].t - tg))) best = i; });
+      inp.forEach((x, i) => { if ((x.type === "down" || x.type === "swipe") && !used.has(i) && Math.abs(x.t - tg) <= WIN.step * k && (best < 0 || Math.abs(x.t - tg) < Math.abs(inp[best].t - tg))) best = i; });
       if (best < 0) continue;
-      used.add(best);
-      if (inp[best].dir === dir) devs.push(ms(inp[best].t - tg)); else wrong++;
+      // ein Wischen beginnt mit einem Tippen: beide Eingaben derselben Bewegung zählen als eine
+      used.add(best); inp.forEach((x, i) => { if (i !== best && (x.type === "down" || x.type === "swipe") && Math.abs(x.t - inp[best].t) < 0.12) used.add(i); });
+      devs.push(ms(inp[best].t - tg));
     }
     const lv = LEVEL_AT.steps.find(([n]) => devs.length >= Math.ceil(n * e.arrows.length / 12)); // Stufen relativ zur Zahl der Pfeile
     if (!lv) return { status: "miss", score: 0, goe: 0, devs, wrong, note: `nur ${devs.length} von ${e.arrows.length} Schritten` };
@@ -2067,7 +2070,7 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
     for (const e of prog.elements) {
       if (e.kind === "jump") out.push({ t: bt[e.tk] + off, type: "down" }, { t: bt[e.land] + off, type: "up" });
       else if (e.kind === "spin") for (let i = 1; i <= e.turns; i++) out.push({ t: bt[e.from + 3 * i] + off, type: "circle" });
-      else if (e.kind === "steps") for (const [b, dir] of e.arrows) out.push({ t: tB(bt, b) + off, type: "swipe", dir });
+      else if (e.kind === "steps") for (const [b] of e.arrows) out.push({ t: tB(bt, b) + off, type: "down" }, { t: tB(bt, b) + off + 0.12, type: "up" });
       else if (e.kind === "glide") out.push({ t: bt[e.tk] + off, type: "down" }, { t: bt[e.end] + off, type: "up" });
       else if (e.kind === "expr") out.push({ t: bt[e.at] + off, type: "down" }, { t: bt[e.at] + off + 0.15, type: "up" });
       else if (e.kind === "pose") out.push({ t: bt[e.at] + off, type: "down" }, { t: bt[e.at] + off + 0.2, type: "up" });
@@ -2780,6 +2783,12 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
  *   Figur3D.sprite(px)               → { canvas, render(o) }  Figur als Bild zum Einsetzen in eine 2D-Szene: Knöchel des Standbeins
  *                                      bei (SPR.cx, SPR.cy) im Bild, SPR.u Figur-Einheiten über die ganze Breite (wie figur.js: x, y, s)
  *   o.hold (frei): { roses, toys, cols }  Strauß Rosen in der vorderen Hand, Stofftiere im hinteren Arm (Eiskunstlauf 0.53)
+ *   o.outfit = "winter" (frei, Schneeball 0.4): Winterkleidung der 1920er statt Kostüm und Schlittschuhen: Strickmütze mit Bommel
+ *                                      (o.cap), Pullover mit Bordüre (Brust in der Zweitfarbe), Kniebundhose (o.pants), Wollstrümpfe
+ *                                      (o.sock), Lederschuhe (o.shoe), Handschuhe (o.glove, null = bloße Hand); o.ball = { r, col } Schneeball
+ *                                      in der vorderen Hand (r in Figur-Einheiten). Ohne outfit bleibt alles wie bisher.
+ *                                      o.feet = "boots" (frei, Schneeball 0.9.2): Winterstiefel bis zur halben Wade mit Filzrand, Schnürung
+ *                                      und dicker Profilsohle; der Fuß rollt im Lauf ab (Ferse auf, Spitze ab) statt starr zum Schienbein.
  *   Figur3D.gift(px)                 → { canvas, render(kind, col, yaw, tilt) }  ein Geschenk allein als Bild ("rose", "teddy", "star"),
  *                                      Mitte des Bildes = Mitte des Geschenks, GIFT_U Einheiten über die ganze Breite
  */
@@ -2913,6 +2922,13 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
         if (vL.y > 0.86) { col = uA; if (fract(atan(vL.z, vL.x) * 1.5) < 0.3) col = STONE; }
         glit = 0.6;
       }
+      if (m == 7) {
+        // Pullover (Winterkleidung): Bordüre auf der Brust mit hellem Zickzack, Bund unten dunkler
+        float y = vL.y; col = uC;
+        if (y > 15.5 && y < 21.5) { col = uA; float zz = abs(fract(atan(vL.z, vL.x) * 2.2) - 0.5) * 4.0; if (abs(y - 17.2 - zz) < 0.55) col = vec3(0.96, 0.94, 0.88); }
+        if (y > 14.6 && y < 15.5 || y > 21.5 && y < 22.4) col = vec3(0.96, 0.94, 0.88);
+        if (y < -2.5) col = uC * 0.8;
+      }
       if (m == 6) {
         // Gesicht aufgemalt auf den glatten Kopf: Rouge, mandelförmige Augen mit Iris und Glanzpunkt, Wimpernlinie, Brauen, Lippen
         float u = vL.y, az = abs(vL.z);
@@ -3043,7 +3059,7 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
       gl.viewport(0, 0, w, h); gl.clearColor(0, 0, 0, 0); gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT); gl.enable(gl.DEPTH_TEST); gl.enable(gl.CULL_FACE);
       const L = F.cleanLook(o.look), skin = hex(F.SKIN[L.skin] || F.SKIN[1]), suit = hex(typeof L.suit === "number" ? F.SUIT[L.suit] : L.suit), acc = hex(typeof L.accent === "number" ? F.SUIT[L.accent] : L.accent);
       const hair = hex(F.HAIRC[L.hairC] || F.HAIRC[0]), ink = hex(F.INK), boot = [0.95, 0.94, 0.9], blade = [0.75, 0.78, 0.82];
-      const sk = skeleton(o.pose, o.turn || 0, o.lift || 0, !!o.swap);
+      const sk = skeleton(o.pose, o.turn || 0, o.lift || 0, !!o.swap), WIN = o.outfit === "winter";
       const sheer = [skin[0] * 0.75 + suit[0] * 0.25, skin[1] * 0.75 + suit[1] * 0.25, skin[2] * 0.75 + suit[2] * 0.25]; // Ärmel durchscheinend
       gl.uniform3fv(U.uC2, sheer); gl.uniform1f(U.uT, o.time != null ? o.time : performance.now() / 1000);
       gl.uniform1f(U.uPat, L.pattern === "stripe" ? 1 : L.pattern === "split" ? 2 : 0);
@@ -3067,16 +3083,59 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
       const off = (q, f, z) => [q[0] + fx[0] * f + zs[0] * z, q[1], q[2] + fx[2] * f + zs[2] * z];
       // Beine: Oberschenkel kräftig zum Knie schmaler, Wade zum Knöchel schmaler
       const legC = L.pattern === "split" ? acc : suit;
+      if (WIN) {
+        // Kniebundhose bis unters Knie, darunter Wollstrümpfe
+        const pants = hex(o.pants || "#4D4237"), sock = hex(o.sock || "#E9E2D2");
+        for (const L2 of [sk.S, sk.Fr]) { limb(L2[0], L2[1], 3.9, 3.1, pants); limb(L2[1], lerp(L2[1], L2[2], 0.22), 3.1, 2.4, pants); limb(lerp(L2[1], L2[2], 0.2), L2[2], 2.25, 1.75, sock); }
+      } else {
       limb(sk.S[0], sk.S[1], 3.5, 2.55, suit, 4); limb(sk.S[1], sk.S[2], 2.55, 1.7, legC, 4);
       limb(sk.Fr[0], sk.Fr[1], 3.4, 2.5, suit, 4); limb(sk.Fr[1], sk.Fr[2], 2.5, 1.65, legC, 4);
+      }
       // Arme: runde Schulter, Oberarm, Unterarm, Hand in Richtung des Unterarms
       for (const A of [sk.AF, sk.AB]) {
+        if (WIN) {
+          // Pulloverärmel bis zum Handgelenk, Handschuh (oder bloße Hand) rund
+          ball(A[0], 2.9, suit); limb(A[0], A[1], 2.5, 2.1, suit); limb(A[1], A[2], 2.1, 1.75, suit);
+          const d = norm(sub(A[2], A[1])), gc = o.glove ? hex(o.glove) : skin;
+          parts.push([SPH, segM([A[2][0] + d[0] * 0.8, A[2][1] + d[1] * 0.8, A[2][2] + d[2] * 0.8], [A[2][0] + d[0] * 3.6, A[2][1] + d[1] * 3.6, A[2][2] + d[2] * 3.6], o.glove ? 1.85 : 1.4, o.glove ? 1.6 : 1.0), gc]);
+          continue;
+        }
         ball(A[0], 2.75, suit); limb(A[0], A[1], 2.3, 1.85, suit, 2); limb(A[1], A[2], 1.85, 1.35, suit, 3, sheer);
         const d = norm(sub(A[2], A[1])), c = [A[2][0] + d[0] * 1.7, A[2][1] + d[1] * 1.7, A[2][2] + d[2] * 1.7];
         parts.push([SPH, segM(c, [c[0] + d[0] * 2.0, c[1] + d[1] * 2.0, c[2] + d[2] * 2.0], 1.35, 0.9), skin]); // Hand, flach und länglich
       }
+      // Schneeball in der vorderen Hand
+      if (o.ball) { const A = sk.AF, d = norm(sub(A[2], A[1])), r = o.ball.r || 2.6; ball([A[2][0] + d[0] * (2.6 + r * 0.6), A[2][1] + d[1] * (2.6 + r * 0.6), A[2][2] + d[2] * (2.6 + r * 0.6) + 1.2], r, hex(o.ball.col || "#F7F6F2")); }
+      // Lederschuhe (Winterkleidung): niedrig, Fuß in Zehenrichtung, dicke Sohle; mit o.feet = "boots" Winterstiefel
+      if (WIN) for (const L2 of [sk.S, sk.Fr]) {
+        const kn = L2[1], an = L2[2], down = norm(sub(an, kn)), shoe = hex(o.shoe || "#4A2F1F");
+        let fd = norm(cross(zs, down));
+        if (o.feet === "boots") {
+          // Abrollen: halb zum Schienbein, halb waagrecht; so setzt die Ferse vorn auf und die Spitze drückt hinten ab
+          const fl = norm([fd[0], 0, fd[2]]); fd = norm(lerp(fd, fl, 0.45));
+          const at = (q, f, d) => [q[0] + fd[0] * f + down[0] * d, q[1] + fd[1] * f + down[1] * d, q[2] + fd[2] * f + down[2] * d];
+          const dk = hex(o.sole || "#2A1F17"), cuff = hex(o.cuff || "#D9CFBC"), lace = hex("#1E1610");
+          // Schaft bis zur halben Wade, oben weiter, mit Filzrand
+          const top = lerp(an, kn, 0.42);
+          limb(top, an, 2.55, 2.35, shoe);
+          limb(lerp(top, an, -0.06), lerp(top, an, 0.1), 2.85, 2.8, cuff);
+          // Fuß: kräftig, runde Kappe vorn
+          const heel = at(an, -1.6, 1.4), toe = at(an, 5.0, 1.75);
+          limb(heel, toe, 2.35, 2.0, shoe);
+          ball(at(an, 4.6, 1.55), 2.05, shoe);
+          // dicke Sohle mit Absatz, etwas breiter als der Schuh
+          const sh = at(an, -1.9, 3.15), st = at(an, 5.6, 3.25);
+          limb(sh, st, 1.15, 1.0, dk);
+          // Schnürung: kleine Haken vorn am Schaft
+          for (let k = 0; k < 4; k++) { const q = lerp(an, top, 0.12 + k * 0.24); ball([q[0] + fd[0] * 2.35, q[1] + fd[1] * 2.35, q[2] + fd[2] * 2.35], 0.42, lace); }
+          continue;
+        }
+        const heel = [an[0] - fd[0] * 1.4 + down[0] * 1.3, an[1] - fd[1] * 1.4 + down[1] * 1.3, an[2] - fd[2] * 1.4 + down[2] * 1.3];
+        const toe = [an[0] + fd[0] * 5.2 + down[0] * 1.7, an[1] + fd[1] * 5.2 + down[1] * 1.7, an[2] + fd[2] * 5.2 + down[2] * 1.7];
+        limb(lerp(an, heel, 0.2), an, 2.2, 2.0, shoe); limb(heel, toe, 2.1, 1.7, shoe);
+      }
       // Schlittschuhe: hoher weißer Stiefel, Fuß in Zehenrichtung (senkrecht zum Schienbein), Kufe mit Zacke vorn
-      for (const L2 of [sk.S, sk.Fr]) {
+      if (!WIN) for (const L2 of [sk.S, sk.Fr]) {
         const kn = L2[1], an = L2[2], down = norm(sub(an, kn)), fd = norm(cross(zs, down));
         const top = [an[0] - down[0] * 4.2, an[1] - down[1] * 4.2, an[2] - down[2] * 4.2];
         limb(top, an, 2.15, 2.25, boot);
@@ -3117,9 +3176,9 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
       // Rumpf aus einem Stück mit Schrägstreifen
       const up = norm(sub(sk.nk, sk.hip)), Lt = Math.hypot(...sub(sk.nk, sk.hip)), at = (u) => [sk.hip[0] + up[0] * Lt * u, sk.hip[1] + up[1] * Lt * u, sk.hip[2] + up[2] * Lt * u];
       const torsoM = (c, rx, ry, rz) => { const y = up, x0 = norm(cross(y, zs)), z = cross(x0, y); return [x0[0] * rx, x0[1] * rx, x0[2] * rx, 0, y[0] * ry, y[1] * ry, y[2] * ry, 0, z[0] * rz, z[1] * rz, z[2] * rz, 0, c[0], c[1], c[2], 1]; };
-      parts.push([TOR, torsoM(sk.hip, 1, Lt / 26, 1), suit, 1]);
+      parts.push([TOR, torsoM(sk.hip, 1, Lt / 26, 1), suit, WIN ? 7 : 1]);
       // Bänder an der Taille hinten, verspielt: hängen und wehen; in schnellen Drehungen fliegen sie nach außen
-      {
+      if (!WIN) {
         const now = o.time != null ? o.time : (typeof performance !== "undefined" ? performance.now() / 1000 : 0), st = state;
         const fresh = st.t == null || now - st.t > 0.005, om = st.t != null && fresh ? (sk.turn - st.turn) / (now - st.t) : st.om || 0; if (fresh) { st.t = now; st.turn = sk.turn; }
         st.om = (st.om || 0) + (Math.max(-30, Math.min(30, om)) - (st.om || 0)) * 0.2;
@@ -3150,11 +3209,20 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
       const hs2 = L.hair | 0, big = hs2 === 3 || hs2 === 8 ? (hs2 === 8 ? 2.2 : 1.1) : 0, thin = hs2 === 7 ? -0.6 : 0;
       parts.push([SPH, hM(H(-1.6, 2.9, 0), 6.3 + big + thin, 5.7 + big + thin, 6.05 + big + thin), hair]);
       if (hs2 === 0) ball(H(-5.6, 5.6, 0), 3.1, hair);
+      if (WIN) {
+        // Strickmütze mit Rand und Bommel
+        const capC = hex(o.cap || (typeof L.cap === "string" ? L.cap : null) || "#C23B2A"), rim = [0.96, 0.94, 0.88];
+        parts.push([SPH, hM(H(-0.9, 3.4, 0), 6.75 + big * 0.6, 5.3, 6.6 + big * 0.6), capC]);
+        parts.push([SPH, hM(H(-0.7, 1.3, 0), 6.95 + big * 0.6, 1.7, 6.85 + big * 0.6), rim]);
+        ball(H(-1.4, 9.6, 0), 2.5, rim);
+      }
       // Schleife im Haar und Ohrstecker: verspielt und elegant
+      if (!WIN) {
       const bowC = hs2 === 0 ? H(-3.6, 7.6, 0) : hs2 === 2 ? H(-6.0, 3.6, 0) : H(-2.0, 8.0, 0);
       for (const sd of [-1, 1]) parts.push([SPH, hM([bowC[0] + hs[0] * sd * 1.9, bowC[1] + hs[1] * sd * 1.9, bowC[2] + hs[2] * sd * 1.9], 1.1, 1.3, 1.9), acc, 5]);
       ball(bowC, 0.85, acc);
       for (const sd of [-1, 1]) parts.push([SPH, hM(H(0.1, -2.3, sd * 5.3), 0.5, 0.5, 0.5), [1, 0.97, 0.88], 0, 1, true, true]);
+      }
       if (hs2 === 2) { cap(H(-6.2, 3.2, 0), H(-7.6, -2.5, 0), 1.9, hair); cap(H(-7.6, -2.5, 0), H(-8.6, -8.5, 0), 1.6, hair); }
       if (hs2 === 4) parts.push([SPH, hM(H(-1.2, -0.8, 0), 6.0, 4.2, 6.5), hair]);
       if (hs2 === 5) parts.push([SPH, hM(H(-3.6, -5.5, 0), 3.2, 8.5, 5.8), hair]);
@@ -4415,7 +4483,7 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
 /* COLD MEDAL EISKUNSTLAUF – Ablauf, Bildschirme, Eingabe, Taktband, Ergebnis, Spielstand. */
 (function () {
   "use strict";
-  const VERSION = "0.54";
+  const VERSION = "0.55";
   // Seiten-Einstellungen aus dem Build (eigenes Hosting: Adresse, Hoster, Impressum); im claude.ai-Artefakt leer
   const SITE = Object.assign({ web: false, url: "", impressum: null }, {"web": true, "supabase": {"url": "https://pqpvgkslozsekjywpdrf.supabase.co", "key": "sb_publishable_KkKe9jchmXYp_-OEmB8WLQ_gZLXrRhF"}, "url": "https://matpeins-debug.github.io/cold-medal-eiskunstlauf/", "hoster": "GitHub Pages (GitHub Inc., USA)", "drittland": "GitHub ist nach dem EU-US Data Privacy Framework zertifiziert; die Übermittlung in die USA stützt sich auf den Angemessenheitsbeschluss der EU-Kommission dazu.", "impressum": {"name": "", "adresse": "", "mail": ""}} || {});
   const M = window.EKMusic, K = window.EKSkate, F = window.EKFig, SC = window.EKScene, PASS = window.CMPass;
@@ -4740,7 +4808,14 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
       return;
     }
     show(null); $("hud").hidden = false; buildChips();
-    if (!fake) { run.entry = { t: 0, phase: 0, x: WW / 2 - 820, face: 0, sp: null }; ambience(true); }
+    if (!fake) {
+      run.entry = { t: 0, phase: 0, x: WW / 2 - 820, face: 0, sp: null }; ambience(true);
+      // im Wettkampf (nicht in der Gruppe, nicht beim Ansehen): erst laufen die zwei vor dir
+      if (mode === "comp" && !run.grp && !rec) {
+        const bd = aiBoard(run).sort((a, b) => b.total - a.total);
+        run.entry.phase = -1; run.entry.warm = { t: 0, i: 0, board: bd, list: [bd[1], bd[0]].map((b) => Object.assign({ look: aiLook(b.name) }, b)) };
+      }
+    }
     else if (opt.entry) run.entry = { t: 0, phase: 0, x: WW / 2 - 820, face: 0, sp: null, fake: true };
   }
   // Auftritt: Läuferin gleitet zum Startpunkt, Publikum jubelt; Gong und Ansage aus dem alten Lautsprecher;
@@ -4776,8 +4851,81 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
     } catch (e) { setTimeout(done, 3200); }
     return Math.min(8, text.length / 13);
   }
+  // das Feld im Wettkampf: dieselbe Rechnung vor der Kür (Aufwärmgruppe) und in der Wertung
+  function aiBoard(r) {
+    const ev = SEASON[(S.season && S.season.ev) || 0] || SEASON[0], n = (S.season && S.season.n) || 1;
+    return K.field(r.seed, 5, (r.lv.field || 0) + ev.boost + 3 * (n - 1)).map((b) => Object.assign({}, b, { total: Math.round(b.total * r.lv.factor * 100) / 100 }));
+  }
+  // Aussehen der Gegnerinnen aus dem Namen: immer gleich, aber jede anders
+  function aiLook(name) {
+    let h = 7; for (const ch of name) h = (h * 31 + ch.charCodeAt(0)) >>> 0;
+    const pk = (n, sh) => (h >>> sh) % n;
+    return Object.assign({}, F.DEF_LOOK, { hair: pk(F.HAIRS.length, 0), hairC: pk(F.HAIRC.length, 4), skin: pk(F.SKIN.length, 8), suit: pk(F.SUIT.length, 12), accent: pk(F.SUIT.length, 17), beard: 0 });
+  }
+  // Spannung vor der großen Kür: die letzten zwei vor dir laufen im Zeitraffer, ihre Noten kommen, dann der Zwischenstand
+  // und was du für Gold brauchst. Tippen überspringt.
+  const WARM_T = 5.4;
+  function warmFrame(dt) {
+    const E = run.entry, Wm = E.warm; Wm.t += dt;
+    const cur = Wm.i < Wm.list.length ? Wm.list[Wm.i] : null;
+    if (cur && Wm.t > WARM_T) { Wm.i++; Wm.t = 0; }
+    if (!cur && Wm.t > 4.6) { E.phase = 0; E.t = 0; return; }
+    const now = performance.now() / 1000, d = 0.72, fy = SC.footY(d), sc = SC.scaleAt(d), u = Wm.t;
+    let x = WW / 2 + 150, pose = F.POSES.final, lift = 0, turn = Math.PI / 2 - 0.5;
+    if (cur) {
+      const g = clamp(u / 3.3, 0, 1); x = WW / 2 - 520 + 670 * (1 - Math.pow(1 - g, 2));
+      if (u < 1.0) { pose = F.strokePose((u / 0.7) % 1); turn = 0; }
+      else if (u < 1.15) { pose = F.POSES.prep; turn = 0; }
+      else if (u < 1.75) { const v = (u - 1.15) / 0.6; pose = F.POSES.air || F.POSES.spin; lift = 50 * Math.sin(Math.PI * v); turn = v * Math.PI * 6; }
+      else if (u < 2.1) { pose = F.POSES.land; turn = 0; }
+      else if (u < 3.2) { const v = (u - 2.1) / 1.1; pose = F.mix(F.POSES.spinOpen || F.POSES.spin, F.POSES.spin, smooth(v)); turn = v * v * Math.PI * 10; }
+      else { pose = F.POSES.final; turn = Math.PI / 2 - 0.5; }
+      if (u > 3.55 && !Wm.clap) { Wm.clap = true; sfx("applause", 0.55); run.burst = 0.6; }
+      if (u < 0.1) Wm.clap = false;
+      Wm.sp = F.ease(Wm.sp, pose, dt * (u > 1.1 && u < 3.2 ? 3 : 1));
+    }
+    run.cheer += ((cur && u > 3.5 ? 0.8 : 0.15) - run.cheer) * Math.min(1, dt * 2);
+    const target = clamp(x - W / 2, 0, WW - W); run.camX += (target - run.camX) * Math.min(1, dt * 2.2);
+    const fx = x - run.camX;
+    scene.draw(ctx, run.camX); scene.twinkle(ctx, run.camX, now); scene.crowd(ctx, run.camX, now, run.cheer); scene.snow(ctx, run.camX, now, [0, 1], 0.6);
+    ctx.fillStyle = "rgba(8,12,30,0.22)"; ctx.fillRect(0, 0, W, H);
+    if (cur) {
+      scene.spot(ctx, fx, fy, sc, 1);
+      const fo = { x: fx, y: fy, s: sc, dir: 1, pose: Wm.sp || pose, lift, turn, swap: false, look: cur.look };
+      const im = skaterImg(fo); drawReflection(fo, im); drawSkater(fo, im);
+    }
+    scene.snow(ctx, run.camX, now, [2], 0.6); scene.vignette(ctx);
+    ctx.textAlign = "center"; ctx.textBaseline = "alphabetic";
+    const tag = (txt, y, sz, col, a) => { ctx.globalAlpha = a; ctx.font = `700 ${sz}px ` + font(); ctx.lineWidth = Math.max(3, sz / 5); ctx.strokeStyle = "#141B25"; ctx.strokeText(txt, W / 2, y); ctx.fillStyle = col; ctx.fillText(txt, W / 2, y); ctx.globalAlpha = 1; };
+    if (cur) {
+      const a = clamp(u / 0.4, 0, 1) * clamp((WARM_T - u) / 0.4, 0, 1);
+      tag(Wm.i === Wm.list.length - 1 ? "VOR DIR · FÜHRT" : "VOR DIR", 52, 12, "#F3C969", a);
+      tag(`${cur.name} · ${cur.nat}`, 80, 22, "#F1E7D2", a);
+      if (u > 3.6) {
+        const c = smooth(clamp((u - 3.6) / 0.7, 0, 1)), tot = cur.total * c;
+        tag(tot.toFixed(2).replace(".", ","), 128, 40, "#FFE7A0", a);
+        tag(`TES ${cur.tes.toFixed(2).replace(".", ",")} · PCS ${(cur.total - cur.tes + (cur.ded || 0)).toFixed(2).replace(".", ",")}${cur.ded ? " · Sturz −1" : ""}`, 150, 12, "#F1E7D2", a * c);
+      }
+    } else {
+      // Zwischenstand: wer vorne liegt, und was es für Gold braucht
+      const a = clamp(u / 0.5, 0, 1), list = Wm.board;
+      ctx.globalAlpha = a * 0.82; ctx.fillStyle = "#101726"; ctx.fillRect(W / 2 - 170, 36, 340, 40 + list.length * 22 + 70); ctx.globalAlpha = 1;
+      tag("ZWISCHENSTAND", 58, 13, "#F3C969", a);
+      list.forEach((b, i) => {
+        const y = 86 + i * 22; ctx.globalAlpha = a * clamp((u - 0.3 - i * 0.15) / 0.3, 0, 1);
+        ctx.font = "600 14px " + font(); ctx.textAlign = "left"; ctx.fillStyle = i === 0 ? "#FFE7A0" : "#F1E7D2"; ctx.fillText(`${i + 1}.  ${b.name}  ${b.nat}`, W / 2 - 150, y);
+        ctx.textAlign = "right"; ctx.fillText(b.total.toFixed(2).replace(".", ","), W / 2 + 150, y); ctx.textAlign = "center"; ctx.globalAlpha = 1;
+      });
+      const y0 = 86 + list.length * 22 + 14, need = (list[0].total + 0.01).toFixed(2).replace(".", ",");
+      if (u > 1.4) { const b2 = clamp((u - 1.4) / 0.5, 0, 1); tag("DU LÄUFST ZULETZT", y0, 12, "#F1E7D2", b2); tag(`Für Gold brauchst du ${need}`, y0 + 30, 22, "#FFE7A0", b2); if (!Wm.drum) { Wm.drum = true; sfx("gong"); } }
+    }
+    ctx.globalAlpha = 0.6; ctx.font = "600 11px " + font(); ctx.fillStyle = "#F1E7D2"; ctx.fillText("tippen zum Überspringen", W / 2, H - 14); ctx.globalAlpha = 1;
+    if (amb) amb.g.gain.setTargetAtTime(0.03 + run.cheer * 0.05, ctxA.currentTime, 0.4);
+  }
   function entryFrame(dt) {
-    const E = run.entry; E.t += dt;
+    const E = run.entry;
+    if (E.phase === -1) { if (E.skip) { E.skip = false; E.phase = 0; E.t = 0; } else return warmFrame(dt); }
+    E.t += dt;
     const xs = WW / 2 - 820, xe = WW / 2, d = 0.77; // Endpunkt = Startpunkt der Kür (Bahnmitte)
     let pose, lift = 0;
     // 1 Hereingleiten (3,4 s): zwei Abstöße, dann lang gleiten
@@ -4883,7 +5031,7 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
       if (inp.type === "down" && m.kind === "glide") consider(m.t, K.WIN.jump * k * 1.2, true);
       if (inp.type === "up" && m.kind === "glide" && r.glideH && r.glideH.el === m.el) consider(m.t2, K.WIN.jump * k * 1.56, true);
       if (inp.type === "circle" && m.kind === "spin") consider(m.t, K.WIN.spin * k, true);
-      if (inp.type === "swipe" && m.kind === "step") consider(m.t, K.WIN.step * k, m.dir === inp.dir);
+      if ((inp.type === "down" || inp.type === "swipe") && m.kind === "step") consider(m.t, K.WIN.step * k, true);
       if (inp.type === "down" && m.kind === "stroke") consider(m.t, K.WIN.stroke * k, true);
     }
     // Abstoß getroffen: kräftiger Schub, Kufengeräusch; neben dem Takt (außerhalb der Elemente) gibt es ein „daneben“
@@ -4923,7 +5071,11 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
       else if (Math.abs(dl) > K.WIN.fall * kw && !r.lv.falls) { r.wobble = { t: inp.t, hand: true }; r.landUntil = inp.t + 0.95; sfx("land"); pop("Wackler", "#F0A65A"); }
       else if (Math.abs(dl) > K.WIN.fall * kw) { r.wobble = null; r.fallUntil = Infinity; r.down = { t0: inp.t, hits: 0, last: -9, shake: -9 }; sfx("fall"); r.streak = 0; r.intensity = clamp(r.intensity - 0.35, 0, 1); r.burst = 0; } else { r.landT = inp.t; r.landUntil = inp.t + (r.wobble && r.wobble.t === inp.t ? 1.2 : 1.05); sfx("land"); }
     }
-    if (inp.type === "swipe") r.lastSwipe = { dir: inp.dir, t: inp.t };
+    // Schrittfolge: Tippen (oder Wischen) auf den Schlag; die Richtung kommt aus der Choreografie der getroffenen Marke
+    if (inp.type === "down" || inp.type === "swipe") {
+      const stm = r.marks.find((m) => m.kind === "step" && Math.abs(inp.t - m.t) <= K.WIN.step * k);
+      if (stm && !(r.lastSwipe && Math.abs(r.lastSwipe.t - inp.t) < 0.12)) r.lastSwipe = { dir: stm.dir, t: inp.t };
+    }
     if (!best) return;
     const ms = Math.round(best.d * 1000), T = { perfect: M.TIMING.perfect * k, good: M.TIMING.good * k }, a = Math.abs(ms); // Grenzen wachsen und schrumpfen mit der Stufe
     const word = !best.ok ? "Falsche Richtung" : a <= T.perfect ? "Perfekt" : a <= T.good ? "Gut" : ms < 0 ? "Zu früh" : "Zu spät";
@@ -5342,7 +5494,7 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
     const nx = PROG.elements.find((e) => { const [a, b] = elWindow(e, bt); return b > t && a - 2.6 < t; });
     if (nx && !run.down && (run.lv.hints === "immer" || (run.lv.hints === "start" && t < 8)) && !(run.rate && performance.now() - run.rate.t < 1100)) {
       const hint = { jump: canHover() ? "Leertaste bei ● drücken, halten, bei ○ loslassen" : "bei ● drücken, halten, bei ○ loslassen", spin: canHover() ? "kreisen oder Leertaste auf jedes ⟳" : "mit dem Finger kreisen, jede Runde auf ⟳",
-        steps: canHover() ? "Pfeiltaste wie der Pfeil, wenn er im Ring ist" : "wisch in Pfeilrichtung, wenn er im Ring ist", pose: "tippen auf den Schlussakkord", expr: "tippen, wenn die Figur kommt",
+        steps: canHover() ? "Leertaste, wenn der Schwung im Ring ist" : "tippen, wenn der Schwung im Ring ist", pose: "tippen auf den Schlussakkord", expr: "tippen, wenn die Figur kommt",
         glide: nx.role === "entry" ? (canHover() ? "Leertaste halten, beim Eindrehen loslassen" : "halten, beim Eindrehen loslassen") : (canHover() ? "Leertaste halten, am Ende des Bogens loslassen" : "halten, am Ende des Bogens loslassen") }[nx.kind];
       ctx.font = "600 14px " + font();
       const txt = nx.name.toUpperCase() + "  ·  " + hint, tw = ctx.measureText(txt).width + 22;
@@ -5423,7 +5575,7 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
         if (lead > 0) { ctx.strokeStyle = m.kind === "step" ? "rgba(243,201,105,0.7)" : "#F3C969"; ctx.lineWidth = m.kind === "step" ? 1.6 : 3.5; ctx.beginPath(); ctx.arc(fx, y, R + 3 + lead * 28, 0, 7); ctx.stroke(); }
         ctx.fillStyle = m.kind === "step" ? "#C23B2A" : "#141B25"; ctx.font = "bold 24px " + font();
         if (m.kind === "step") turnIcon(fx, y, m.dir, R, "#F1E7D2", m.tw); else ctx.fillText(m.kind === "hold" ? "●" : SYM[m.kind], fx, y + 1);
-        label(fx, y + R + 12, m.kind === "step" ? `${stepName(m).toUpperCase()}  ${STEP[m.dir][0]}` : m.kind === "hold" ? (canHover() ? "LEERTASTE DRÜCKEN" : "DRÜCKEN") : m.kind === "spin" ? "RUNDE AUF DEN SCHLAG" : m.kind === "expr" ? `TIPPEN: ${m.el.name.toUpperCase()}` : m.kind === "glide" ? (canHover() ? "LEERTASTE: KANTE ANSETZEN" : "DRÜCKEN: KANTE ANSETZEN") : m.kind === "stroke" ? "ABSTOSS" : "POSE");
+        label(fx, y + R + 12, m.kind === "step" ? `${canHover() ? "LEERTASTE" : "TIPPEN"} · ${stepName(m).toUpperCase()}` : m.kind === "hold" ? (canHover() ? "LEERTASTE DRÜCKEN" : "DRÜCKEN") : m.kind === "spin" ? "RUNDE AUF DEN SCHLAG" : m.kind === "expr" ? `TIPPEN: ${m.el.name.toUpperCase()}` : m.kind === "glide" ? (canHover() ? "LEERTASTE: KANTE ANSETZEN" : "DRÜCKEN: KANTE ANSETZEN") : m.kind === "stroke" ? "ABSTOSS" : "POSE");
         ctx.globalAlpha = 1;
       }
     }
@@ -6001,7 +6153,7 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
       if (res.total > S.best) S.best = res.total;
     } else if (r.mode === "comp") {
       const ev = SEASON[S.season.ev]; r.season = { ev: S.season.ev, n: S.season.n, id: ev.id };
-      board = K.field(r.seed, 5, (r.lv.field || 0) + ev.boost + 3 * (S.season.n - 1)).map((b) => Object.assign({}, b, { total: Math.round(b.total * r.lv.factor * 100) / 100 })).concat([{ name: S.name || "Du", nat: S.nat, tes: res.tes, pcsTotal: res.pcsTotal, ded: res.ded, total: res.total, me: true }]);
+      board = aiBoard(r).concat([{ name: S.name || "Du", nat: S.nat, tes: res.tes, pcsTotal: res.pcsTotal, ded: res.ded, total: res.total, me: true }]);
       board.sort((a, b) => b.total - a.total); rank = board.findIndex((x) => x.me) + 1;
       if (res.total > S.best) S.best = res.total;
       seasonAdd(r, board, rank, res);
@@ -6192,7 +6344,7 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
     const d = canHover();
     $("hJump").textContent = (d ? "Leertaste bei ● drücken, halten, bei ○ loslassen." : "Bei ● drücken, halten, bei ○ loslassen.") + (PROG.elements.some((e) => e.part) ? " Kombination: gleich das nächste ●." : "");
     $("hSpin").textContent = d ? "Kreisen oder Leertaste auf jedes ⟳ – eine Runde je Takt." : "Mit dem Finger kreisen, jede Runde endet auf einem ⟳.";
-    $("hStep").textContent = (d ? "Pfeiltaste" : "Wischen") + " im Wechsel links/rechts auf die Eins – sie fährt eine Schlangenlinie: → Dreier, ← Gegendreier; zweimal dieselbe Richtung = Twizzle.";
+    $("hStep").textContent = (d ? "Leertaste" : "Tippen") + " auf jeden Schlag mit dem goldenen Schwung – Dreier, Gegendreier und Twizzle läuft sie von selbst.";
     $("hPose").textContent = "Auf den Schlussakkord tippen." + (PROG.elements.some((e) => e.kind === "expr") ? " ✦ Choreo-Figur: tippen, wenn sie kommt." : "");
     show("scrIntro");
   }
@@ -6629,7 +6781,7 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
       tw = `<button class="tg${pRot === 1 ? " on" : ""}" data-rot="1">einfach</button><button class="tg${pRot === 2 ? " on" : ""}" data-rot="2">doppelt</button><button class="tg risk${rk ? " on" : ""}" data-rot="3" title="Wagnis: nur ganz sauber steht er, sonst Sturz">⚡ dreifach</button>`
         + (rk ? `<span>Wagnis: unsauber = Sturz</span>` : `<span>+</span><button class="tg${!pCombo ? " on" : ""}" data-combo="">allein</button><button class="tg${pCombo === "T" ? " on" : ""}" data-combo="T">+ Toeloop</button><button class="tg${pCombo === "Lo" ? " on" : ""}" data-combo="Lo">+ Rittberger</button>`);
     } else if (pCat === "spin") { o = ["USp", "SSp", "CSp"].map((id) => opt(id, CAT[id].name, `bis ${dec(CAT[id].levels[3])} P.`)).join(""); tw = `<span>Mit dem Finger kreisen, jede Runde auf den Schlag.</span>`; }
-    else if (pCat === "steps") { o = opt("StSq", "Schrittfolge", "zwei Abschnitte"); tw = `<span>Wischen in Pfeilrichtung – braucht zwei Abschnitte.</span>`; }
+    else if (pCat === "steps") { o = opt("StSq", "Schrittfolge", "zwei Abschnitte"); tw = `<span>Im Takt tippen, sie läuft eine Schlangenlinie mit Dreiern und Twizzles – braucht zwei Abschnitte.</span>`; }
     else if (pCat === "choreo") { o = ["ChSp", "ChIB", "ChPB", "ChTw"].map((id) => opt(id, CAT[id].name, "Ausdruck")).join(""); tw = `<span>Tippen, wenn die Figur kommt – zählt zur Präsentation.</span>`; }
     else {
       o = `<button class="el${!cur ? " on" : ""}" data-id=""><b>Frei gleiten</b><small>tanzt zur Melodie</small></button>` + ["EinF", "EinM", "Aus"].map((id) => opt(id, CAT[id].name, CAT[id].role === "entry" ? "vor Pirouette" : "nach Pirouette")).join("");
