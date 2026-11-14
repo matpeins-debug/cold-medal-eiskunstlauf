@@ -4605,7 +4605,7 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
 /* COLD MEDAL EISKUNSTLAUF – Ablauf, Bildschirme, Eingabe, Taktband, Ergebnis, Spielstand. */
 (function () {
   "use strict";
-  const VERSION = "0.61";
+  const VERSION = "0.62";
   // Seiten-Einstellungen aus dem Build (eigenes Hosting: Adresse, Hoster, Impressum); im claude.ai-Artefakt leer
   const SITE = Object.assign({ web: false, url: "", impressum: null }, {"web": true, "supabase": {"url": "https://pqpvgkslozsekjywpdrf.supabase.co", "key": "sb_publishable_KkKe9jchmXYp_-OEmB8WLQ_gZLXrRhF"}, "url": "https://matpeins-debug.github.io/cold-medal-eiskunstlauf/", "hoster": "GitHub Pages (GitHub Inc., USA)", "drittland": "GitHub ist nach dem EU-US Data Privacy Framework zertifiziert; die Übermittlung in die USA stützt sich auf den Angemessenheitsbeschluss der EU-Kommission dazu.", "impressum": {"name": "", "adresse": "", "mail": ""}} || {});
   const M = window.EKMusic, K = window.EKSkate, F = window.EKFig, SC = window.EKScene, PASS = window.CMPass;
@@ -5526,7 +5526,7 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
     // Laufweg: je Abschnitt die gewählte Bahnfigur (gemeinsame Rechnung mit der Choreo-Note in skate.js), 5 m je Einheit
     const si = Math.floor((bar - PROG.sec.first) / PROG.sec.len), ptype = si >= 0 && si < 8 ? PROG.path[si] : "bogen";
     const N = r.nav || (r.nav = K.navNew()); K.pathStep(N, ptype, dP * 5);
-    const x = WW / 2 + N.x * 24, d = 0.52 + N.y * 0.024, vx = Math.cos(N.th);
+    const x = WW / 2 + N.x * 24, d = DEP0 + N.y * DEPK, vx = Math.cos(N.th);
     // Blickrichtung dreht weich (über die Vorderseite) statt umzuklappen
     if (speed > 0 && Math.abs(vx) > 0.05) r.dir = vx > 0 ? 1 : -1;
     // Schwünge: in Bögen zur Kamera hin dreht sich der Körper etwas mit, im Bogen weg wieder ins Profil
@@ -5656,7 +5656,7 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
       pose = te < 1.3 ? F.POSES.final : F.mix(F.POSES.final, F.POSES.bow, smooth((te - 1.3) / 0.5) * smooth((3.3 - te) / 0.5));
     }
     if (r.down) turn = 0; // am Boden dreht sich nichts mehr
-    return { x: x + (r.slide || 0) - Math.sin(N.th) * (r.snake || 0) * 24, d: d + Math.cos(N.th) * (r.snake || 0) * 0.024, pose, lift, turn: r.face + turn, tilt, swap: r.swap && !(el && (el.kind === "spin" || el.kind === "jump")) };
+    return { x: x + (r.slide || 0) - Math.sin(N.th) * (r.snake || 0) * 24, d: d + Math.cos(N.th) * (r.snake || 0) * DEPK, dp: 0.52 + N.y * 0.024, pose, lift, turn: r.face + turn, tilt, swap: r.swap && !(el && (el.kind === "spin" || el.kind === "jump")) };
   }
 
   // ------------------------------------------------------------------ Zeichnen
@@ -5668,6 +5668,10 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
   }
   let FONT = null;
   const font = () => FONT || (FONT = getComputedStyle(document.body).getPropertyValue("--font-display").trim() || "sans-serif");
+  // Kamera (0.62, Mat: „die Tänzerin ist oft sehr nahe, weit vorne – man sieht ihre Figuren nicht“): die Eisfläche wird nur noch
+  // im mittleren und hinteren Teil belaufen (Tiefe 0,20…0,60 statt 0,22…0,82, Kufen nie im unteren Drittel bei Taktband, Takt-Meter
+  // und Wertung); dafür steht die Kamera um ZOOM0 näher, damit sie gleich groß bleibt. Das Kür-Bild rechnet weiter mit der ganzen Fläche.
+  const DEP0 = 0.40, DEPK = 0.016, ZOOM0 = 1.1;
   const LANE_X = W / 2; // Trefferpunkt: alles Wichtige sitzt hier unten in der Mitte
   function drawLane(t) {
     const y0 = 350, h = 34, px = LANE_X, pps = 175;
@@ -6292,7 +6296,7 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
     // Fernsehregie: bei Sprung und Pirouette geht die Kamera näher heran (im Fernsehbild und in der Zeitlupe mehr)
     const elz = run.honor ? null : phaseAt(t), air = st.lift > 2 || (elz && elz.kind === "jump" && Math.abs(t - run.bt[elz.tk]) < 0.75);
     const zMax = run.slow ? 1.55 : run.replay ? 1.32 : 1.14, spinZ = elz && elz.kind === "spin" && t > run.bt[elz.from] - 0.3;
-    const zT = air ? zMax : spinZ ? 1 + (zMax - 1) * 0.7 : elz && elz.kind === "steps" ? 1 + (zMax - 1) * 0.3 : 1;
+    const zT = (run.honor ? 1 : ZOOM0) * (air ? zMax : spinZ ? 1 + (zMax - 1) * 0.7 : elz && elz.kind === "steps" ? 1 + (zMax - 1) * 0.3 : 1);
     run.zoom = run.zoom || 1; run.zoom += (zT - run.zoom) * Math.min(1, dt * (zT > run.zoom ? 2.4 : 1.1));
     const Z = run.zoom, zcx = clamp(st.x - run.camX, 60, W - 60), zcy = clamp(SC.footY(st.d) - 55 * SC.scaleAt(st.d), 60, H - 60);
     ctx.save(); if (Z > 1.001) { ctx.translate(zcx, zcy); ctx.scale(Z, Z); ctx.translate(-zcx, -zcy); }
@@ -6318,7 +6322,7 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
     const fx = st.x - run.camX;
     // Kür-Bild: Position von oben (x über die Bahn, y = Tiefe), Farbe nach dem letzten Timing; Pirouetten zeichnen Rosetten
     {
-      const pn = [st.x / WW, clamp((st.d - 0.15) / 0.75, 0, 1)], elx = phaseAt(t);
+      const pn = [st.x / WW, clamp(((st.dp !== undefined ? st.dp : st.d) - 0.15) / 0.75, 0, 1)], elx = phaseAt(t);
       if (elx && elx.kind === "spin" && t > run.bt[elx.from] - 0.2) { const a = run.turn * 0.5, rr = 0.03 + 0.018 * Math.sin(run.turn * 0.11); pn[0] += Math.cos(a) * rr; pn[1] += Math.sin(a) * rr * 2.2; }
       run.pos = pn; run.paint.t += dt;
       if (t > 0 && st.lift <= 1 && run.paint.t > 0.04 && !run.finished) {
