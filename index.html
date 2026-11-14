@@ -595,6 +595,23 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
 .secCol .way span { grid-template-columns: repeat(2, 1fr); }
 .secCol .way canvas { height: auto; flex: 1 1 28px; min-height: 26px; max-height: 56px; }
 
+/* ---------- Erste Schritte (0.59) ---------- */
+#scrLesson .card.lesson { width: 540px; display: flex; flex-direction: column; gap: 10px; text-align: center; align-items: center; }
+#scrLesson h2 { font-family: var(--font-display); font-size: 30px; letter-spacing: 0.04em; color: var(--ink); margin: 0; }
+#scrLesson p { margin: 0; font-size: 16px; line-height: 1.35; max-width: 470px; }
+#scrLesson .lRes { font-family: var(--font-display); font-size: 17px; font-weight: 700; color: var(--red); }
+#scrLesson .lRes.ok { color: #2F7A4B; }
+.lDemo { display: flex; gap: 18px; justify-content: center; align-items: center; min-height: 64px; }
+.lDemo .k { display: flex; flex-direction: column; align-items: center; gap: 4px; font-family: var(--font-display); font-weight: 700; font-size: 12px; letter-spacing: 0.08em; color: var(--ink); }
+.lDemo .k i { display: grid; place-items: center; width: 44px; height: 44px; border-radius: 50%; font-style: normal; font-size: 20px; background: #141B25; color: #F3C969; border: 2px solid #F3C969; }
+.lDemo .k i.w { background: #141B25; color: #F1E7D2; border-color: #F1E7D2; }
+.lDemo .k i.tap { animation: lTap 1.1s infinite; }
+.lDemo .k i.hold { animation: lHold 2.2s infinite; }
+@keyframes lTap { 0%, 60%, 100% { transform: scale(1); } 20% { transform: scale(0.82); box-shadow: 0 0 0 8px rgba(243,201,105,0.25); } }
+@keyframes lHold { 0%, 100% { transform: scale(1); } 15%, 70% { transform: scale(0.82); box-shadow: 0 0 0 8px rgba(243,201,105,0.25); } 80% { transform: scale(1.05); } }
+.lBtns { display: flex; gap: 10px; align-items: center; margin-top: 4px; }
+.lBtns .big { min-width: 170px; }
+
 /* Cold Medal Games · Fenster „Deine Figur“ (pass/pass.css)
    Aussehen wie die Menüs des Skispringens: Papier mit Doppelrahmen, Knöpfe wie Druckmarken, Futura für Titel und Knöpfe,
    Buchschrift für Lesetext. Farben und Schriften kommen aus den Variablen des Spiels (alle Spiele der Reihe haben sie),
@@ -839,6 +856,17 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
     </div>
   </section>
 
+  <section class="scr" id="scrLesson" hidden>
+    <!-- Erste Schritte (0.59): drei kurze geführte Übungen vor der ersten Kür, jede Eingabe einzeln -->
+    <div class="card lesson">
+      <span class="kicker" id="lKick">ERSTE SCHRITTE · 1 VON 3</span>
+      <h2 id="lTitle"></h2>
+      <div class="lDemo" id="lDemo"></div>
+      <p id="lText"></p>
+      <p class="lRes" id="lRes" hidden></p>
+      <div class="lBtns"><button class="mid" id="lSkip">Überspringen</button><button class="mid" id="lAgain" hidden>Nochmal</button><button class="big red" id="lGo"><span>Los</span></button></div>
+    </div>
+  </section>
   <section class="scr" id="scrSet" hidden>
     <div class="card">
       <div class="kicker">EINSTELLUNGEN</div>
@@ -849,6 +877,7 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
       <div class="srow">Figur <span class="opts" id="sFig"></span></div>
       <div class="srow">Verzögerung <span class="opts"><button class="pill" id="sLm">−</button><b class="num" id="sLat"></b><button class="pill" id="sLp">+</button></span></div>
       <p class="note">Mit Bluetooth-Kopfhörern kommt der Ton später an. Zeigt das Ergebnis immer „eher zu spät“, hier die Verzögerung erhöhen.</p>
+      <div class="srow">Erste Schritte <span class="opts"><button class="pill" id="sTut">Nochmal üben</button></span></div>
       <button class="mid red done" id="sDone">Fertig</button>
     </div>
   </section>
@@ -4568,7 +4597,7 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
 /* COLD MEDAL EISKUNSTLAUF – Ablauf, Bildschirme, Eingabe, Taktband, Ergebnis, Spielstand. */
 (function () {
   "use strict";
-  const VERSION = "0.58";
+  const VERSION = "0.59";
   // Seiten-Einstellungen aus dem Build (eigenes Hosting: Adresse, Hoster, Impressum); im claude.ai-Artefakt leer
   const SITE = Object.assign({ web: false, url: "", impressum: null }, {"web": true, "supabase": {"url": "https://pqpvgkslozsekjywpdrf.supabase.co", "key": "sb_publishable_KkKe9jchmXYp_-OEmB8WLQ_gZLXrRhF"}, "url": "https://matpeins-debug.github.io/cold-medal-eiskunstlauf/", "hoster": "GitHub Pages (GitHub Inc., USA)", "drittland": "GitHub ist nach dem EU-US Data Privacy Framework zertifiziert; die Übermittlung in die USA stützt sich auf den Angemessenheitsbeschluss der EU-Kommission dazu.", "impressum": {"name": "", "adresse": "", "mail": ""}} || {});
   const M = window.EKMusic, K = window.EKSkate, F = window.EKFig, SC = window.EKScene, PASS = window.CMPass;
@@ -4634,7 +4663,7 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
 
   // ------------------------------------------------------------------ Spielstand (nur auf diesem Gerät; Aussehen zieht später in pass/ um)
   const KEY = "coldmedal-eiskunstlauf";
-  const DEF = { v: 1, prog: null, name: "", nat: "AUT", look: F.DEF_LOOK, help: "norm", lv3: 1, progAuto: true, saved: [], passSeen: 0, season: null, places: ["wien"], trophies: [], recs: [], grps: [], gseen: {}, onOk: 0, sound: 1, fig3d: 1, preset: "salon", lat: 0, music: "donau", path: null, fx: [null, null, null, null, null, null, null, null], best: 0, bestTrain: 0, runs: 0, flowers: 0, toys: 0, album: [] };
+  const DEF = { v: 1, prog: null, name: "", nat: "AUT", look: F.DEF_LOOK, help: "norm", lv3: 1, progAuto: true, saved: [], passSeen: 0, season: null, places: ["wien"], trophies: [], recs: [], grps: [], gseen: {}, onOk: 0, sound: 1, fig3d: 1, preset: "salon", lat: 0, music: "donau", path: null, fx: [null, null, null, null, null, null, null, null], best: 0, bestTrain: 0, runs: 0, flowers: 0, toys: 0, album: [], tut: 0 };
   function sanitize(o) {
     const S = Object.assign({}, DEF, { season: newSeason(1), places: ["wien"], trophies: [], look: F.cleanLook(null), prog: K.DEFAULT_SLOTS.slice(), path: K.DEF_PATH.slice(), album: [], grps: [], gseen: {}, recs: [], saved: [] });
     if (o && typeof o === "object") {
@@ -5263,6 +5292,8 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
     try { cv.setPointerCapture(e.pointerId); } catch (er) { /* egal */ }
     const [x, y] = stagePoint(e.clientX, e.clientY); track.pts = [[x, y, performance.now()]];
     addInput("down");
+    // Pirouette: Tippen genügt wie die Leertaste (Kreisen geht weiterhin); 0.59 – zwei Bewegungen für alles: tippen und halten
+    if (inWindow("spin")) { addInput("circle"); run.spinV = 1; track.acc = 0; }
   });
   const up = (e) => { if (!run || !pointerDown) return; pointerDown = false; e.preventDefault(); addInput("up"); };
   cv.addEventListener("pointerup", up); cv.addEventListener("pointercancel", up);
@@ -5607,7 +5638,7 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
     // Hinweis zum nächsten Element
     const nx = PROG.elements.find((e) => { const [a, b] = elWindow(e, bt); return b > t && a - 2.6 < t; });
     if (nx && !run.down && (run.lv.hints === "immer" || (run.lv.hints === "start" && t < 8)) && !(run.rate && performance.now() - run.rate.t < 1100)) {
-      const hint = { jump: canHover() ? "Leertaste bei ● drücken, halten, bei ○ loslassen" : "bei ● drücken, halten, bei ○ loslassen", spin: canHover() ? "kreisen oder Leertaste auf jedes ⟳" : "mit dem Finger kreisen, jede Runde auf ⟳",
+      const hint = { jump: canHover() ? "Leertaste bei ● drücken, halten, bei ○ loslassen" : "bei ● drücken, halten, bei ○ loslassen", spin: canHover() ? "Leertaste auf jedes ⟳" : "tippen auf jedes ⟳",
         steps: canHover() ? "Leertaste, wenn der Schwung im Ring ist" : "tippen, wenn der Schwung im Ring ist", pose: "tippen auf den Schlussakkord", expr: "tippen, wenn die Figur kommt",
         glide: nx.role === "entry" ? (canHover() ? "Leertaste halten, beim Eindrehen loslassen" : "halten, beim Eindrehen loslassen") : (canHover() ? "Leertaste halten, am Ende des Bogens loslassen" : "halten, am Ende des Bogens loslassen") }[nx.kind];
       ctx.font = "600 14px " + font();
@@ -5793,6 +5824,7 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
     const t = songTime(); run.lastT = t; run.lastNow = now;
     render(t, dt * sl);
     if (run.slow && t >= run.slow.b) { endSlow(); return; }
+    if (run.lesson && !run.finished && t > run.lesson.endT) { lessonDone(); return; }
     if (!run.finished && t > run.bt[run.bt.length - 1] + 3.8) finish();
   }
   // ------------------------------------------------------------------ Ansehen wie im Fernsehen: volles Bild mit Musik, keine Knöpfe.
@@ -6444,7 +6476,7 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
   }
 
   // ------------------------------------------------------------------ Bildschirme
-  const SCREENS = ["scrMenu", "scrGrp", "scrLook", "scrSet", "scrIntro", "scrRes", "scrInfo", "scrProg", "scrPaint", "scrAlbum"];
+  const SCREENS = ["scrLesson", "scrMenu", "scrGrp", "scrLook", "scrSet", "scrIntro", "scrRes", "scrInfo", "scrProg", "scrPaint", "scrAlbum"];
   function show(id) { for (const s of SCREENS) $(s).hidden = s !== id; if (id === "scrMenu") { grpRun = null; fillMenu(); } }
   // Fahne wie im Skispringen (dieselbe Zeichnung), dazu Niederlande und Kanada
   function flag(code, w, h) {
@@ -6504,13 +6536,73 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
     ip.querySelectorAll("[data-pl]").forEach((b) => (b.onclick = () => { trainPlace = b.dataset.pl; intro(mode); }));
     const d = canHover();
     $("hJump").textContent = (d ? "Leertaste bei ● drücken, halten, bei ○ loslassen." : "Bei ● drücken, halten, bei ○ loslassen.") + (PROG.elements.some((e) => e.part) ? " Kombination: gleich das nächste ●." : "");
-    $("hSpin").textContent = d ? "Kreisen oder Leertaste auf jedes ⟳ – eine Runde je Takt." : "Mit dem Finger kreisen, jede Runde endet auf einem ⟳.";
+    $("hSpin").textContent = (d ? "Leertaste" : "Tippen") + " auf jedes ⟳ – eine Umdrehung mehr je Treffer.";
     $("hStep").textContent = (d ? "Leertaste" : "Tippen") + " auf jeden Schlag mit dem goldenen Schwung – Dreier, Gegendreier und Twizzle läuft sie von selbst.";
     $("hPose").textContent = "Auf den Schlussakkord tippen." + (PROG.elements.some((e) => e.kind === "expr") ? " ✦ Choreo-Figur: tippen, wenn sie kommt." : "");
     show("scrIntro");
   }
-  $("bComp").onclick = () => { unlock(); if (!S.name) { openLook(() => intro("comp"), { ask: true, title: "Wie heißt du?" }); return; } intro("comp"); };
-  $("bTrain").onclick = () => { unlock(); intro("train"); };
+  // ---------- Erste Schritte: drei kurze Übungen, bevor man zum ersten Mal läuft (0.59, Mat: „9,5 von 10“, Punkt 1) ----------
+  // Es gibt nur zwei Bewegungen: TIPPEN (Abstoß, Pirouette, Schritte, Choreo, Pose) und HALTEN (Sprung: drücken, halten,
+  // beim ○ loslassen). Jede Übung zeigt erst die Bewegung, dann läuft ein kurzes Stück (2–3 Abschnitte) mit dieser einen Sache.
+  const LESSONS = [
+    { title: "Abstoßen", demo: `<span class="k"><i class="w tap">○</i>TIPPEN</span>`, music: "brahms", secs: 2,
+      prog: [null, null, null, null, null, null, null, null],
+      text: "Wenn ein weißer Ring im goldenen Ring ist: tippen. So stößt sie sich ab und holt Schwung. Lass den Schlag kommen – nicht zu früh." },
+    { title: "Springen", demo: `<span class="k"><i class="hold">●</i>DRÜCKEN</span><span class="k"><i>⋯</i>HALTEN</span><span class="k"><i class="w">○</i>LOSLASSEN</span>`, music: "brahms", secs: 2,
+      prog: ["1T", "1S", null, null, null, null, null, null],
+      text: "Beim ● drücken und halten – sie springt ab. Beim ○ loslassen – sie landet. Dazwischen weiter abstoßen wie eben." },
+    { title: "Drehen und Schritte", demo: `<span class="k"><i class="tap">⟳</i>TIPPEN</span><span class="k"><i class="tap">∿</i>TIPPEN</span>`, music: "brahms", secs: 3,
+      prog: ["USp", "StSq", "~", null, null, null, null, null],
+      text: "Bei jedem ⟳ tippen: eine Umdrehung mehr in der Pirouette. Bei jedem goldenen Schwung tippen: Dreier und Twizzle läuft sie von selbst." },
+  ];
+  let lessonI = 0, lessonThen = null;
+  function openLesson(i, res) {
+    lessonI = i; const L = LESSONS[i];
+    $("lKick").textContent = `ERSTE SCHRITTE · ${i + 1} VON ${LESSONS.length}`;
+    $("lTitle").textContent = L.title; $("lDemo").innerHTML = L.demo; $("lText").textContent = L.text;
+    const R = $("lRes"); R.hidden = !res; R.className = "lRes" + (res && res.ok ? " ok" : "");
+    if (res) R.textContent = (res.ok ? "✓ " : "") + `${res.hit} von ${res.n} getroffen` + (res.bias > 60 ? ` · im Schnitt ${res.bias} ms zu spät` : res.bias < -60 ? ` · im Schnitt ${-res.bias} ms zu früh` : "") + (res.ok ? "" : " – noch einmal?");
+    $("lAgain").hidden = !res;
+    const last = i === LESSONS.length - 1;
+    if (res && res.ok) { $("lGo").querySelector("span").textContent = last ? "Zur ersten Kür" : "Weiter"; }
+    else $("lGo").querySelector("span").textContent = res ? "Weiter" : "Los";
+    $("lGo").onclick = () => { unlock(); if (!res) return startLesson(i); if (!last) return openLesson(i + 1); finishTut(); };
+    $("lAgain").onclick = () => { unlock(); startLesson(i); };
+    $("lSkip").onclick = () => finishTut();
+    show("scrLesson");
+  }
+  function finishTut() { S.tut = LESSONS.length; save(); const f = lessonThen; lessonThen = null; if (f) f(); else show("scrMenu"); }
+  function startLesson(i) {
+    const L = LESSONS[i], keep = { prog: S.prog, music: S.music, help: S.help, path: S.path, fx: S.fx };
+    S.prog = L.prog.slice(); S.music = L.music; S.help = "anf"; S.path = null; S.fx = [null, null, null, null, null, null, null, null];
+    try { startRun("train", {}); } finally { Object.assign(S, keep); }
+    // erste Übung: auf jeden Takt ein Abstoß statt jeden zweiten – mehr zum Üben
+    if (i === 0) { PROG.strokeEvery = 1; run.marks = buildMarks(run.bt); }
+    run.lesson = { i, endT: run.bt[(PROG.sec.first + PROG.sec.len * L.secs) * 3] + 0.6 };
+    if (run.entry) run.entry.skip = true; // ohne Auftritt gleich los
+  }
+  // Übung auswerten: Zeichen bis zum Ende der Übung, getroffen, wenn die passende Eingabe nah genug am Schlag lag
+  function lessonDone() {
+    const r = run, L = r.lesson; r.finished = true; ambience(false); if (player && player.playing) player.stop();
+    const near = (t, types, w) => r.inputs.filter((x) => types.includes(x.type) && Math.abs(x.t - t) <= w).sort((a, b) => Math.abs(a.t - t) - Math.abs(b.t - t))[0];
+    let n = 0, hit = 0; const devs = [];
+    for (const m of r.marks) {
+      if (m.t > L.endT - 0.3) continue;
+      n++;
+      const w = 0.32 * r.k, h = m.kind === "hold" ? near(m.t, ["down"], w) : m.kind === "spin" ? near(m.t, ["circle"], w) : near(m.t, ["down", "swipe"], w);
+      if (!h) continue;
+      if (m.kind === "hold" && !near(m.t2, ["up"], w * 1.4)) continue;
+      hit++; devs.push((h.t - m.t) * 1000);
+    }
+    const bias = devs.length ? Math.round(devs.reduce((a, b) => a + b, 0) / devs.length) : 0, ok = n > 0 && hit / n >= 0.6;
+    if (ok) S.tut = Math.max(S.tut || 0, L.i + 1);
+    save(); run = null; $("hud").hidden = true; openLesson(L.i, { n, hit, bias, ok });
+  }
+  // beim ersten Mal: erst die Übungen (überspringbar), danach das, was man wollte
+  const withTut = (f) => () => { unlock(); if (!testMode && (S.tut || 0) < LESSONS.length) { lessonThen = f; openLesson(Math.min(S.tut || 0, LESSONS.length - 1)); return; } f(); };
+  $("bComp").onclick = withTut(() => { if (!S.name) { openLook(() => intro("comp"), { ask: true, title: "Wie heißt du?" }); return; } intro("comp"); });
+  $("bTrain").onclick = withTut(() => intro("train"));
+  $("sTut").onclick = () => { S.tut = 0; save(); lessonThen = null; openLesson(0); };
   $("iGo").onclick = () => { unlock(); if (needOwn()) { $("bProg").onclick(); return; } startRun(pendingMode); };
   $("abort").onclick = abortRun;
   $("rWatch").onclick = () => { if (run) watch(run.replay || run.rec); };
@@ -7116,6 +7208,8 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
     fig(t) { return figureState(t, 0); },
     get fig3d() { return !!sk3(); },
     use3d(on) { force3d = !!on; },
+    lesson(i) { startLesson(i || 0); run.manual = true; return !!run.lesson; },
+    lessonEnd() { if (run && run.lesson) lessonDone(); return $("lRes").textContent; },
     playTo(t) { const ins = K.perfectInputs(PROG, run.bt, 0); run._pi = run._pi || 0; while (run._pi < ins.length && ins[run._pi].t <= t) { const i = ins[run._pi++]; this.stepTo(i.t); addInput(i.type, i.dir); } this.stepTo(t); },
     watch(i) { watch(S.recs[i || 0]); if (run) run.manual = true; return !!(run && run.replay); },
     seek(t) { tvSeekTo(t); },
