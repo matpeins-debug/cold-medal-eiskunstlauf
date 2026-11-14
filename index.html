@@ -1482,10 +1482,16 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
         // Ebene, die der Leistung folgt: Streicher (bzw. ein heller Oberton bei Klavier und Spieluhr) schwellen an, wenn man im Takt ist
         this.rich = c.createGain(); this.rich.gain.value = 0.7; this.rich.connect(this.voices);
         this.ev = events(this.score); this.idx = 0;
+        // endBeat: das Stück endet früher, mit dem Schlussakkord genau dort (Kurzprogramm) – kein Abreißen mitten in der Phrase
+        if (opt.endBeat != null && opt.endBeat < this.score.bars.length * this.score.meter) {
+          const eb = opt.endBeat, fin = this.ev.filter((e) => e.fin).map((e) => Object.assign({}, e, { beat: eb }));
+          this.ev = this.ev.filter((e) => !e.fin && e.beat < eb - 0.01).concat(fin).sort((a, b) => a.beat - b.beat);
+          this.endBeat = eb;
+        } else this.endBeat = null;
         this.t0 = c.currentTime + 0.15 - (opt.at || 0); // at: ab dieser Stelle im Stück (Sekunden), z. B. beim Ansehen einer Aufzeichnung
         const nb = this.score.bars.length * this.score.meter;
         this.beatTimes = []; for (let b = 0; b <= nb; b++) this.beatTimes.push(this.beatAt(b));
-        this.endTime = this.beatAt(nb) + (this.score.ev ? 1 : 6) * 60 / this.bpm;
+        this.endTime = this.beatAt(this.endBeat != null ? this.endBeat : nb) + (this.score.ev ? 1 : 6) * 60 / this.bpm;
         this.playing = true;
         this.pump();
         this.timer = setInterval(() => this.pump(), 50);
@@ -4605,7 +4611,7 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
 /* COLD MEDAL EISKUNSTLAUF – Ablauf, Bildschirme, Eingabe, Taktband, Ergebnis, Spielstand. */
 (function () {
   "use strict";
-  const VERSION = "0.63";
+  const VERSION = "0.64";
   // Seiten-Einstellungen aus dem Build (eigenes Hosting: Adresse, Hoster, Impressum); im claude.ai-Artefakt leer
   const SITE = Object.assign({ web: false, url: "", impressum: null }, {"web": true, "supabase": {"url": "https://pqpvgkslozsekjywpdrf.supabase.co", "key": "sb_publishable_KkKe9jchmXYp_-OEmB8WLQ_gZLXrRhF"}, "url": "https://matpeins-debug.github.io/cold-medal-eiskunstlauf/", "hoster": "GitHub Pages (GitHub Inc., USA)", "drittland": "GitHub ist nach dem EU-US Data Privacy Framework zertifiziert; die Übermittlung in die USA stützt sich auf den Angemessenheitsbeschluss der EU-Kommission dazu.", "impressum": {"name": "", "adresse": "", "mail": ""}} || {});
   const M = window.EKMusic, K = window.EKSkate, F = window.EKFig, SC = window.EKScene, PASS = window.CMPass;
@@ -4983,7 +4989,7 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
     if (run.paused != null) return run.paused;
     if (run.fake) return run.fakeT;
     if (run.finished) return run.finishT + (performance.now() - run.finishAt) / 1000; // nach dem Ende läuft die Szene weiter (Blumen landen)
-    return player && player.playing ? player.heardNow() - player.t0 : run.lastT + (run.lastT > run.bt[run.bt.length - 1] ? (performance.now() - (run.lastNow || performance.now())) / 1000 : 0);
+    return player && player.playing ? player.heardNow() - player.t0 : run.lastT + (run.lastT > (PROG.short ? run.bt[PROG.sec.end] : run.bt[run.bt.length - 1]) ? (performance.now() - (run.lastNow || performance.now())) / 1000 : 0);
   }
   // Ereignisse der Elemente, für Taktband und Hinweise
   function buildMarks(bt) {
@@ -5011,13 +5017,13 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
       grp: !rec && grpRun && mode === "comp" ? Object.assign({}, grpRun) : null, dir: 1, face: 0, trail: [], trailT: 0, turn: 0, spinV: 0, jump: null, fallUntil: -1, landUntil: -1, lastSwipe: null, posed: false, finished: false, k: kHelp(), paint: { pts: [], marks: [], t: 0 }, sparks: [], burstQ: 0, lastQ: null, pos: null, intensity: 0.6, cheer: 0, burst: 0, streak: 0, bestStreak: 0, accI: 0, throws: null, intT: 0, seed: (Date.now() & 0xffff) || 7 };
     run.raw = []; run.look = rec ? rec.look : S.look;
     run.fmt = rec ? rec.fmt || "free" : mode === "comp" && !grpRun ? curFmt() : "free";
-    if (PROG.short) run.endT = bt[PROG.sec.end] + 3.2; // Kurzprogramm: nach der Schlusspose ist Schluss, auch wenn die Musik weiterginge
+    if (PROG.short) run.endT = bt[PROG.sec.end] + 3.8; // Kurzprogramm: Musik endet mit dem Schlussakkord auf der Pose, dann Verbeugung wie bei der Kür
     if (run.grp) run.seed = run.grp.s;
     if (rec) {
       // Aufzeichnung ansehen: gleicher Zufall, gleiche Eingaben; ohne Auftritt, ohne Taktband – wie im Fernsehen
       Object.assign(run, { replay: rec, ri: 0, seed: rec.seed, mode: rec.mode });
       show(null); $("hud").hidden = true; if (!opt.slow) tvShow(true);
-      if (!fake && !opt.silent) { ambience(true); player.start(SCORE.id, { preset: S.preset, swing: true, bpm: Math.round(SCORE.bpm * lv.tempo), at: opt.at || 0 }); }
+      if (!fake && !opt.silent) { ambience(true); player.start(SCORE.id, { preset: S.preset, swing: true, bpm: Math.round(SCORE.bpm * lv.tempo), at: opt.at || 0, endBeat: PROG.short ? PROG.sec.end : null }); }
       return;
     }
     show(null); $("hud").hidden = false; buildChips(); $("chips").style.visibility = "";
@@ -5090,7 +5096,7 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
   }
   // Spannung vor der großen Kür: die letzten zwei vor dir laufen im Zeitraffer, ihre Noten kommen, dann der Zwischenstand
   // und was du für Gold brauchst. Tippen überspringt.
-  const WARM_T = 5.4;
+  const WARM_T = 8.6; // je Vorläuferin: ruhig hereingleiten, ein Sprung, eine Pirouette, Schlusspose, Applaus, Note (0.64: vorher 5,4 s – wirkte gehetzt)
   function warmFrame(dt) {
     const E = run.entry, Wm = E.warm; Wm.t += dt;
     const cur = Wm.i < Wm.list.length ? Wm.list[Wm.i] : null;
@@ -5099,20 +5105,21 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
     const now = performance.now() / 1000, d = 0.72, fy = SC.footY(d), sc = SC.scaleAt(d), u = Wm.t;
     let x = WW / 2 + 150, pose = F.POSES.final, lift = 0, turn = Math.PI / 2 - 0.5;
     if (cur) {
-      const g = clamp(u / 3.3, 0, 1); x = WW / 2 - 520 + 670 * (1 - Math.pow(1 - g, 2));
-      if (u < 1.0) { pose = F.strokePose((u / 0.7) % 1); turn = 0; }
-      else if (u < 1.15) { pose = F.POSES.prep; turn = 0; }
-      // jede Läuferin mit eigenem Höhepunkt: Sprung, Pirouette (Stand, Sitz, Waage) und Schlusspose wechseln (0.63)
+      // 0–2,8 s hereingleiten (zwei ruhige Abstöße, dann lang gleiten) · 2,8 Ausholen · 3,2–3,8 Sprung · Landung mit Auslauf ·
+      // 4,6–6,4 Pirouette (zieht sich zusammen, wird schneller) · 6,4 Schlusspose halten · 6,9 Applaus · 7,1 Note
+      const g = clamp(u / 4.4, 0, 1); x = WW / 2 - 470 + 620 * (1 - Math.pow(1 - g, 2.4));
       const vr = Wm.i % 3, SP = [[F.POSES.spinOpen, F.POSES.spin], [F.POSES.sitOpen, F.POSES.sitspin], [F.POSES.camel, F.POSES.camelTight]][vr];
-      if (u < 1.75) { const v = (u - 1.15) / 0.6; pose = vr === 1 ? F.POSES.air3 || F.POSES.air : F.POSES.air; lift = 44 * Math.sin(Math.PI * v); turn = v * Math.PI * (vr === 1 ? 6 : 4); }
-      else if (u < 2.1) { pose = F.POSES.landCheck || F.POSES.land; turn = 0; }
-      else if (u < 3.2) { const v = (u - 2.1) / 1.1; pose = F.mix(SP[0] || F.POSES.spin, SP[1] || F.POSES.spin, smooth(v)); turn = v * v * Math.PI * 10; }
-      else { pose = [F.POSES.final, F.POSES.portUp, F.POSES.spiral][vr] || F.POSES.final; turn = Math.PI / 2 - 0.5; }
-      if (u > 3.55 && !Wm.clap) { Wm.clap = true; sfx("applause", 0.55); run.burst = 0.6; }
+      if (u < 2.8) { pose = u < 1.6 ? F.strokePose((u / 0.8) % 1) : F.POSES.glide; turn = 0; }
+      else if (u < 3.2) { pose = F.POSES.prep; turn = 0; }
+      else if (u < 3.8) { const v = (u - 3.2) / 0.6; pose = F.POSES.air; lift = 36 * Math.sin(Math.PI * v); turn = smooth(v) * Math.PI * 4; }
+      else if (u < 4.6) { pose = u < 4.1 ? F.POSES.landCheck || F.POSES.land : F.POSES.glideArc || F.POSES.glide; turn = 0; }
+      else if (u < 6.4) { const v = (u - 4.6) / 1.8; pose = F.mix(SP[0] || F.POSES.spin, SP[1] || F.POSES.spin, smooth(v)); turn = (v * v * 0.7 + v * 0.3) * Math.PI * 12; }
+      else { pose = [F.POSES.final, F.POSES.portUp, F.POSES.spiral][vr] || F.POSES.final; turn = (Math.PI / 2 - 0.5) * smooth(clamp((u - 6.4) / 0.6, 0, 1)); } // aus der Pirouette weich zum Publikum
+      if (u > 6.9 && !Wm.clap) { Wm.clap = true; sfx("applause", 0.55); run.burst = 0.6; }
       if (u < 0.1) Wm.clap = false;
-      Wm.sp = F.ease(Wm.sp, pose, dt * (u > 1.1 && u < 3.2 ? 3 : 1));
+      Wm.sp = F.ease(Wm.sp, pose, dt * (u > 3.1 && u < 6.4 ? 2.4 : 0.8)); // weich überblenden, im Sprung und in der Pirouette schneller
     }
-    run.cheer += ((cur && u > 3.5 ? 0.8 : 0.15) - run.cheer) * Math.min(1, dt * 2);
+    run.cheer += ((cur && u > 6.8 ? 0.8 : 0.15) - run.cheer) * Math.min(1, dt * 2);
     const target = clamp(x - W / 2, 0, WW - W); run.camX += (target - run.camX) * Math.min(1, dt * 2.2);
     const fx = x - run.camX;
     scene.draw(ctx, run.camX); scene.twinkle(ctx, run.camX, now); scene.crowd(ctx, run.camX, now, run.cheer); scene.snow(ctx, run.camX, now, [0, 1], 0.6);
@@ -5129,8 +5136,8 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
       const a = clamp(u / 0.4, 0, 1) * clamp((WARM_T - u) / 0.4, 0, 1);
       tag(Wm.i === Wm.list.length - 1 ? "VOR DIR · FÜHRT" : "VOR DIR", 52, 12, "#F3C969", a);
       tag(`${cur.name} · ${cur.nat}`, 80, 22, "#F1E7D2", a);
-      if (u > 3.6) {
-        const c = smooth(clamp((u - 3.6) / 0.7, 0, 1)), tot = cur.total * c;
+      if (u > 7.1) {
+        const c = smooth(clamp((u - 7.1) / 0.6, 0, 1)), tot = cur.total * c;
         tag(tot.toFixed(2).replace(".", ","), 128, 40, "#FFE7A0", a);
         tag(`TES ${cur.tes.toFixed(2).replace(".", ",")} · PCS ${(cur.total - cur.tes + (cur.ded || 0)).toFixed(2).replace(".", ",")}${cur.ded ? " · Sturz −1" : ""}`, 150, 12, "#F1E7D2", a * c);
       }
@@ -5145,7 +5152,7 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
         ctx.textAlign = "right"; ctx.fillText(b.total.toFixed(2).replace(".", ","), W / 2 + 150, y); ctx.textAlign = "center"; ctx.globalAlpha = 1;
       });
       const y0 = 86 + list.length * 22 + 14, need = (list[0].total + 0.01).toFixed(2).replace(".", ",");
-      if (u > 1.4) { const b2 = clamp((u - 1.4) / 0.5, 0, 1); tag("DU LÄUFST ZULETZT", y0, 12, "#F1E7D2", b2); tag(`Für Gold brauchst du ${need}`, y0 + 30, 22, "#FFE7A0", b2); if (!Wm.drum) { Wm.drum = true; sfx("gong"); } }
+      if (u > 1.4) { const b2 = clamp((u - 1.4) / 0.5, 0, 1); tag("DU LÄUFST ZULETZT", y0, 12, "#F1E7D2", b2); tag(`Für Gold brauchst du ${need}`, y0 + 30, 22, "#FFE7A0", b2); if (!Wm.drum) { Wm.drum = true; sfx("cheer", 0.3); /* kein Gong hier: der Gong gehört allein vor die eigene Ansage (0.64, Mat: „die gleiche Melodie zweimal“) */ } }
     }
     ctx.globalAlpha = 0.6; ctx.font = "600 11px " + font(); ctx.fillStyle = "#F1E7D2"; ctx.fillText("tippen zum Überspringen", W / 2, H - 14); ctx.globalAlpha = 1;
     if (amb) amb.g.gain.setTargetAtTime(0.03 + run.cheer * 0.05, ctxA.currentTime, 0.4);
@@ -5211,7 +5218,7 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
     const E = run.entry; run.entry = null; $("chips").style.visibility = "";
     try { if (window.speechSynthesis) window.speechSynthesis.cancel(); } catch (e) { /* egal */ }
     run.face = E.face; run.sp = E.sp; run.trail = []; run.dim = E.dim || 0;
-    if (!run.fake) player.start(SCORE.id, { preset: S.preset, swing: true, bpm: Math.round(SCORE.bpm * run.lv.tempo) });
+    if (!run.fake) player.start(SCORE.id, { preset: S.preset, swing: true, bpm: Math.round(SCORE.bpm * run.lv.tempo), endBeat: PROG.short ? PROG.sec.end : null });
   }
   // Raumklang des Platzes: leises Gemurmel des Publikums, wird bei Jubel lauter
   let amb = null;
@@ -5527,7 +5534,7 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
   function figureState(t, dt) {
     const r = run, bt = r.bt, el = phaseAt(t);
     if (r.honor) return honorState(t, dt);
-    const ended = t > bt[bt.length - 1];
+    const tEnd = PROG.short ? bt[PROG.sec.end] : bt[bt.length - 1], ended = t > tEnd; // Kurzprogramm: Schluss mit der Pose
     const speed = ended ? 0 : el && el.kind === "glide" ? 1.25 : el && el.kind === "spin" && t > bt[el.from] - 0.2 ? 0 : el && el.kind === "steps" ? 0.9 : el && el.kind === "pose" && t > bt[el.at] ? 0 : 1;
     // gestürzt: kurz ausrutschen, dann liegt sie still; beim Aufstehen erst langsam wieder anfahren
     const fallMul = r.down ? Math.max(0, 1 - (t - r.down.t0) / 0.45) * 0.6 : t < r.fallUntil ? 0.25 : 1;
@@ -5562,7 +5569,7 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
     // Choreografie zur Melodie, wenn gerade kein Element läuft. Jede Phrase hat 4 Takte:
     // 1 „da da da“ = Laufschritt, 2 langer Ton = Spirale / Arme heben / Ina Bauer, 3 „pam pam“ = Armakzente, 4 „pam pam“ = Twizzle-Drehung
     const free = !el || (el.kind === "pose" && t < bt[el.at] - 0.8);
-    if (free && t > bt[12] - 0.2 && t < bt[bt.length - 1]) {
+    if (free && t > bt[12] - 0.2 && t < tEnd) {
       const rel = bar - 4, pos = ((rel % 4) + 4) % 4, phrase = Math.floor(rel / 4), k = bi % 3;
       const chosen = PROG.choreo && PROG.choreo[phrase] ? K.CATALOG[PROG.choreo[phrase]] : null;
       const twz = (u0) => { const u = clamp((inBar - u0) / 0.6, 0, 1); if (u > 0 && u < 1) { pose = F.mix(pose, F.POSES.twizzle, Math.sin(Math.PI * u)); turn += smooth(u) * Math.PI * 2; } };
@@ -5677,7 +5684,7 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
     if (el && el.kind === "pose" && (r.posed || t > bt[el.at] + 0.4)) pose = F.mix(pose, F.POSES.final, smooth((t - bt[el.at] + 0.3) / 0.4));
     // nach dem Schlussakkord: stehen bleiben, Pose halten, dann verbeugen (nach einem Sturz erst aufstehen)
     if (ended && t >= r.fallUntil) {
-      const te = t - bt[bt.length - 1];
+      const te = t - tEnd;
       pose = te < 1.3 ? F.POSES.final : F.mix(F.POSES.final, F.POSES.bow, smooth((te - 1.3) / 0.5) * smooth((3.3 - te) / 0.5));
     }
     if (r.down) turn = 0; // am Boden dreht sich nichts mehr
@@ -5993,7 +6000,7 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
     const step = 1 / 30; let t = -0.6;
     while (t < target) { t = Math.min(target, t + step); feedReplay(t); figureState(t, step); }
     run.fakeT = target; run.lastT = target;
-    if (player && !run.fake) { ambience(true); player.start(SCORE.id, { preset: S.preset, swing: true, bpm: Math.round(SCORE.bpm * run.lv.tempo), at: target }); }
+    if (player && !run.fake) { ambience(true); player.start(SCORE.id, { preset: S.preset, swing: true, bpm: Math.round(SCORE.bpm * run.lv.tempo), at: target, endBeat: PROG.short ? PROG.sec.end : null }); }
   }
   function drawTV(t) {
     // Name und Land klein am Rand, wie eine Einblendung im Fernsehen; Musik oben rechts
