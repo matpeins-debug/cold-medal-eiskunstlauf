@@ -1341,7 +1341,7 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
       start(id, opt) {
         this.stop();
         opt = opt || {};
-        this.score = typeof id === "string" ? SCORES[id] : id; this.preset = opt.preset || this.preset; this.swing = opt.swing !== undefined ? opt.swing : this.swing;
+        this.score = typeof id === "string" ? SCORES[id] : id; this.preset = PRESETS[opt.preset] ? opt.preset : PRESETS[this.preset] ? this.preset : "salon"; // unbekannte Klangfarbe: Klavier + Streicher statt Stille this.swing = opt.swing !== undefined ? opt.swing : this.swing;
         this.bpm = opt.bpm || this.score.bpm; this.all = !!opt.all;
         this.voices = c.createGain(); this.voices.gain.value = PRESETS[this.preset].gain || 1;
         if (PRESETS[this.preset].retro) {
@@ -4415,7 +4415,7 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
 /* COLD MEDAL EISKUNSTLAUF – Ablauf, Bildschirme, Eingabe, Taktband, Ergebnis, Spielstand. */
 (function () {
   "use strict";
-  const VERSION = "0.53";
+  const VERSION = "0.54";
   // Seiten-Einstellungen aus dem Build (eigenes Hosting: Adresse, Hoster, Impressum); im claude.ai-Artefakt leer
   const SITE = Object.assign({ web: false, url: "", impressum: null }, {"web": true, "supabase": {"url": "https://pqpvgkslozsekjywpdrf.supabase.co", "key": "sb_publishable_KkKe9jchmXYp_-OEmB8WLQ_gZLXrRhF"}, "url": "https://matpeins-debug.github.io/cold-medal-eiskunstlauf/", "hoster": "GitHub Pages (GitHub Inc., USA)", "drittland": "GitHub ist nach dem EU-US Data Privacy Framework zertifiziert; die Übermittlung in die USA stützt sich auf den Angemessenheitsbeschluss der EU-Kommission dazu.", "impressum": {"name": "", "adresse": "", "mail": ""}} || {});
   const M = window.EKMusic, K = window.EKSkate, F = window.EKFig, SC = window.EKScene, PASS = window.CMPass;
@@ -4591,7 +4591,15 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
     let bin = ""; for (let i = 0; i < bytes.length; i += 0x8000) bin += String.fromCharCode.apply(null, bytes.subarray(i, i + 0x8000));
     return "data:audio/wav;base64," + btoa(bin);
   }
-  let speechReady = false;
+  let speechReady = false, reviveT = 0;
+  // Ton nach einer Unterbrechung (Ansage, Anruf, Siri, anderer Ton) wieder anwerfen, ohne dass jemand tippen muss
+  function revive() {
+    if (!ctxA || !S.sound || testMode || document.hidden) return;
+    try {
+      if (ctxA.state !== "running") { const p = ctxA.resume(); if (p && p.catch) p.catch(() => {}); }
+      if (IOS && keep && keep.paused) { const p = keep.play(); if (p && p.catch) p.catch(() => {}); }
+    } catch (e) { /* egal */ }
+  }
   function unlock() {
     if (!S.sound || testMode) return;
     try { if (navigator.audioSession) navigator.audioSession.type = "playback"; } catch (e) { /* egal */ }
@@ -4600,6 +4608,9 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
         const AC = window.AudioContext || window.webkitAudioContext; if (!AC) return;
         ctxA = new AC({ latencyHint: "interactive" }); master = ctxA.createGain(); master.gain.value = S.sound ? 1 : 0; master.connect(ctxA.destination); player = M.Player(ctxA, master); // „Ton aus“ schaltet alles stumm, auch die Musik
         const sb = ctxA.createBufferSource(); sb.buffer = ctxA.createBuffer(1, 1, 22050); sb.connect(ctxA.destination); sb.start(0);
+        // iPhone/iPad: die Ansage (Sprachausgabe) nimmt sich kurz den Ton; danach bleibt WebAudio sonst „unterbrochen“ und die
+        // Musik ist weg. Sobald der Ton nicht mehr läuft, gleich wieder anwerfen.
+        ctxA.onstatechange = () => { if (ctxA.state !== "running" && !document.hidden) setTimeout(revive, 60); };
       }
       if (ctxA.state !== "running") { const p = ctxA.resume(); if (p && p.catch) p.catch(() => {}); }
       if (IOS) {
@@ -4760,7 +4771,7 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
       sy.cancel();
       const u = new SpeechSynthesisUtterance(text), v = bestVoice(sy.getVoices());
       if (v) u.voice = v; u.lang = v ? v.lang : "de-DE"; u.rate = 0.9; u.pitch = 0.85; u.volume = 0.9;
-      let fin = false; const end = () => { if (!fin) { fin = true; done(); } };
+      let fin = false; const end = () => { if (!fin) { fin = true; revive(); setTimeout(revive, 250); done(); } };
       u.onend = end; u.onerror = end; setTimeout(end, 9000); sy.speak(u);
     } catch (e) { setTimeout(done, 3200); }
     return Math.min(8, text.length / 13);
@@ -5504,6 +5515,7 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
   let lastFrame = performance.now(), idleP = 0;
   function frame(now) {
     requestAnimationFrame(frame);
+    if (ctxA && now - reviveT > 700) { reviveT = now; if (ctxA.state !== "running" || (IOS && keep && keep.paused)) revive(); }
     const dt = Math.min(0.05, (now - lastFrame) / 1000); lastFrame = now;
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
     if (!run) { idle(dt); return; }
@@ -6766,10 +6778,12 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
   // eigenes Hosting: offline spielbar
   if (SITE.web && "serviceWorker" in navigator && (location.protocol === "https:" || location.hostname === "localhost")) navigator.serviceWorker.register("sw.js").catch(() => {});
 
+  // jedes Tippen holt den Ton zurück, falls er doch hängt
+  document.addEventListener("pointerdown", () => revive(), true);
   document.addEventListener("visibilitychange", () => { if (document.hidden && run && !run.finished) abortRun(); });
 
   // ------------------------------------------------------------------ Testzugang
-  window.__ek = {
+  window.__ek = { get audio() { return ctxA ? { state: ctxA.state, playing: !!(player && player.playing), t: +ctxA.currentTime.toFixed(2) } : null; },
     VERSION, get S() { return S; }, get run() { return run; }, get prog() { return PROG; }, sanitize, K, M,
     test(on) { testMode = !!on; },
     start(mode, entry) { startRun(mode || "comp", { fake: true, entry }); run.manual = true; },
