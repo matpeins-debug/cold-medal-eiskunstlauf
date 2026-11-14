@@ -4605,7 +4605,7 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
 /* COLD MEDAL EISKUNSTLAUF – Ablauf, Bildschirme, Eingabe, Taktband, Ergebnis, Spielstand. */
 (function () {
   "use strict";
-  const VERSION = "0.62";
+  const VERSION = "0.63";
   // Seiten-Einstellungen aus dem Build (eigenes Hosting: Adresse, Hoster, Impressum); im claude.ai-Artefakt leer
   const SITE = Object.assign({ web: false, url: "", impressum: null }, {"web": true, "supabase": {"url": "https://pqpvgkslozsekjywpdrf.supabase.co", "key": "sb_publishable_KkKe9jchmXYp_-OEmB8WLQ_gZLXrRhF"}, "url": "https://matpeins-debug.github.io/cold-medal-eiskunstlauf/", "hoster": "GitHub Pages (GitHub Inc., USA)", "drittland": "GitHub ist nach dem EU-US Data Privacy Framework zertifiziert; die Übermittlung in die USA stützt sich auf den Angemessenheitsbeschluss der EU-Kommission dazu.", "impressum": {"name": "", "adresse": "", "mail": ""}} || {});
   const M = window.EKMusic, K = window.EKSkate, F = window.EKFig, SC = window.EKScene, PASS = window.CMPass;
@@ -5020,9 +5020,10 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
       if (!fake && !opt.silent) { ambience(true); player.start(SCORE.id, { preset: S.preset, swing: true, bpm: Math.round(SCORE.bpm * lv.tempo), at: opt.at || 0 }); }
       return;
     }
-    show(null); $("hud").hidden = false; buildChips();
+    show(null); $("hud").hidden = false; buildChips(); $("chips").style.visibility = "";
     if (!fake) {
       run.entry = { t: 0, phase: 0, x: WW / 2 - 820, face: 0, sp: null }; ambience(true);
+      $("chips").style.visibility = "hidden"; // Programmleiste erst mit der eigenen Musik – vorher laufen die anderen, dann der Auftritt
       // im Wettkampf (nicht in der Gruppe, nicht beim Ansehen): erst laufen die zwei vor dir
       if (mode === "comp" && !run.grp && !rec) {
         const bd = aiBoard(run).sort((a, b) => b.total - a.total);
@@ -5081,7 +5082,11 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
   function aiLook(name) {
     let h = 7; for (const ch of name) h = (h * 31 + ch.charCodeAt(0)) >>> 0;
     const pk = (n, sh) => (h >>> sh) % n;
-    return Object.assign({}, F.DEF_LOOK, { hair: pk(F.HAIRS.length, 0), hairC: pk(F.HAIRC.length, 4), skin: pk(F.SKIN.length, 8), suit: pk(F.SUIT.length, 12), accent: pk(F.SUIT.length, 17), beard: 0 });
+    // nie im selben Kostüm wie die eigene Figur (0.63: Lotte lief im selben Rot vorher – sah aus, als liefe man zweimal)
+    const ms = S.look ? S.look.suit : null, mine = typeof ms === "number" ? ms : F.SUIT.findIndex((c) => String(c).toLowerCase() === String(ms).toLowerCase());
+    let suit = pk(F.SUIT.length, 12); if (suit === mine) suit = (suit + 1 + pk(F.SUIT.length - 1, 21)) % F.SUIT.length;
+    let accent = pk(F.SUIT.length, 17); if (accent === suit) accent = (accent + 2) % F.SUIT.length;
+    return Object.assign({}, F.DEF_LOOK, { hair: pk(F.HAIRS.length, 0), hairC: pk(F.HAIRC.length, 4), skin: pk(F.SKIN.length, 8), suit, accent, beard: 0 });
   }
   // Spannung vor der großen Kür: die letzten zwei vor dir laufen im Zeitraffer, ihre Noten kommen, dann der Zwischenstand
   // und was du für Gold brauchst. Tippen überspringt.
@@ -5097,10 +5102,12 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
       const g = clamp(u / 3.3, 0, 1); x = WW / 2 - 520 + 670 * (1 - Math.pow(1 - g, 2));
       if (u < 1.0) { pose = F.strokePose((u / 0.7) % 1); turn = 0; }
       else if (u < 1.15) { pose = F.POSES.prep; turn = 0; }
-      else if (u < 1.75) { const v = (u - 1.15) / 0.6; pose = F.POSES.air || F.POSES.spin; lift = 50 * Math.sin(Math.PI * v); turn = v * Math.PI * 6; }
-      else if (u < 2.1) { pose = F.POSES.land; turn = 0; }
-      else if (u < 3.2) { const v = (u - 2.1) / 1.1; pose = F.mix(F.POSES.spinOpen || F.POSES.spin, F.POSES.spin, smooth(v)); turn = v * v * Math.PI * 10; }
-      else { pose = F.POSES.final; turn = Math.PI / 2 - 0.5; }
+      // jede Läuferin mit eigenem Höhepunkt: Sprung, Pirouette (Stand, Sitz, Waage) und Schlusspose wechseln (0.63)
+      const vr = Wm.i % 3, SP = [[F.POSES.spinOpen, F.POSES.spin], [F.POSES.sitOpen, F.POSES.sitspin], [F.POSES.camel, F.POSES.camelTight]][vr];
+      if (u < 1.75) { const v = (u - 1.15) / 0.6; pose = vr === 1 ? F.POSES.air3 || F.POSES.air : F.POSES.air; lift = 44 * Math.sin(Math.PI * v); turn = v * Math.PI * (vr === 1 ? 6 : 4); }
+      else if (u < 2.1) { pose = F.POSES.landCheck || F.POSES.land; turn = 0; }
+      else if (u < 3.2) { const v = (u - 2.1) / 1.1; pose = F.mix(SP[0] || F.POSES.spin, SP[1] || F.POSES.spin, smooth(v)); turn = v * v * Math.PI * 10; }
+      else { pose = [F.POSES.final, F.POSES.portUp, F.POSES.spiral][vr] || F.POSES.final; turn = Math.PI / 2 - 0.5; }
       if (u > 3.55 && !Wm.clap) { Wm.clap = true; sfx("applause", 0.55); run.burst = 0.6; }
       if (u < 0.1) Wm.clap = false;
       Wm.sp = F.ease(Wm.sp, pose, dt * (u > 1.1 && u < 3.2 ? 3 : 1));
@@ -5201,7 +5208,7 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
     if (E.phase === 0 && E.t > 1.2) { ctx.globalAlpha = 0.6; ctx.textAlign = "center"; ctx.font = "600 11px " + font(); ctx.fillStyle = "#F1E7D2"; ctx.fillText("tippen zum Überspringen", W / 2, H - 14); ctx.globalAlpha = 1; }
   }
   function beginMusic() {
-    const E = run.entry; run.entry = null;
+    const E = run.entry; run.entry = null; $("chips").style.visibility = "";
     try { if (window.speechSynthesis) window.speechSynthesis.cancel(); } catch (e) { /* egal */ }
     run.face = E.face; run.sp = E.sp; run.trail = []; run.dim = E.dim || 0;
     if (!run.fake) player.start(SCORE.id, { preset: S.preset, swing: true, bpm: Math.round(SCORE.bpm * run.lv.tempo) });
@@ -5504,6 +5511,19 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
   }
   // rückwärts übersetzen: Abstoß nach vorn-außen (gegen die Fahrt), Spielbein vorn
   const BACK_PUSH = { lean: 10, crouch: 5, sL: [26, 52], fL: [52, 4], aF: [96, -8], aB: [-104, -8], hd: -4, fA: 30, ao3: 60 };
+  // Linie der Schrittfolge: Scheitel an jedem Zeichen (rechts +, links −), Anfang und Ende auf der Bahn (0)
+  const SNAKE_A = 2.2; // Bahn-Einheiten (× 24 px), vorher bis 4,5
+  function stepCurve(el, bt) {
+    const A = el.arrows, W0 = K.elWindow(el, bt), p = [{ t: W0[0], v: 0, turn: 0 }];
+    let prev = 0, base = 0;
+    for (const [b, d] of A) {
+      const sg = d === "r" ? 1 : d === "l" ? -1 : prev >= 0 ? -1 : 1, tw = sg === prev;
+      if (tw) base += sg * 2 * Math.PI;
+      p.push({ t: K.tB(bt, b), v: sg * SNAKE_A, turn: base + sg * 0.45, tw }); prev = sg;
+    }
+    p.push({ t: W0[1], v: 0, turn: base }); // genau das Fenster des Elements: davor und danach übernimmt die Feder ohne Sprung
+    return { el, p };
+  }
   function figureState(t, dt) {
     const r = run, bt = r.bt, el = phaseAt(t);
     if (r.honor) return honorState(t, dt);
@@ -5622,31 +5642,36 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
       r.turn += dt * Math.PI * 2 * maxRev * (0.28 + 0.72 * pull) * (0.75 + 0.25 * Math.min(1, r.spinV)); turn = r.turn;
     } else if (r.turn) { r.face += r.turn % (2 * Math.PI); r.turn = 0; } // nach der Pirouette ohne Ruck weiter
     if (el && el.kind === "steps") {
-      // Schrittfolge wie ein Tanz auf zwei Kanten: jede Eingabe setzt einen neuen Bogen übers Eis (Schlangenlinie) und eine neue
-      // Kante – sie gleitet weich von der einen Haltung in die andere (kein Treten auf jeden Schlag), Arme gegengleich, Blick in
-      // die Kurve. Dieselbe Richtung zweimal = Twizzle: ganze schnelle Drehung, Arme kurz eng nach oben.
-      const sw = r.lastSwipe && t - r.lastSwipe.t < 1.6 ? r.lastSwipe : null;
-      const fresh = sw && r.lastTurnSwipe !== sw.t; if (fresh) r.lastTurnSwipe = sw.t;
-      if (!r.edgeTo) { r.edgeTo = F.POSES.glideArc; r.edgeFrom = F.POSES.glideArc; r.edgeT0 = t; }
-      if (sw && fresh) {
-        const sg = sw.dir === "r" ? 1 : sw.dir === "l" ? -1 : (r.snakeTo || 0) >= 0 ? -1 : 1, tw = r.prevStepDir === sg;
-        r.edgeFrom = r.edgeCur || r.edgeTo; r.edgeTo = sg > 0 ? F.POSES.edgeR : F.POSES.edgeL; r.edgeT0 = t;
-        r.prevStepDir = sg; r.snakeTo = sg * 4.5; r.stepTw = tw;
-        if (tw) { r.stepBase = (r.stepBase || 0) + sg * 2 * Math.PI; r.twzT = sw.t; }
-        r.stepTurnTo = (r.stepBase || 0) + sg * 0.45;
-      }
-      r.edgeCur = F.mix(r.edgeFrom, r.edgeTo, smooth(clamp((t - r.edgeT0) / 0.55, 0, 1)));
-      pose = r.edgeCur;
+      // Schrittfolge als ruhige Schlangenlinie (0.63, Mat: „das Linienfahren schaut ruckartig aus, das muss smooth sein“).
+      // Vorher setzte jedes Tippen einen neuen Bogen über eine Feder (±108 px, Richtung je nach Eingabe) – das riss hin und her.
+      // Jetzt ist die Linie die Choreografie selbst: an jedem Zeichen ein Scheitel abwechselnd links/rechts (laut Schrittmuster),
+      // dazwischen ein weicher Kosinus-Bogen (Tempo am Scheitel 0 = Kantenwechsel). Kante, Drehung und Lage folgen derselben Kurve;
+      // zweimal dieselbe Seite = Twizzle (eine ganze Drehung über den Bogen). Getippt wird weiter auf den Schlag – das zählt für die Wertung.
+      const pts = r.stepPts && r.stepPts.el === el ? r.stepPts : (r.stepPts = stepCurve(el, bt));
+      const P0 = pts.p; let i = 0; while (i < P0.length - 2 && t > P0[i + 1].t) i++;
+      const a = P0[i], b = P0[i + 1], u = clamp((t - a.t) / (b.t - a.t), 0, 1), su = (1 - Math.cos(Math.PI * u)) / 2;
+      const sv = a.v + (b.v - a.v) * su, vel = (b.v - a.v) * Math.PI / 2 * Math.sin(Math.PI * u) / (b.t - a.t);
+      const acc = (b.v - a.v) * (Math.PI / (b.t - a.t)) ** 2 / 2 * Math.cos(Math.PI * u);
+      r.snakeTo = sv; r.snake = sv; r.snakeV = vel; r.snakeA = acc;
+      r.stepTurnTo = r.stepTurn = (r.stepBase || 0) + a.turn + (b.turn - a.turn) * smooth(u);
+      const to = b.v > a.v ? F.POSES.edgeR : b.v < a.v ? F.POSES.edgeL : F.POSES.glideArc, from = a.v > 0 ? F.POSES.edgeR : a.v < 0 ? F.POSES.edgeL : F.POSES.glideArc;
+      pose = F.mix(from, to, smooth(clamp(u * 1.6, 0, 1)));
       // Atmen mit der Musik: über den Takt etwas tiefer und wieder hoch
       pose = Object.assign({}, pose, { crouch: (pose.crouch || 0) + 1.5 * Math.sin(Math.PI * inBar) });
-      if (r.stepTw && r.twzT !== undefined && t - r.twzT < 0.7) pose = F.mix(pose, F.POSES.twizzleUp, Math.sin(Math.PI * (t - r.twzT) / 0.7));
-    } else { r.snakeTo = 0; r.prevStepDir = 0; r.edgeTo = null; r.edgeCur = null; }
-    // weich wie eine gedämpfte Feder: kein Knick beim neuen Bogen
-    { const h = Math.min(dt, 0.05); r.snakeV = (r.snakeV || 0) + (9 * ((r.snakeTo || 0) - (r.snake || 0)) - 6 * (r.snakeV || 0)) * h; r.snake = (r.snake || 0) + r.snakeV * h; }
-    if (el && el.kind === "steps") tilt = clamp((r.snakeV || 0) * 0.03, -0.22, 0.22); // Lage in die Kurve, am stärksten am Anfang des Bogens
+      if (b.tw) pose = F.mix(pose, F.POSES.twizzleUp, Math.sin(Math.PI * u));
+      r.stepsTurnEnd = b.turn; r.stepsActive = true;
+    } else {
+      if (r.stepsActive) { r.stepsActive = false; r.stepBase = (r.stepBase || 0) + (r.stepsTurnEnd || 0); }
+      r.snakeTo = 0;
+    }
+    // ausserhalb der Schrittfolge kehrt sie weich wie eine gedämpfte Feder auf die Bahn zurück
+    if (!(el && el.kind === "steps")) { const h = Math.min(dt, 0.05); r.snakeV = (r.snakeV || 0) + (9 * ((r.snakeTo || 0) - (r.snake || 0)) - 6 * (r.snakeV || 0)) * h; r.snake = (r.snake || 0) + r.snakeV * h; }
+    // Lage in die Kurve: aus der Querbeschleunigung (nicht der Geschwindigkeit, sonst kippt sie am Scheitel um), klein (±5°)
+    // und weich nachgeführt; nach der Schrittfolge klingt sie aus statt auf 0 zu springen
+    r.lean = (r.lean || 0) + ((el && el.kind === "steps" ? clamp(-(r.snakeA || 0) * 0.004, -0.09, 0.09) : 0) - (r.lean || 0)) * Math.min(1, dt * 5);
+    tilt += r.lean;
     // nach der Schrittfolge wieder vorwärts in die Laufrichtung
-    if (!(el && el.kind === "steps")) r.stepTurnTo = r.stepBase || 0;
-    r.stepTurn = (r.stepTurn || 0) + ((r.stepTurnTo || 0) - (r.stepTurn || 0)) * (1 - Math.exp(-dt * (r.twzT !== undefined && t - r.twzT < 0.7 ? 11 : 4.5)));
+    if (!(el && el.kind === "steps")) { r.stepTurnTo = r.stepBase || 0; r.stepTurn = (r.stepTurn || 0) + ((r.stepTurnTo || 0) - (r.stepTurn || 0)) * (1 - Math.exp(-dt * 4.5)); }
     turn += r.stepTurn;
     r.slide = (r.slide || 0) + (r.slideV || 0) * dt; r.slideV = (r.slideV || 0) * Math.pow(0.04, dt); r.slide *= Math.pow(0.5, dt);
     if (el && el.kind === "pose" && (r.posed || t > bt[el.at] + 0.4)) pose = F.mix(pose, F.POSES.final, smooth((t - bt[el.at] + 0.3) / 0.4));
@@ -6307,7 +6332,7 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
     run.cheer += (tgt - run.cheer) * Math.min(1, dt * 3);
     const now = performance.now() / 1000;
     scene.twinkle(ctx, run.camX, now);
-    const SH = showUpdate(t, st.x - run.camX, SC.footY(st.d)); run.lastX = st.x;
+    const SH = showUpdate(t, st.x - run.camX, SC.footY(st.d)); run.lastX = st.x; run.lastFy = fy; run.lastTilt = st.tilt; run.lastTurn = st.turn;
     drawFireworks(dt);
     scene.crowd(ctx, run.camX, now, run.cheer);
     drawFountains(dt);
