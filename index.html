@@ -708,6 +708,22 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
   .ps-screen .ps-code-val { flex: none; font-size: 21px; letter-spacing: 0.04em; }
 }
 @media (prefers-reduced-motion: reduce) { .ps-btn:active, .ps-stage:active { transform: none; } }
+
+/* 14.11.2026 (Mat: „das Figurenmenü muss vereinheitlicht und schöner gestaltet werden“, iPhone-Schriften laufen breiter):
+   Kopf mit Zeile „Athletenpass“, Bühne mit Rahmen wie ein Passbild, Reiter und Auswahlknöpfe schrumpfen statt überzulaufen,
+   Bildunterschrift einzeilig. Nur Aussehen und Platz; Aufbau, Klassen und Verhalten bleiben gleich. */
+.ps-head { padding-bottom: 6px; border-bottom: 2px solid var(--ps-ink-deep); }
+.ps-title::before { content: "Athletenpass · Cold Medal Games"; display: block; margin-bottom: 2px; font-family: var(--ps-label); font-weight: 700;
+  font-size: 11px; line-height: 13px; letter-spacing: 0.24em; color: var(--ps-red); }
+.ps-stage { border-width: 3px; box-shadow: inset 0 0 0 3px #FBF8F1, inset 0 0 0 4px rgba(30, 39, 52, 0.25), 0 3px 0 rgba(20, 27, 37, 0.35); }
+.ps-cap { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.ps-tabs button { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.ps-row > .ps-seg { flex: 0 1 auto; min-width: 0; max-width: 100%; }
+.ps-row > .ps-seg button { flex: 1 1 auto; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; padding: 0 8px; font-size: 15px; }
+.ps-opts, .ps-tabbox { min-width: 0; }
+.ps-dialog { gap: 8px; }
+.ps-head { padding-bottom: 4px; }
+.ps-title { font-size: 28px; line-height: 29px; }
 </style>
 </head>
 <body>
@@ -4532,7 +4548,7 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
 /* COLD MEDAL EISKUNSTLAUF – Ablauf, Bildschirme, Eingabe, Taktband, Ergebnis, Spielstand. */
 (function () {
   "use strict";
-  const VERSION = "0.56";
+  const VERSION = "0.57";
   // Seiten-Einstellungen aus dem Build (eigenes Hosting: Adresse, Hoster, Impressum); im claude.ai-Artefakt leer
   const SITE = Object.assign({ web: false, url: "", impressum: null }, {"web": true, "supabase": {"url": "https://pqpvgkslozsekjywpdrf.supabase.co", "key": "sb_publishable_KkKe9jchmXYp_-OEmB8WLQ_gZLXrRhF"}, "url": "https://matpeins-debug.github.io/cold-medal-eiskunstlauf/", "hoster": "GitHub Pages (GitHub Inc., USA)", "drittland": "GitHub ist nach dem EU-US Data Privacy Framework zertifiziert; die Übermittlung in die USA stützt sich auf den Angemessenheitsbeschluss der EU-Kommission dazu.", "impressum": {"name": "", "adresse": "", "mail": ""}} || {});
   const M = window.EKMusic, K = window.EKSkate, F = window.EKFig, SC = window.EKScene, PASS = window.CMPass;
@@ -4673,13 +4689,23 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
   // ------------------------------------------------------------------ Bühne: 844 × 390, skaliert; im Hochformat gedreht
   const stage = $("stage"), cv = $("cv"), ctx = cv.getContext("2d");
   let uiS = 1, rotated = false, dpr = 1;
+  // sichere Ränder (Notch, Dynamic Island, Statusleiste, Home-Balken): die Bühne bleibt ganz im sichtbaren Bereich – im gedrehten
+  // Hochformat liegt sonst der linke Rand des Menüs unter der Statusleiste (Mat, iPhone, 14.11.2026)
+  const saProbe = document.createElement("div");
+  saProbe.style.cssText = "position:fixed;left:0;top:0;width:0;height:0;visibility:hidden;pointer-events:none;padding:env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left)";
+  document.body.appendChild(saProbe);
+  function safeArea() {
+    const cs = getComputedStyle(saProbe), n = (v) => parseFloat(v) || 0;
+    return { t: n(cs.paddingTop), r: n(cs.paddingRight), b: n(cs.paddingBottom), l: n(cs.paddingLeft) };
+  }
   function layout() {
-    const vw = window.innerWidth, vh = window.innerHeight;
+    const vv = window.visualViewport, vw = vv ? vv.width : window.innerWidth, vh = vv ? vv.height : window.innerHeight, sa = safeArea();
     rotated = vh > vw * 1.05;
-    const aw = rotated ? vh : vw, ah = rotated ? vw : vh;
+    // gedreht: die Breite der Bühne läuft über die Höhe des Bildschirms, also oben und unten den sicheren Rand freilassen
+    const aw = rotated ? vh - sa.t - sa.b : vw - sa.l - sa.r, ah = rotated ? vw - sa.l - sa.r : vh - sa.t - sa.b;
     uiS = Math.min(aw / W, ah / H);
     const ox = (aw - W * uiS) / 2, oy = (ah - H * uiS) / 2;
-    stage.style.transform = rotated ? `translate(${vw - oy}px, ${ox}px) rotate(90deg) scale(${uiS})` : `translate(${ox}px, ${oy}px) scale(${uiS})`;
+    stage.style.transform = rotated ? `translate(${vw - sa.r - oy}px, ${sa.t + ox}px) rotate(90deg) scale(${uiS})` : `translate(${sa.l + ox}px, ${sa.t + oy}px) scale(${uiS})`;
     dpr = Math.min(2, (window.devicePixelRatio || 1) * uiS); // mehr als 2 sieht man kaum, kostet am iPhone aber Bildrate
     cv.width = Math.round(W * dpr); cv.height = Math.round(H * dpr);
   }
@@ -4691,6 +4717,8 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
   }
   layout();
   window.addEventListener("resize", layout);
+  if (window.visualViewport) window.visualViewport.addEventListener("resize", layout);
+  window.addEventListener("orientationchange", () => setTimeout(layout, 250));
   let scene = SC.Scene(SEASON[S.season.ev].id, Math.min(2, (window.devicePixelRatio || 1) * uiS));
   // Ort wechseln: Kulisse neu vorberechnen (nur wenn nötig)
   const P = () => scene.place;
