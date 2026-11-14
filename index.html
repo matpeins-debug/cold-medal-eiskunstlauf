@@ -575,6 +575,26 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
   background: rgba(20,27,37,0.55); padding: 2px 8px; border-radius: 2px; }
 .tNote u { text-underline-offset: 2px; }
 
+/* ---------- 0.58: alle Menüs auch mit breiter Schrift (Futura am iPhone) ---------- */
+/* Musik: Karten wachsen mit dem Inhalt, die Liste scrollt; nichts schiebt sich mehr übereinander */
+.mus { grid-auto-rows: max-content; align-content: start; }
+.muC { min-height: 108px; height: auto; }
+.muC b { overflow-wrap: anywhere; hyphens: auto; }
+/* Meine Kür im Menü: Stückname kürzt sich, die Choreo-Note bleibt ganz */
+#scrMenu .planCard { width: 320px; }
+.pcHead { min-width: 0; }
+.pcHead i { min-width: 0; overflow: hidden; text-overflow: ellipsis; }
+.pcHead em { flex: none; white-space: nowrap; }
+/* Kürplan-Kopf: Stückname bekommt Platz, die Knöpfe rechts werden schmaler */
+.sTitle .piece { flex: 1 1 auto; min-width: 110px; }
+.sActs { flex: none; gap: 6px; }
+.sActs .mid { padding: 6px 9px; font-size: 11px; letter-spacing: 0.03em; }
+/* linke Spalte im Kürplan: der Laufweg-Plan nimmt nur den Platz, der übrig ist */
+.secCol { min-height: 0; overflow: hidden; }
+.secCol .way { min-height: 0; flex: 1 1 auto; }
+.secCol .way span { grid-template-columns: repeat(2, 1fr); }
+.secCol .way canvas { height: auto; flex: 1 1 28px; min-height: 26px; max-height: 56px; }
+
 /* Cold Medal Games · Fenster „Deine Figur“ (pass/pass.css)
    Aussehen wie die Menüs des Skispringens: Papier mit Doppelrahmen, Knöpfe wie Druckmarken, Futura für Titel und Knöpfe,
    Buchschrift für Lesetext. Farben und Schriften kommen aus den Variablen des Spiels (alle Spiele der Reihe haben sie),
@@ -858,7 +878,7 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
       <div class="ifBody">
         <h3>Fanspiel</h3><p>Inoffizielles Fanspiel ohne Verbindung zur Internationalen Eislaufunion (ISU), zu Verbänden oder Veranstaltern. Alle Läuferinnen und Läufer sind erfunden; Elemente und Wertung folgen dem echten Sport, in eigenen Worten.</p>
         <h3>Wertung</h3><p>Technik: Grundwert jedes Elements mal GOE (Abweichung vom Schlag). Komponenten: Komposition (Plan und Choreo-Note), Präsentation (Takt 60 %, Ausdruck 20 %: Choreo-Figuren ✦ auf den Schlag getippt, Ausstrahlung 20 %: Schlusspose, ohne Sturz, längste Serie sauberer Elemente) und läuferisches Können. Sturz −1.</p>
-        <h3>Musik</h3><p>Johann Strauss (Sohn), „An der schönen blauen Donau“ (1867); Émile Waldteufel, „Die Schlittschuhläufer“ (1882); Iosif Ivanovici, „Donauwellen“ (1880); Johannes Brahms, Wiegenlied „Guten Abend, gut' Nacht“ (1868); Johann Strauss (Sohn), „Rosen aus dem Süden“ (1880); Peter Tschaikowski, „Blumenwalzer“ aus dem Nussknacker (1892) und Walzer aus „Schwanensee“ (1877); Johann Strauss (Sohn), „Kaiserwalzer“ (1889) und „Geschichten aus dem Wienerwald“ (1868); Franz Lehár, „Lippen schweigen“ aus „Die lustige Witwe“ (1905). Alle gemeinfrei; eigener, vereinfachter Satz, im Browser erzeugt, keine Aufnahme.</p>
+        <h3>Musik</h3><p>Johann Strauss (Sohn), „An der schönen blauen Donau“ (1867); Émile Waldteufel, „Die Schlittschuhläufer“ (1882); Iosif Ivanovici, „Donauwellen“ (1880); Johannes Brahms, Wiegenlied „Guten Abend, gut' Nacht“ (1868); Johann Strauss (Sohn), „Rosen aus dem Süden“ (1880); Peter Tschaikowski, „Blumenwalzer“ aus dem Nussknacker (1892) und Walzer aus „Schwanensee“ (1877); Johann Strauss (Sohn), „Kaiserwalzer“ (1889) und „Geschichten aus dem Wienerwald“ (1868); Franz Lehár, „Lippen schweigen“ aus „Die lustige Witwe“ (1905); Juventino Rosas, „Über den Wellen“ (1888); Leo Friedman, „Let Me Call You Sweetheart“ (1910); Anita Owen, „Sweet Bunch of Daisies“ (1894); Jacques Offenbach, Barcarole (1881). Melodien von Rosas, Friedman und Owen nach freien Abschriften (Traditional Tune Archive, Folk Tune Finder). Alle gemeinfrei; eigener, vereinfachter Satz, im Browser erzeugt, keine Aufnahme.</p>
         <h3>Ort</h3><p id="ifPlace"></p>
         <h3>Datenschutz</h3><p>Kein Konto, keine Werbung, keine Cookies, keine Analyse. Name, Aussehen, Bestwerte und Einstellungen speichert das Spiel nur im Browser auf diesem Gerät; es sendet nichts an einen Server.</p><p id="ifPriv"></p>
         <h3>Impressum</h3><p id="ifImp"></p>
@@ -4548,7 +4568,7 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
 /* COLD MEDAL EISKUNSTLAUF – Ablauf, Bildschirme, Eingabe, Taktband, Ergebnis, Spielstand. */
 (function () {
   "use strict";
-  const VERSION = "0.57";
+  const VERSION = "0.58";
   // Seiten-Einstellungen aus dem Build (eigenes Hosting: Adresse, Hoster, Impressum); im claude.ai-Artefakt leer
   const SITE = Object.assign({ web: false, url: "", impressum: null }, {"web": true, "supabase": {"url": "https://pqpvgkslozsekjywpdrf.supabase.co", "key": "sb_publishable_KkKe9jchmXYp_-OEmB8WLQ_gZLXrRhF"}, "url": "https://matpeins-debug.github.io/cold-medal-eiskunstlauf/", "hoster": "GitHub Pages (GitHub Inc., USA)", "drittland": "GitHub ist nach dem EU-US Data Privacy Framework zertifiziert; die Übermittlung in die USA stützt sich auf den Angemessenheitsbeschluss der EU-Kommission dazu.", "impressum": {"name": "", "adresse": "", "mail": ""}} || {});
   const M = window.EKMusic, K = window.EKSkate, F = window.EKFig, SC = window.EKScene, PASS = window.CMPass;
@@ -4570,7 +4590,8 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
   // Dreier/Gegendreier ein Bogen im bzw. gegen den Uhrzeigersinn, Twizzle ein doppelter Bogen, Choctaw zwei versetzte Halbbögen
   // Schrittzeichen als Schwung, wie die Spur einer Kufe: ein goldener, sich verjüngender Bogen mit feiner Spitze in Wischrichtung,
   // beim Twizzle mit einer Schlinge in der Mitte. Gezeichnet als Fläche (Breite wächst zur Mitte, wird zur Spitze wieder schmal).
-  function turnIcon(x, y, dir, R, col, tw) {
+  function turnIconRaw(g0, x, y, dir, R, col, tw) {
+    const ctx = g0;
     const N = 28, pts = [];
     for (let i = 0; i <= N; i++) {
       const t = i / N;
@@ -4595,6 +4616,18 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
     // kleiner Funke am Anfang der Spur
     ctx.fillStyle = "#FFF8E6"; ctx.beginPath(); ctx.arc(pts[0][0], pts[0][1], Math.max(1, R * 0.06), 0, 7); ctx.fill();
     ctx.restore();
+  }
+  // Zeichen einmal je Richtung und Größe vorzeichnen und dann nur kopieren: Schatten und Verläufe auf der Zeichenfläche sind am
+  // iPhone teuer, und im Taktband stehen bis zu zwölf Zeichen (0.58: „läuft nicht mehr flüssig“)
+  const ICONS = new Map();
+  function turnIcon(x, y, dir, R, col, tw) {
+    const k = `${dir}|${tw ? 1 : 0}|${Math.round(R)}|${dpr}`;
+    let c = ICONS.get(k);
+    if (!c) {
+      const S2 = Math.ceil(R * 2.6), sc = dpr || 1; c = document.createElement("canvas"); c.width = Math.ceil(S2 * sc); c.height = Math.ceil(S2 * sc);
+      const g = c.getContext("2d"); g.scale(sc, sc); turnIconRaw(g, S2 / 2, S2 / 2, dir, R, col, tw); c.S2 = S2; ICONS.set(k, c);
+    }
+    ctx.drawImage(c, x - c.S2 / 2, y - c.S2 / 2, c.S2, c.S2);
   }
   const NAT = { AUT: "Österreich", GER: "Deutschland", SUI: "Schweiz", ITA: "Italien", FRA: "Frankreich", NOR: "Norwegen", SWE: "Schweden",
     CZE: "Tschechien", SLO: "Slowenien", POL: "Polen", NED: "Niederlande", USA: "USA", CAN: "Kanada", JPN: "Japan" };
@@ -4705,9 +4738,13 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
     const aw = rotated ? vh - sa.t - sa.b : vw - sa.l - sa.r, ah = rotated ? vw - sa.l - sa.r : vh - sa.t - sa.b;
     uiS = Math.min(aw / W, ah / H);
     const ox = (aw - W * uiS) / 2, oy = (ah - H * uiS) / 2;
-    stage.style.transform = rotated ? `translate(${vw - sa.r - oy}px, ${sa.t + ox}px) rotate(90deg) scale(${uiS})` : `translate(${sa.l + ox}px, ${sa.t + oy}px) scale(${uiS})`;
+    const tf = rotated ? `translate(${vw - sa.r - oy}px, ${sa.t + ox}px) rotate(90deg) scale(${uiS})` : `translate(${sa.l + ox}px, ${sa.t + oy}px) scale(${uiS})`;
+    if (stage.style.transform !== tf) stage.style.transform = tf;
     dpr = Math.min(2, (window.devicePixelRatio || 1) * uiS); // mehr als 2 sieht man kaum, kostet am iPhone aber Bildrate
-    cv.width = Math.round(W * dpr); cv.height = Math.round(H * dpr);
+    // nur bei echter Größenänderung neu anlegen: das Zuweisen löscht die Zeichenfläche und kostet am iPhone spürbar Bildrate,
+    // und Safari meldet beim Ein- und Ausblenden der Leisten oft „resize“ (0.58)
+    const cw = Math.round(W * dpr), ch = Math.round(H * dpr);
+    if (cv.width !== cw || cv.height !== ch) { cv.width = cw; cv.height = ch; }
   }
   // Bildschirmpunkt → Bühnenpunkt
   function stagePoint(cx, cy) {
@@ -4717,7 +4754,8 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
   }
   layout();
   window.addEventListener("resize", layout);
-  if (window.visualViewport) window.visualViewport.addEventListener("resize", layout);
+  let layoutQ = 0; const layoutSoon = () => { if (!layoutQ) layoutQ = requestAnimationFrame(() => { layoutQ = 0; layout(); }); };
+  if (window.visualViewport) window.visualViewport.addEventListener("resize", layoutSoon);
   window.addEventListener("orientationchange", () => setTimeout(layout, 250));
   let scene = SC.Scene(SEASON[S.season.ev].id, Math.min(2, (window.devicePixelRatio || 1) * uiS));
   // Ort wechseln: Kulisse neu vorberechnen (nur wenn nötig)
@@ -5549,8 +5587,7 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
         ctx.strokeStyle = "#DDA43B"; ctx.lineWidth = 3; ctx.fillStyle = "#141B25"; ctx.beginPath(); ctx.arc(x2, yc, 8, 0, 7); ctx.fill(); ctx.stroke();
       } else if (m.kind === "step") {
         // im Taktband ohne Scheibe: nur der goldene Schwung auf einem weichen dunklen Hauch
-        const hz = ctx.createRadialGradient(x, yc, 0, x, yc, 16); hz.addColorStop(0, "rgba(10,14,30,0.55)"); hz.addColorStop(1, "rgba(10,14,30,0)");
-        ctx.fillStyle = hz; ctx.beginPath(); ctx.arc(x, yc, 16, 0, 7); ctx.fill();
+        ctx.fillStyle = "rgba(10,14,30,0.4)"; ctx.beginPath(); ctx.arc(x, yc, 15, 0, 7); ctx.fill();
         turnIcon(x, yc, m.dir, 15, "#F1E7D2", m.tw);
       } else {
         ctx.fillStyle = m.kind === "expr" ? "#D8A9DE" : "#DDA43B"; ctx.beginPath(); ctx.arc(x, yc, 13, 0, 7); ctx.fill();
@@ -5744,8 +5781,10 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
   let lastFrame = performance.now(), idleP = 0;
   function frame(now) {
     requestAnimationFrame(frame);
-    if (ctxA && now - reviveT > 700) { reviveT = now; if (ctxA.state !== "running" || (IOS && keep && keep.paused)) revive(); }
-    const dt = Math.min(0.05, (now - lastFrame) / 1000); lastFrame = now;
+    // nur wenn der Ton wirklich steht, und höchstens alle 2 s: ständiges play() am stillen iOS-Audio ruckelt (0.58)
+    if (ctxA && now - reviveT > 2000) { reviveT = now; if (ctxA.state !== "running") revive(); }
+    const dtMs = now - lastFrame, dt = Math.min(0.05, dtMs / 1000); lastFrame = now;
+    if (run && !run.fake) watchFps(dtMs);
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
     if (!run) { idle(dt); return; }
     if (run.entry) { entryFrame(dt); return; }
@@ -6041,8 +6080,18 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
   const SPR3 = window.Figur3D ? window.Figur3D.SPR : null;
   function sk3() {
     if (!S.fig3d || !SPR3 || (testMode && !force3d)) return null; // Tests rechnen viele Bilder: flach, außer ausdrücklich 3D
-    if (!sk3Tried) { sk3Tried = true; try { SK3 = window.Figur3D.sprite(512); } catch (e) { SK3 = null; } }
+    if (!sk3Tried) { sk3Tried = true; try { SK3 = window.Figur3D.sprite(sk3Px); } catch (e) { SK3 = null; } }
     return SK3;
+  }
+  // Bildrate im Blick: läuft es mit der 3D-Figur dauerhaft unter etwa 30 Bildern je Sekunde, rechnet die Figur kleiner
+  // (512 → 384 → 288 Punkte); man sieht kaum einen Unterschied, das Spiel bleibt flüssig (0.58)
+  let sk3Px = 512; const fpsW = { n: 0, sum: 0 };
+  function watchFps(dtMs) {
+    if (!SK3 || sk3Px <= 288 || dtMs > 200) return;
+    fpsW.n++; fpsW.sum += dtMs;
+    if (fpsW.n < 90) return;
+    const avg = fpsW.sum / fpsW.n; fpsW.n = 0; fpsW.sum = 0;
+    if (avg > 33) { sk3Px = sk3Px > 384 ? 384 : 288; sk3Tried = false; SK3 = null; }
   }
   // Figur rendern (einmal je Bild); null = flach zeichnen
   function skaterImg(o) {
