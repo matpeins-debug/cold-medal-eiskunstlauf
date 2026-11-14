@@ -4047,25 +4047,32 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
   const ICE_TOP = 216;
   const PLACES = {
     wien: {
-      id: "wien", name: "Wien", venue: "Wiener Eislaufverein", nat: "AUT", style: "wien", moon: true, stars: true,
+      id: "wien", name: "Wien", venue: "Wiener Eislaufverein", nat: "AUT", style: "wien", moon: true, stars: true, deco: "lights", trees: "lights",
       sky: [[0, "#0B1430"], [0.45, "#24356A"], [0.72, "#5A4A7E"], [0.88, "#B9786A"], [1, "#F0AE6A"]],
       fact: "Verein seit 1867, seit 1901 am Heumarkt zwischen Konzerthaus und Stadtpark; über 6000 m² Freiluft-Eis. Hier war 1907 die Weltmeisterschaft im Eiskunstlauf.",
       src: "ORF Wien (wien.orf.at/stories/3195247, …/2872066), derStandard",
     },
     davos: {
-      id: "davos", name: "Davos", venue: "Natureisbahn Davos", nat: "SUI", style: "davos", sun: true, mountains: { far: "#7D8FB5", near: "#4C5D82", snow: "#F4EEE6", glow: "rgba(255,190,140,0.5)" },
-      sky: [[0, "#3C6AA8"], [0.5, "#7FA4CF"], [0.8, "#E9B98E"], [1, "#F6CF97"]],
+      id: "davos", name: "Davos", venue: "Natureisbahn Davos", nat: "SUI", style: "davos", sun: true, day: true, deco: "flags", trees: "pines",
+      // 0.65: sonniger Nachmittag statt Abend – Wimpel statt Lichterketten, Tannenwald, gleißend helles Natureis
+      mountains: { far: "#9DB3D6", near: "#6F86AD", snow: "#FBFCFF", glow: "rgba(255,255,255,0.35)" },
+      sky: [[0, "#2B67B0"], [0.5, "#79AEE0"], [0.85, "#CFE2F3"], [1, "#EEF2F4"]],
+      ice: ["#A8C2DD", "#CDDDEC", "#EAF1F7", "#F5F7F9"],
       fact: "Seit den 1860er-Jahren wird in Davos Schlittschuh gelaufen; auf der großen Natureisbahn fanden viele Welt- und Europameisterschaften statt. Heute liegt dort der Eistraum Davos.",
       src: "davos.ch (Davos the Pioneer, Eistraum), Südostschweiz",
     },
     stmoritz: {
-      id: "stmoritz", name: "St. Moritz", venue: "Eisstadion Badrutts Park", nat: "SUI", style: "stmoritz", moon: true, stars: true, mountains: { far: "#3E4A78", near: "#2A3358", snow: "#C9D3EE", glow: "rgba(150,170,255,0.25)" },
-      sky: [[0, "#0A1028"], [0.5, "#1E2A5C"], [0.8, "#4C4A86"], [1, "#9C7BA8"]],
+      id: "stmoritz", name: "St. Moritz", venue: "Eisstadion Badrutts Park", nat: "SUI", style: "stmoritz", stars: true, deco: "torches", trees: "pines",
+      // 0.65: Alpenglühen nach Sonnenuntergang, Grandhotel mit Turm statt Wiener Palais, Fackeln statt Lichterketten, tiefblaues Eis
+      mountains: { far: "#5B5488", near: "#3A3A68", snow: "#F7D3D6", glow: "rgba(255,150,170,0.42)" },
+      sky: [[0, "#141C46"], [0.45, "#3B3F78"], [0.75, "#A86A8C"], [1, "#F09A78"]],
+      ice: ["#56669A", "#7E8EBC", "#AAB7D6", "#C4CCE0"],
       fact: "Hier fanden die Olympischen Winterspiele 1928 und 1948 statt. 1928 gewann die 15-jährige Sonja Henie hier Gold im Eiskunstlauf.",
       src: "olympedia.org (St. Moritz 1928), olympics.com, wissen.de",
     },
     revue: {
-      id: "revue", name: "Eisrevue", venue: "Gala der Wiener Eisrevue", nat: "AUT", style: "revue", indoor: true,
+      id: "revue", name: "Eisrevue", venue: "Gala der Wiener Eisrevue", nat: "AUT", style: "revue", indoor: true, deco: "none",
+      ice: ["#5A4A62", "#8C7E98", "#B9AFC4", "#CFC8D6"],
       sky: [[0, "#12060A"], [0.6, "#2A0C14"], [1, "#4A1620"]],
       fact: "1945 gegründet, bis 1971 auf Tournee durch ganz Europa; ab 1952/53 schrieb Robert Stolz eigene Eis-Operetten, der Donauwalzer war das Finale jeder Produktion.",
       src: "ganz-wien.at, derStandard (Ausstellung 2008), Wikipedia „Vienna Ice Revue“",
@@ -4096,7 +4103,7 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
     }
   }
   // Davos: hölzernes Klubhaus mit Tribüne, Giebeldach, warm erleuchtete Fenster und Fahnen
-  function chalet(g, x0, ww, R) {
+  function chalet(g, x0, ww, R, day) {
     const y0 = 120, roof = 92;
     g.fillStyle = "#6B4A33"; g.fillRect(x0, y0, ww, ICE_TOP - y0);
     g.fillStyle = "rgba(0,0,0,0.18)"; for (let x = x0; x < x0 + ww; x += 7) g.fillRect(x, y0, 1.2, ICE_TOP - y0);
@@ -4104,8 +4111,8 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
     g.fillStyle = "#F4EEE6"; g.beginPath(); g.moveTo(x0 - 16, y0 + 2); g.lineTo(x0 + ww * 0.5, roof); g.lineTo(x0 + ww + 16, y0 + 2); g.lineTo(x0 + ww + 8, y0 - 2); g.lineTo(x0 + ww * 0.5, roof + 5); g.lineTo(x0 - 8, y0 - 2); g.closePath(); g.fill();
     g.strokeStyle = "#141B25"; g.lineWidth = 2; g.strokeRect(x0, y0, ww, ICE_TOP - y0);
     for (let x = x0 + 18; x < x0 + ww - 20; x += 34) for (const y of [y0 + 14, y0 + 48]) {
-      const wg = g.createRadialGradient(x + 8, y + 10, 1, x + 8, y + 10, 22); wg.addColorStop(0, "rgba(255,210,130,0.5)"); wg.addColorStop(1, "rgba(255,210,130,0)"); g.fillStyle = wg; g.fillRect(x - 14, y - 12, 44, 44);
-      g.fillStyle = "#FFDFA0"; g.fillRect(x, y, 16, 20); g.strokeStyle = "#3A2A22"; g.lineWidth = 1.4; g.strokeRect(x, y, 16, 20); g.beginPath(); g.moveTo(x + 8, y); g.lineTo(x + 8, y + 20); g.moveTo(x, y + 10); g.lineTo(x + 16, y + 10); g.stroke();
+      if (!day) { const wg = g.createRadialGradient(x + 8, y + 10, 1, x + 8, y + 10, 22); wg.addColorStop(0, "rgba(255,210,130,0.5)"); wg.addColorStop(1, "rgba(255,210,130,0)"); g.fillStyle = wg; g.fillRect(x - 14, y - 12, 44, 44); }
+      if (day) { const gg = g.createLinearGradient(0, y, 0, y + 20); gg.addColorStop(0, "#E4F0FA"); gg.addColorStop(1, "#86A8C6"); g.fillStyle = gg; } else g.fillStyle = "#FFDFA0"; /* tagsüber spiegelt der Himmel in den Scheiben */ g.fillRect(x, y, 16, 20); g.strokeStyle = "#3A2A22"; g.lineWidth = 1.4; g.strokeRect(x, y, 16, 20); g.beginPath(); g.moveTo(x + 8, y); g.lineTo(x + 8, y + 20); g.moveTo(x, y + 10); g.lineTo(x + 16, y + 10); g.stroke();
     }
     // Balkon mit Geländer
     g.fillStyle = "#4A3324"; g.fillRect(x0 - 6, y0 + 40, ww + 12, 4); for (let x = x0 - 4; x < x0 + ww + 6; x += 6) g.fillRect(x, y0 + 32, 1.6, 8);
@@ -4140,6 +4147,33 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
     // Rampenlicht über der Bande
     const fl = g.createLinearGradient(0, ICE_TOP - 50, 0, ICE_TOP); fl.addColorStop(0, "rgba(255,200,120,0)"); fl.addColorStop(1, "rgba(255,200,120,0.35)"); g.fillStyle = fl; g.fillRect(0, ICE_TOP - 50, w, 50);
   }
+  // St. Moritz: Grandhotel der Belle Époque – breiter Steinbau mit vielen kleinen Fenstern, Walmdach, in der Mitte ein hoher Turm
+  // mit spitzem Helm (wie man ihn vom Ort kennt, frei gezeichnet), im Alpenglühen und mit warm erleuchteten Zimmern
+  function grandHotel(g, x0, ww, R) {
+    const y0 = 104, tw = 46, tx = x0 + ww * 0.5 - tw / 2;
+    const glow = g.createRadialGradient(x0 + ww / 2, ICE_TOP, 20, x0 + ww / 2, ICE_TOP, ww * 0.75); glow.addColorStop(0, "rgba(255,190,130,0.4)"); glow.addColorStop(1, "rgba(255,190,130,0)"); g.fillStyle = glow; g.fillRect(x0 - 100, 0, ww + 200, ICE_TOP);
+    const wall = g.createLinearGradient(0, y0, 0, ICE_TOP); wall.addColorStop(0, "#B9A49A"); wall.addColorStop(1, "#8E7A78"); g.fillStyle = wall; g.fillRect(x0, y0, ww, ICE_TOP - y0);
+    // Walmdach mit Gauben
+    g.fillStyle = "#3D3A4E"; g.beginPath(); g.moveTo(x0 - 8, y0 + 2); g.lineTo(x0 + 26, y0 - 22); g.lineTo(x0 + ww - 26, y0 - 22); g.lineTo(x0 + ww + 8, y0 + 2); g.closePath(); g.fill();
+    for (let x = x0 + 40; x < x0 + ww - 40; x += 44) { if (Math.abs(x - (x0 + ww / 2)) < 40) continue; g.fillStyle = "#3D3A4E"; g.fillRect(x - 6, y0 - 16, 12, 12); g.fillStyle = R() < 0.7 ? "#FFD88A" : "#4A4458"; g.fillRect(x - 3, y0 - 13, 6, 7); }
+    g.strokeStyle = "#141B25"; g.lineWidth = 2; g.strokeRect(x0, y0, ww, ICE_TOP - y0);
+    // Zimmerfenster: Reihen, viele warm erleuchtet
+    for (let y = y0 + 10; y < ICE_TOP - 18; y += 17) for (let x = x0 + 10; x < x0 + ww - 12; x += 15) {
+      if (x > tx - 8 && x < tx + tw + 4) continue;
+      const on = R() < 0.62;
+      if (on) { const wg = g.createRadialGradient(x + 3.5, y + 5, 0, x + 3.5, y + 5, 10); wg.addColorStop(0, "rgba(255,210,130,0.35)"); wg.addColorStop(1, "rgba(255,210,130,0)"); g.fillStyle = wg; g.fillRect(x - 7, y - 5, 21, 21); }
+      g.fillStyle = on ? "#FFD88A" : "#4A4458"; g.fillRect(x, y, 7, 10); g.fillStyle = "rgba(20,27,37,0.35)"; g.fillRect(x, y + 10, 7, 1.5);
+    }
+    // Turm mit spitzem Helm und Laterne
+    g.fillStyle = "#A8938C"; g.fillRect(tx, y0 - 46, tw, ICE_TOP - y0 + 46); g.strokeStyle = "#141B25"; g.lineWidth = 2; g.strokeRect(tx, y0 - 46, tw, ICE_TOP - y0 + 46);
+    g.fillStyle = "#34314A"; g.beginPath(); g.moveTo(tx - 6, y0 - 44); g.lineTo(tx + tw / 2, y0 - 108); g.lineTo(tx + tw + 6, y0 - 44); g.closePath(); g.fill(); g.stroke();
+    g.strokeStyle = "#E3B860"; g.lineWidth = 1.5; g.beginPath(); g.moveTo(tx + tw / 2, y0 - 108); g.lineTo(tx + tw / 2, y0 - 122); g.stroke(); g.fillStyle = "#E3B860"; g.beginPath(); g.arc(tx + tw / 2, y0 - 124, 2.2, 0, 7); g.fill();
+    for (let k = 0; k < 4; k++) { const y = y0 - 36 + k * 26; g.fillStyle = "#FFD88A"; g.beginPath(); g.moveTo(tx + 15, y + 14); g.lineTo(tx + 15, y + 5); g.arc(tx + tw / 2, y + 5, 8, Math.PI, 0); g.lineTo(tx + 31, y + 14); g.closePath(); g.fill(); }
+    // Uhr am Turm
+    g.fillStyle = "#F1E7D2"; g.beginPath(); g.arc(tx + tw / 2, y0 - 30, 7, 0, 7); g.fill(); g.strokeStyle = "#141B25"; g.lineWidth = 1; g.stroke(); g.beginPath(); g.moveTo(tx + tw / 2, y0 - 30); g.lineTo(tx + tw / 2, y0 - 35); g.moveTo(tx + tw / 2, y0 - 30); g.lineTo(tx + tw / 2 + 3.5, y0 - 30); g.stroke();
+    // Alpenglühen auf der Fassade
+    const ag = g.createLinearGradient(0, y0 - 120, 0, ICE_TOP); ag.addColorStop(0, "rgba(255,150,160,0.28)"); ag.addColorStop(1, "rgba(80,70,140,0.18)"); g.fillStyle = ag; g.fillRect(x0, y0, ww, ICE_TOP - y0); g.fillRect(tx, y0 - 46, tw, 46);
+  }
   function far(dpr, P) {
     const w = Math.ceil(W + (WW - W) * parOf(P)) + 4, [c, g] = mk(w, ICE_TOP, dpr), R = rng(11), st = P.style || "wien";
     const sky = g.createLinearGradient(0, 0, 0, ICE_TOP);
@@ -4157,7 +4191,7 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
       for (let i = 0; i < 160; i++) { const x = R() * w, y = R() * 110, z = R(); g.globalAlpha = 0.3 + 0.7 * z * (1 - y / 130); g.fillRect(x, y, z > 0.85 ? 2 : 1.2, z > 0.85 ? 2 : 1.2); }
       g.globalAlpha = 1;
     }
-    if (P.sun) { const sx = w * 0.7, sy = 120, sg = g.createRadialGradient(sx, sy, 4, sx, sy, 120); sg.addColorStop(0, "rgba(255,236,190,0.95)"); sg.addColorStop(0.12, "rgba(255,210,140,0.6)"); sg.addColorStop(1, "rgba(255,190,120,0)"); g.fillStyle = sg; g.fillRect(sx - 120, sy - 120, 240, 240); }
+    if (P.sun) { const sx = w * 0.7, sy = P.day ? 52 : 120, sg = g.createRadialGradient(sx, sy, 4, sx, sy, 120); sg.addColorStop(0, "rgba(255,236,190,0.95)"); sg.addColorStop(0.12, "rgba(255,210,140,0.6)"); sg.addColorStop(1, "rgba(255,190,120,0)"); g.fillStyle = sg; g.fillRect(sx - 120, sy - 120, 240, 240); }
     if (P.mountains) mountains(g, w, R, P);
     let bx0 = w * 0.42, bx1 = bx0 + 420;
     if (st === "wien") {
@@ -4167,8 +4201,8 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
       // Palais im Stil der Ringstraße: Flügel mit Pilastern und Balustrade, Mittelrisalit mit Giebel und Kuppel,
       // hohe Bogenfenster im Festsaal, in jedem ein Kristallluster. Alle Fenster sitzen genau in den Achsen zwischen den Pilastern.
       palais(w * 0.42, 420, 70);
-    } else if (st === "stmoritz") { bx0 = w * 0.47; bx1 = bx0 + 330; palais(bx0, 330, 70); }
-    else { bx0 = w * 0.4; bx1 = bx0 + 460; chalet(g, bx0, 460, R); }
+    } else if (st === "stmoritz") { bx0 = w * 0.44; bx1 = bx0 + 400; grandHotel(g, bx0, 400, R); }
+    else { bx0 = w * 0.4; bx1 = bx0 + 460; chalet(g, bx0, 460, R, P.day); }
     function palais(kx, kw, ky) {
       { const hg = g.createRadialGradient(kx + kw / 2, ICE_TOP, 20, kx + kw / 2, ICE_TOP, kw * 0.8); hg.addColorStop(0, "rgba(255,200,120,0.55)"); hg.addColorStop(1, "rgba(255,200,120,0)"); g.fillStyle = hg; g.fillRect(kx - kw * 0.3, 0, kw * 1.6, ICE_TOP); }
       const cx0 = kx + kw * 0.34, cw = kw * 0.32, wy = ky + 34; // Mittelrisalit, Oberkante der Flügel
@@ -4255,7 +4289,7 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
       // Lichterkette ums Stammende gewickelt
       for (let k = 0; k < 7; k++) bulb(x + (k % 2 ? 3 : -3) * s, ICE_TOP - 8 * s - k * 7 * s);
     };
-    const fir = (x, s) => {
+    const fir = (x, s, plain) => { // plain: Bergwald ohne Lichter
       const hh = 96 * s, bw = 30 * s;
       g.fillStyle = "#3A2A22"; g.fillRect(x - 2.5 * s, ICE_TOP - 10 * s, 5 * s, 10 * s);
       for (let k = 0; k < 4; k++) {
@@ -4265,11 +4299,11 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
         g.fillStyle = "#E6EDF6"; g.beginPath(); g.moveTo(x - ww, y0);
         for (let i = 0; i <= 6; i++) { const t = i / 6, xx = x - ww + 2 * ww * t; g.quadraticCurveTo(xx - ww / 6, y0 - 4 * s, xx, y0 - (i % 2 ? 1 : 2.5) * s); }
         g.lineTo(x + ww * 0.55, y0 - (y0 - top) * 0.45); g.lineTo(x, top + 2); g.lineTo(x - ww * 0.55, y0 - (y0 - top) * 0.45); g.closePath(); g.globalAlpha = 0.85; g.fill(); g.globalAlpha = 1;
-        for (let i = 0; i < 3; i++) if (R() < 0.6) bulb(x - ww * 0.7 + R() * ww * 1.4, y0 - 2 - R() * 6 * s);
+        if (!plain) for (let i = 0; i < 3; i++) if (R() < 0.6) bulb(x - ww * 0.7 + R() * ww * 1.4, y0 - 2 - R() * 6 * s);
       }
-      g.fillStyle = "#F3C969"; g.beginPath(); g.arc(x, ICE_TOP - 8 * s - hh * 0.63 - hh * 0.36 + 2, 1.8 * s, 0, 7); g.fill(); glow(x, ICE_TOP - 8 * s - hh * 0.99, 8, 0.5);
+      if (!plain) { g.fillStyle = "#F3C969"; g.beginPath(); g.arc(x, ICE_TOP - 8 * s - hh * 0.63 - hh * 0.36 + 2, 1.8 * s, 0, 7); g.fill(); glow(x, ICE_TOP - 8 * s - hh * 0.99, 8, 0.5); }
     };
-    const plant = (x) => { const sc = 0.8 + R() * 0.45; if (R() < 0.45) fir(x, sc * 0.95); else lightTree(x, sc); };
+    const plant = P.trees === "pines" ? (x) => { const sc = 0.85 + R() * 0.55; fir(x, sc, true); if (R() < 0.6) fir(x + 22 * sc, sc * 0.7, true); } : (x) => { const sc = 0.8 + R() * 0.45; if (R() < 0.45) fir(x, sc * 0.95); else lightTree(x, sc); };
     for (let x = 20; x < bx0 - 30; x += 60 + R() * 50) plant(x);
     for (let x = bx1 + 40; x < w; x += 60 + R() * 50) plant(x);
     // Schnee am Boden vor der Bande
@@ -4280,10 +4314,31 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
   function near(dpr, P) {
     const w = WW, [c, g] = mk(w, H, dpr), R = rng(5), people = [], bulbs = [];
     // Laternen und Lichterketten (vor dem Konzerthaus, über dem Publikum)
-    const posts = []; if (!P.indoor) for (let x = 120; x < w; x += 330) posts.push(x);
+    const deco = P.deco || (P.indoor ? "none" : "lights");
+    const posts = []; if (deco !== "none") for (let x = 120; x < w; x += deco === "torches" ? 220 : 330) posts.push(x);
     g.strokeStyle = "#141B25"; g.lineWidth = 3;
-    for (const x of posts) { g.beginPath(); g.moveTo(x, 205); g.lineTo(x, 70); g.stroke(); g.fillStyle = "#141B25"; g.fillRect(x - 5, 64, 10, 8); }
-    for (let i = 0; i < posts.length - 1; i++) {
+    if (deco === "torches") {
+      // Fackeln an der Bande: Holzpfahl, Eisenkorb, Flamme mit großem warmem Schein (flackert über die Lichter-Liste)
+      for (const x of posts) {
+        const top = 150; g.strokeStyle = "#3A2A22"; g.lineWidth = 4; g.beginPath(); g.moveTo(x, 205); g.lineTo(x, top); g.stroke();
+        const gl = g.createRadialGradient(x, top - 8, 0, x, top - 8, 46); gl.addColorStop(0, "rgba(255,190,100,0.55)"); gl.addColorStop(1, "rgba(255,150,80,0)"); g.fillStyle = gl; g.fillRect(x - 46, top - 54, 92, 92);
+        g.fillStyle = "#1C1F26"; g.beginPath(); g.moveTo(x - 6, top); g.lineTo(x + 6, top); g.lineTo(x + 4, top + 6); g.lineTo(x - 4, top + 6); g.closePath(); g.fill();
+        g.fillStyle = "#F07A2A"; g.beginPath(); g.moveTo(x - 5, top); g.quadraticCurveTo(x - 6, top - 10, x, top - 20); g.quadraticCurveTo(x + 6, top - 10, x + 5, top); g.closePath(); g.fill();
+        g.fillStyle = "#FFD27A"; g.beginPath(); g.moveTo(x - 2.5, top); g.quadraticCurveTo(x - 3, top - 6, x, top - 12); g.quadraticCurveTo(x + 3, top - 6, x + 2.5, top); g.closePath(); g.fill();
+        bulbs.push([x, top - 8]);
+      }
+    } else if (deco === "flags") {
+      // Wimpelketten zwischen hohen Masten: rot-weiß wie in der Schweiz, dazwischen blau
+      for (const x of posts) { g.strokeStyle = "#141B25"; g.lineWidth = 3; g.beginPath(); g.moveTo(x, 205); g.lineTo(x, 60); g.stroke(); g.fillStyle = "#C23B2A"; g.fillRect(x, 60, 20, 13); g.fillStyle = "#F4EEE6"; g.fillRect(x + 8.5, 62.5, 3, 8); g.fillRect(x + 6, 65, 8, 3); }
+      for (let i = 0; i < posts.length - 1; i++) {
+        const a = posts[i], b = posts[i + 1];
+        g.strokeStyle = "rgba(20,27,37,0.8)"; g.lineWidth = 1; g.beginPath();
+        for (let k = 0; k <= 20; k++) { const t = k / 20, x = a + (b - a) * t, y = 76 + Math.sin(Math.PI * t) * 30; k ? g.lineTo(x, y) : g.moveTo(x, y); }
+        g.stroke();
+        for (let k = 1; k < 20; k++) { const t = k / 20, x = a + (b - a) * t, y = 76 + Math.sin(Math.PI * t) * 30; g.fillStyle = ["#C23B2A", "#F4EEE6", "#23466B"][k % 3]; g.beginPath(); g.moveTo(x - 5, y); g.lineTo(x + 5, y); g.lineTo(x, y + 11); g.closePath(); g.fill(); }
+      }
+    } else for (const x of posts) { g.beginPath(); g.moveTo(x, 205); g.lineTo(x, 70); g.stroke(); g.fillStyle = "#141B25"; g.fillRect(x - 5, 64, 10, 8); }
+    if (deco === "lights") for (let i = 0; i < posts.length - 1; i++) {
       const a = posts[i], b = posts[i + 1];
       g.strokeStyle = "rgba(20,27,37,0.8)"; g.lineWidth = 1; g.beginPath();
       for (let k = 0; k <= 20; k++) { const t = k / 20, x = a + (b - a) * t, y = 74 + Math.sin(Math.PI * t) * 34; k ? g.lineTo(x, y) : g.moveTo(x, y); }
@@ -4384,7 +4439,8 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
     g.strokeStyle = "#141B25"; g.lineWidth = 2; g.beginPath(); g.moveTo(0, 204); g.lineTo(w, 204); g.moveTo(0, ICE_TOP); g.lineTo(w, ICE_TOP); g.stroke();
     // Eis: hell, Kufenspuren, Spiegelung der Lichter
     const ice = g.createLinearGradient(0, ICE_TOP, 0, H);
-    ice.addColorStop(0, "#8C9CC2"); ice.addColorStop(0.3, "#B4C3DA"); ice.addColorStop(0.75, "#D6DFEA"); ice.addColorStop(1, "#E4E6EA");
+    const IC = P.ice || ["#8C9CC2", "#B4C3DA", "#D6DFEA", "#E4E6EA"];
+    ice.addColorStop(0, IC[0]); ice.addColorStop(0.3, IC[1]); ice.addColorStop(0.75, IC[2]); ice.addColorStop(1, IC[3]);
     g.fillStyle = ice; g.fillRect(0, ICE_TOP, w, H - ICE_TOP);
     // Spiegelbilder der Lichterkette auf dem Eis: weiche, senkrechte Lichtstreifen
     for (const [x, y] of bulbs) {
@@ -4392,8 +4448,8 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
       g.fillStyle = gl; g.fillRect(x - 1.6, ry - 6, 3.2, 32);
     }
     // Spiegelung der Laternen: schmaler, zarter Lichtstreif, der nach vorn ausläuft
-    for (const x of posts) {
-      const gl = g.createLinearGradient(0, ICE_TOP, 0, ICE_TOP + 90); gl.addColorStop(0, "rgba(255,226,170,0.22)"); gl.addColorStop(1, "rgba(255,226,170,0)");
+    for (const x of deco === "flags" ? [] : posts) {
+      const gl = g.createLinearGradient(0, ICE_TOP, 0, ICE_TOP + 90); gl.addColorStop(0, deco === "torches" ? "rgba(255,170,90,0.4)" : "rgba(255,226,170,0.22)"); gl.addColorStop(1, "rgba(255,226,170,0)");
       g.fillStyle = gl; g.beginPath(); g.moveTo(x - 3, ICE_TOP); g.lineTo(x + 3, ICE_TOP); g.lineTo(x + 7, ICE_TOP + 90); g.lineTo(x - 7, ICE_TOP + 90); g.closePath(); g.fill();
     }
     g.strokeStyle = "rgba(120,140,160,0.28)"; g.lineWidth = 1;
@@ -4611,7 +4667,7 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
 /* COLD MEDAL EISKUNSTLAUF – Ablauf, Bildschirme, Eingabe, Taktband, Ergebnis, Spielstand. */
 (function () {
   "use strict";
-  const VERSION = "0.64";
+  const VERSION = "0.65";
   // Seiten-Einstellungen aus dem Build (eigenes Hosting: Adresse, Hoster, Impressum); im claude.ai-Artefakt leer
   const SITE = Object.assign({ web: false, url: "", impressum: null }, {"web": true, "supabase": {"url": "https://pqpvgkslozsekjywpdrf.supabase.co", "key": "sb_publishable_KkKe9jchmXYp_-OEmB8WLQ_gZLXrRhF"}, "url": "https://matpeins-debug.github.io/cold-medal-eiskunstlauf/", "hoster": "GitHub Pages (GitHub Inc., USA)", "drittland": "GitHub ist nach dem EU-US Data Privacy Framework zertifiziert; die Übermittlung in die USA stützt sich auf den Angemessenheitsbeschluss der EU-Kommission dazu.", "impressum": {"name": "", "adresse": "", "mail": ""}} || {});
   const M = window.EKMusic, K = window.EKSkate, F = window.EKFig, SC = window.EKScene, PASS = window.CMPass;
@@ -4722,8 +4778,8 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
   //   Davos: Kür mit Aufgabe – erfüllt = +3 Punkte (wechselt je Saison: ohne Sturz, im Takt, Serie)
   //   St. Moritz: Schaulaufen – das Publikum gibt Punkte für Show-Effekte, Choreo-Figuren und Serien
   //   Finale (Gala der Eisrevue): die große Kür, alles zählt
-  const SEASON = [{ id: "wien", boost: 0, fmt: "short" }, { id: "davos", boost: 2, fmt: "task" }, { id: "stmoritz", boost: 4, fmt: "show" }, { id: "revue", boost: 6, finale: true, fmt: "free" }];
-  const FMT = { short: "Kurzprogramm", task: "Kür mit Aufgabe", show: "Schaulaufen", free: "Große Kür" };
+  const SEASON = [{ id: "wien", boost: 0, fmt: "free" /* 0.65 (Mat): kein Kurzprogramm mehr – überall die ganze Kür */ }, { id: "davos", boost: 2, fmt: "task" }, { id: "stmoritz", boost: 4, fmt: "show" }, { id: "revue", boost: 6, finale: true, fmt: "free" }];
+  const FMT = { short: "Kurzprogramm", task: "Kür mit Aufgabe", show: "Schaulaufen", free: "Kür" };
   const SHORT_SLOTS = { anf: ["1T", "USp", "StSq", "~", "1S"], norm: ["2T", "USp", "StSq", "~", "2S"], pro: ["2A", "CSp", "StSq", "~", "2Lz+2T"] }; // Schritte brauchen zwei Abschnitte
   const SHORT_N = 5; // Abschnitte im Kurzprogramm
   const TASKS = [
@@ -6630,7 +6686,7 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
       if (board && rank <= 3) {
         // Jubel: Applaus und Bravo-Rufe, Konfetti im Kiss & Cry, danach die Ehrenrunde
         sfx("applause", rank === 1 ? 1 : 0.7); sfx("woo", rank === 1 ? 1 : 0.6);
-        run.honorTitle = `${rank}. Platz · ${dec(res.total)} Punkte`; $("rHonor").hidden = false; // Ehrenrunde auf Wunsch
+        if (run) { run.honorTitle = `${rank}. Platz · ${dec(res.total)} Punkte`; $("rHonor").hidden = false; } // Ehrenrunde auf Wunsch
       } else if (board) sfx("applause", 0.35);
       card.onclick = null;
     };
@@ -6705,7 +6761,7 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
     fm.innerHTML = ev.fmt === "short" ? `<b>Kurzprogramm</b> Kürzer, mit Pflichtelementen: ${sl.filter((id) => id !== "~").map((id) => esc(K.CATALOG[id].name)).join(", ")}. Deine Musik und dein Laufweg bleiben.`
       : ev.fmt === "task" ? `<b>Aufgabe: ${esc(curTask().name)}</b> ${esc(curTask().txt)} Geschafft = +${TASK_PTS} Punkte.`
       : ev.fmt === "show" ? `<b>Schaulaufen</b> Das Publikum wertet mit: Punkte für jeden Show-Effekt im Kürplan, getroffene Choreo-Figuren ✦ und lange Serien.`
-      : `<b>Die große Kür</b> Deine ganze Kür vor vollem Haus – hier wird die Saison entschieden.`;
+      : ev.finale ? `<b>Finale</b> Deine ganze Kür vor vollem Haus – hier wird die Saison entschieden.` : `<b>Saisonauftakt</b> Deine ganze Kür, ohne Zusatzaufgabe – zeig, was du kannst.`;
     // Training an jedem erreichten Ort
     const ip = $("iPlaces"); ip.hidden = mode === "comp" || !!grpRun || S.places.length < 2;
     ip.innerHTML = `<small>ORT</small>` + S.places.map((id) => `<button class="tg${pl.id === id ? " on" : ""}" data-pl="${id}">${esc(SC.PLACES[id].name)}</button>`).join("");
