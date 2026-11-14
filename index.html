@@ -529,6 +529,52 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
 .iPlaces small { font-family: var(--font-display); font-size: 10px; letter-spacing: 0.14em; color: #F3C969; margin-right: 4px; }
 .iPlaces[hidden] { display: none; }
 
+/* ---------- Hauptmenü wie Skispringen und Biathlon (0.56) ---------- */
+@font-face { font-family: "Plakat"; src: local("Futura-CondensedExtraBold"), local("Futura Condensed ExtraBold"); font-weight: 600 900; }
+@font-face { font-family: "Plakat"; src: local("Futura-CondensedMedium"), local("Futura Condensed Medium"); font-weight: 100 599; }
+#scrMenu { display: block; padding: 0; } #scrMenu[hidden] { display: none; }
+.tCol { position: absolute; left: 24px; top: 14px; width: 380px; display: flex; flex-direction: column; gap: 10px; }
+.tHead { display: flex; flex-direction: column; gap: 2px; }
+.tKick { font-family: var(--font-display); font-weight: 700; font-size: 11px; letter-spacing: 0.32em; color: var(--gold); text-shadow: 0 1px 2px rgba(10,14,20,0.7); }
+.logo { font-family: "Plakat", var(--font-display); font-weight: 800; font-size: 60px; line-height: 58px; letter-spacing: 0.015em; text-transform: uppercase; color: #F6EEDB;
+  text-shadow: 3px 3px 0 var(--red), 6px 6px 0 rgba(10,14,20,0.45); white-space: nowrap; }
+.tBtn { position: relative; display: flex; align-items: center; justify-content: space-between; gap: 10px; height: 44px; padding: 0 12px 0 16px; border-radius: 4px;
+  font-family: "Plakat", var(--font-display); font-weight: 700; font-size: 18px; letter-spacing: 0.07em; text-transform: uppercase; text-align: left;
+  border: 2px solid var(--ink-deep); box-shadow: 0 3px 0 var(--ink-deep); }
+.tBtn i { font-style: normal; font-size: 22px; line-height: 1; }
+.tBtn.sec { background: var(--paper); color: var(--ink); }
+.tBtn.prim { width: 100%; height: 56px; background: var(--red); color: #FBF4E4; font-size: 22px;
+  box-shadow: inset 0 0 0 2px var(--red), inset 0 0 0 3px rgba(251,244,228,0.5), 0 3px 0 var(--ink-deep); }
+.tBtn .t2 { display: flex; flex-direction: column; align-items: flex-start; line-height: 1.05; min-width: 0; }
+.tBtn .t2 small { font-family: var(--font-body); font-weight: 400; font-size: 12px; letter-spacing: 0; text-transform: none; opacity: 0.92; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 320px; }
+.tBtn:active, .chipBtn:active { transform: translateY(2px); box-shadow: 0 1px 0 var(--ink-deep); }
+.tGrid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.tGrid:has(#bGrp[hidden]) #bAlbum { grid-column: span 2; }
+.tBtn.grpBtn { width: auto; flex-direction: row; align-items: center; justify-content: space-between; gap: 10px; padding: 0 12px 0 16px; background: var(--paper); color: var(--ink); font-size: 18px; letter-spacing: 0.07em; box-shadow: 0 3px 0 var(--ink-deep); }
+.tBtn .nw { position: absolute; top: -8px; right: -8px; }
+.placeCard { display: flex; flex-direction: column; gap: 2px; padding: 7px 12px 8px; text-align: left; color: #F5EDDA; background: rgba(24,44,69,0.9);
+  border: 1.5px solid rgba(245,237,218,0.55); border-radius: 4px; box-shadow: inset 0 0 0 2px rgba(24,44,69,0.9), inset 0 0 0 3px rgba(245,237,218,0.2), 0 3px 0 rgba(8,12,18,0.35); }
+.placeCard b { display: flex; align-items: center; gap: 8px; font-family: "Plakat", var(--font-display); font-weight: 700; font-size: 19px; letter-spacing: 0.03em; }
+.placeCard small { font-size: 12px; color: #E2D7BF; }
+.placeCard .iBtn { display: inline-grid; place-items: center; width: 17px; height: 17px; border-radius: 50%; border: 1.5px solid rgba(245,237,218,0.7); font-family: var(--font-body); font-style: italic; font-size: 11px; font-weight: 700; }
+.placeCard .fact { display: none; font-size: 11.5px; line-height: 1.3; color: #E2D7BF; }
+.placeCard.open .fact { display: block; }
+.stops { display: flex; gap: 4px; font-family: var(--font-display); font-weight: 700; font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase; color: rgba(245,237,218,0.45); }
+.stops span::after { content: " ·"; color: rgba(245,237,218,0.3); } .stops span:last-child::after { content: ""; }
+.stops .done { color: rgba(245,237,218,0.8); } .stops .on { color: var(--gold); }
+.tTop { position: absolute; right: 20px; top: 14px; display: flex; align-items: center; gap: 8px; }
+.tTop #mCodeW { display: flex; } .tTop #mCodeW[hidden] { display: none; }
+.chipBtn { display: flex; align-items: center; gap: 8px; height: 40px; padding: 0 12px; background: var(--paper); color: var(--ink); border: 2px solid var(--ink-deep); border-radius: 4px;
+  box-shadow: 0 3px 0 var(--ink-deep); font-family: "Plakat", var(--font-display); font-weight: 700; font-size: 17px; letter-spacing: 0.05em; text-transform: uppercase; white-space: nowrap; }
+.chipBtn #mName { max-width: 150px; overflow: hidden; text-overflow: ellipsis; }
+.chipBtn .pen { width: 15px; height: 15px; color: #6E6453; }
+.chipBtn.icoBtn { width: 40px; padding: 0; justify-content: center; } .chipBtn.icoBtn svg { width: 22px; height: 22px; }
+.flag { display: inline-flex; box-shadow: 0 0 0 1px rgba(20,27,37,0.35); }
+#scrMenu .planCard { position: absolute; right: 20px; bottom: 38px; width: 300px; border-radius: 4px; }
+.tNote { position: absolute; right: 20px; bottom: 10px; font-family: var(--font-body); font-style: italic; font-size: 11px; line-height: 14px; color: rgba(245,237,218,0.86);
+  background: rgba(20,27,37,0.55); padding: 2px 8px; border-radius: 2px; }
+.tNote u { text-underline-offset: 2px; }
+
 /* Cold Medal Games · Fenster „Deine Figur“ (pass/pass.css)
    Aussehen wie die Menüs des Skispringens: Papier mit Doppelrahmen, Knöpfe wie Druckmarken, Futura für Titel und Knöpfe,
    Buchschrift für Lesetext. Farben und Schriften kommen aus den Variablen des Spiels (alle Spiele der Reihe haben sie),
@@ -680,23 +726,26 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
   </div>
 
   <section class="scr" id="scrMenu">
-    <div class="card menu">
-      <div class="kicker">COLD MEDAL GAMES</div>
-      <h1>Eiskunstlauf</h1>
-      <div class="place"><b id="mPlace"></b><span id="mFact"></span></div>
-      <div class="col">
-        <div class="compRow"><button class="big red" id="bComp"><span>Kür · Wettkampf</span><small id="mBest"></small></button>
-          <button class="mid grpBtn" id="bGrp" hidden><span>Gruppen</span><small>mit Freunden</small><b class="nw" id="mGrpNw" hidden></b></button></div>
-        <button class="planCard" id="bProg"><span class="pcHead"><b>MEINE KÜR</b><i id="mPiece"></i><em id="mNote"></em></span><span class="pcStrip" id="mStrip"></span><span class="pcFoot">Kürplan gestalten <b>›</b></span></button>
-        <div class="row2">
-          <button class="mid" id="bTrain">Training</button>
-          <button class="mid" id="bLook">Figur</button>
-          <button class="mid" id="bAlbum">Album</button>
-          <button class="mid" id="bSet">Optionen</button>
-        </div>
+    <!-- Hauptmenü wie in Skispringen und Biathlon (Mat, 14.11.2026): Sportart klein, COLD MEDAL groß, roter Hauptknopf,
+         helle Knöpfe mit Pfeil, Ortskarte unten, Figur oben rechts; die Halle bleibt frei sichtbar -->
+    <div class="tCol">
+      <div class="tHead"><span class="tKick">EISKUNSTLAUF</span><h1 class="logo">Cold Medal</h1></div>
+      <div class="compRow"><button class="tBtn prim" id="bComp"><span class="t2"><span>Kür · Wettkampf</span><small id="mBest"></small></span><i>→</i></button></div>
+      <div class="tGrid">
+        <button class="tBtn sec" id="bTrain"><span>Training</span><i>›</i></button>
+        <button class="tBtn sec grpBtn" id="bGrp" hidden><span>Gruppen</span><b class="nw" id="mGrpNw" hidden></b><i>›</i></button>
+        <button class="tBtn sec" id="bMusic"><span>Musik</span><i>›</i></button>
+        <button class="tBtn sec" id="bAlbum"><span>Album</span><i>›</i></button>
       </div>
-      <div class="foot"><span id="mFoot"></span> · <button class="lnk" id="bInfo">Info &amp; Datenschutz</button><span id="mCodeW" hidden> · <button class="lnk" id="bCode">Code</button></span></div>
+      <button class="placeCard" id="bPlace" aria-label="Über den Ort"><span class="stops" id="mStops"></span><b><span id="mPlace"></span><span class="iBtn">i</span></b><small id="mVenue"></small><span class="fact" id="mFact"></span></button>
     </div>
+    <div class="tTop">
+      <button class="chipBtn" id="bLook" aria-label="Deine Figur bearbeiten"><span class="flag" id="mFlag"></span><span id="mName"></span><svg class="pen" viewBox="0 0 16 16" aria-hidden="true"><path d="M3 13l1-3 7-7 2 2-7 7z M10 4l2 2" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/></svg></button>
+      <span id="mCodeW" hidden><button class="chipBtn" id="bCode">Code</button></span>
+      <button class="chipBtn icoBtn" id="bSet" aria-label="Optionen"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h10M18 7h2M4 17h4M12 17h8" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><circle cx="16" cy="7" r="2.3" fill="none" stroke="currentColor" stroke-width="2"/><circle cx="10" cy="17" r="2.3" fill="none" stroke="currentColor" stroke-width="2"/></svg></button>
+    </div>
+    <button class="planCard" id="bProg"><span class="pcHead"><b>MEINE KÜR</b><i id="mPiece"></i><em id="mNote"></em></span><span class="pcStrip" id="mStrip"></span><span class="pcFoot">Kürplan gestalten <b>›</b></span></button>
+    <button class="tNote" id="bInfo"><span id="mFoot"></span> · <u>Info &amp; Datenschutz</u></button>
   </section>
 
   <!-- Figur: das Fenster „Deine Figur“ aus dem Pass der Reihe (../pass/pass-ui.js füllt es) -->
@@ -4483,7 +4532,7 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
 /* COLD MEDAL EISKUNSTLAUF – Ablauf, Bildschirme, Eingabe, Taktband, Ergebnis, Spielstand. */
 (function () {
   "use strict";
-  const VERSION = "0.55";
+  const VERSION = "0.56";
   // Seiten-Einstellungen aus dem Build (eigenes Hosting: Adresse, Hoster, Impressum); im claude.ai-Artefakt leer
   const SITE = Object.assign({ web: false, url: "", impressum: null }, {"web": true, "supabase": {"url": "https://pqpvgkslozsekjywpdrf.supabase.co", "key": "sb_publishable_KkKe9jchmXYp_-OEmB8WLQ_gZLXrRhF"}, "url": "https://matpeins-debug.github.io/cold-medal-eiskunstlauf/", "hoster": "GitHub Pages (GitHub Inc., USA)", "drittland": "GitHub ist nach dem EU-US Data Privacy Framework zertifiziert; die Übermittlung in die USA stützt sich auf den Angemessenheitsbeschluss der EU-Kommission dazu.", "impressum": {"name": "", "adresse": "", "mail": ""}} || {});
   const M = window.EKMusic, K = window.EKSkate, F = window.EKFig, SC = window.EKScene, PASS = window.CMPass;
@@ -6320,9 +6369,44 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
   // ------------------------------------------------------------------ Bildschirme
   const SCREENS = ["scrMenu", "scrGrp", "scrLook", "scrSet", "scrIntro", "scrRes", "scrInfo", "scrProg", "scrPaint", "scrAlbum"];
   function show(id) { for (const s of SCREENS) $(s).hidden = s !== id; if (id === "scrMenu") { grpRun = null; fillMenu(); } }
+  // Fahne wie im Skispringen (dieselbe Zeichnung), dazu Niederlande und Kanada
+  function flag(code, w, h) {
+    w = w || 18; h = h || 12;
+    const r = (x, y, ww, hh, c) => `<rect x="${x}" y="${y}" width="${ww}" height="${hh}" fill="${c}"/>`;
+    let s;
+    switch (code) {
+      case "GER": s = r(0, 0, w, h / 3, "#111") + r(0, h / 3, w, h / 3, "#D00") + r(0, 2 * h / 3, w, h / 3, "#FFCE00"); break;
+      case "SUI": s = r(0, 0, w, h, "#D52B1E") + r(w / 2 - 1.2, 2.2, 2.4, h - 4.4, "#FFF") + r(w / 2 - 3.6, h / 2 - 1.2, 7.2, 2.4, "#FFF"); break;
+      case "NOR": s = r(0, 0, w, h, "#BA0C2F") + r(5, 0, 3.6, h, "#FFF") + r(0, 4.2, w, 3.6, "#FFF") + r(5.9, 0, 1.8, h, "#00205B") + r(0, 5.1, w, 1.8, "#00205B"); break;
+      case "SLO": {
+        // mit Wappen (Schild mit Triglav), sonst sähe die Flagge wie eine andere aus
+        const sx = w * 0.16, sy = h * 0.1, sw = w * 0.22, sh = h * 0.5;
+        const shield = (i, c) => `<path d="M${sx + i} ${sy + i}H${sx + sw - i}V${sy + sh * 0.58}Q${sx + sw - i} ${sy + sh - i} ${sx + sw / 2} ${sy + sh - i}Q${sx + i} ${sy + sh - i} ${sx + i} ${sy + sh * 0.58}Z" fill="${c}"/>`;
+        s = r(0, 0, w, h / 3, "#FFF") + r(0, h / 3, w, h / 3, "#0000CC") + r(0, 2 * h / 3, w, h / 3, "#DD0000")
+          + shield(0, "#DD0000") + shield(Math.max(0.5, w * 0.03), "#0B4EA2")
+          + `<path d="M${sx + sw * 0.2} ${sy + sh * 0.66}L${sx + sw * 0.5} ${sy + sh * 0.26}L${sx + sw * 0.8} ${sy + sh * 0.66}Z" fill="#FFF"/>`;
+        break;
+      }
+      case "POL": s = r(0, 0, w, h / 2, "#FFF") + r(0, h / 2, w, h / 2, "#DC143C"); break;
+      case "JPN": s = r(0, 0, w, h, "#FFF") + `<circle cx="${w / 2}" cy="${h / 2}" r="3.4" fill="#BC002D"/>`; break;
+      case "FIN": s = r(0, 0, w, h, "#FFF") + r(5, 0, 3.2, h, "#003580") + r(0, 4.4, w, 3.2, "#003580"); break;
+      case "ITA": s = r(0, 0, w / 3, h, "#009246") + r(w / 3, 0, w / 3, h, "#FFF") + r(2 * w / 3, 0, w / 3, h, "#CE2B37"); break;
+      case "CZE": s = r(0, 0, w, h / 2, "#FFF") + r(0, h / 2, w, h / 2, "#D7141A") + `<path d="M0 0L${w * 0.5} ${h / 2}L0 ${h}Z" fill="#11457E"/>`; break;
+      case "FRA": s = r(0, 0, w / 3, h, "#0055A4") + r(w / 3, 0, w / 3, h, "#FFF") + r(2 * w / 3, 0, w / 3, h, "#EF4135"); break;
+      case "SWE": s = r(0, 0, w, h, "#006AA7") + r(5, 0, 3.2, h, "#FECC00") + r(0, 4.4, w, 3.2, "#FECC00"); break;
+      case "NED": s = r(0, 0, w, h / 3, "#AE1C28") + r(0, h / 3, w, h / 3, "#FFF") + r(0, 2 * h / 3, w, h / 3, "#21468B"); break;
+      case "CAN": s = r(0, 0, w, h, "#FFF") + r(0, 0, w / 4, h, "#D80621") + r(3 * w / 4, 0, w / 4, h, "#D80621") + `<path d="M${w / 2} ${h * 0.2}L${w * 0.6} ${h * 0.62}L${w * 0.4} ${h * 0.62}Z" fill="#D80621"/>`; break;
+      case "AUT": s = r(0, 0, w, h, "#C8102E") + r(0, h / 3, w, h / 3, "#FFF"); break;
+      case "USA": { s = ""; for (let i = 0; i < 7; i++) s += r(0, i * h / 6.5, w, h / 13, "#B22234"); s = r(0, 0, w, h, "#FFF") + s + r(0, 0, w * 0.42, h * 0.54, "#3C3B6E"); break; }
+      default: s = r(0, 0, w, h, "#C8102E") + r(0, h / 3, w, h / 3, "#FFF");
+    }
+    return `<svg width="${w}" height="${h}" viewBox="0 0 ${w} ${h}" aria-hidden="true">${s}</svg>`;
+  }
   function fillMenu() {
     const ev = SEASON[S.season.ev], PL = SC.PLACES[ev.id]; usePlace(ev.id); trainPlace = null;
-    $("mPlace").textContent = `${PL.venue} · ${PL.name}`; $("mFact").textContent = PL.fact;
+    $("mPlace").textContent = PL.name; $("mVenue").textContent = PL.venue; $("mFact").textContent = PL.fact; $("bPlace").classList.remove("open");
+    $("mStops").innerHTML = SEASON.map((e, i) => `<span class="${i < S.season.ev ? "done" : i === S.season.ev ? "on" : ""}">${esc(SC.PLACES[e.id].name)}</span>`).join("");
+    $("mFlag").innerHTML = flag(S.nat || "AUT", 22, 14); $("mName").textContent = (S.name || "Deine Figur").trim();
     const me = seasonTable().find((x) => x.me), pos = seasonTable().findIndex((x) => x.me) + 1;
     $("mBest").textContent = nb(`Saison ${S.season.n} · ${ev.finale ? "Finale: Gala der Eisrevue" : `Wettbewerb ${S.season.ev + 1} von ${SEASON.length}`}${me ? ` · du ${pos}. mit ${me.pts} Pkt` : ""}`);
     fillPlanCard();
@@ -6395,6 +6479,8 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
   PASS.on(() => { fromPass(); if (!$("scrMenu").hidden) fillMenu(); });
   function openLook(next, o) { lookNext = next || null; show("scrLook"); passUi.open(o || {}); }
   $("bLook").onclick = () => openLook();
+  $("bPlace").onclick = () => $("bPlace").classList.toggle("open");
+  $("bMusic").onclick = () => { $("bProg").onclick(); pSheet = "musik"; fillProg(); };
   $("mCodeW").hidden = !ONLINE;
   $("bCode").onclick = () => openLook(null, { tab: "code" }); // Code steht absichtlich nicht offen auf der Hauptseite (Bildschirmfotos)
 
@@ -6674,7 +6760,7 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
     rosen: "schwungvoll · Olympiasieg 1936", kaiser: "prunkvoll · Hofball in Wien", wald: "ländlich und heiter · Wienerwald", witwe: "verliebt · Operettenwalzer", blumen: "verspielt · aus dem Nussknacker", schwan: "anmutig · Ballett-Walzer",
     wogen: "wiegend · der Zirkuswalzer aus Mexiko", sweet: "verliebt · Ballsaal der Zwanziger", daisy: "fröhlich · ein Strauß Gänseblümchen",
   };
-  const KIND = { jump: ["●○", "Sprung"], spin: ["⟳", "Pirouette"], steps: ["➜", "Schritte"], choreo: ["✦", "Choreo"], glide: ["⌒", "Gleiten"] };
+  const KIND = { jump: ["●○", "Sprung"], spin: ["⟳", "Pirouette"], steps: ["∿", "Schritte"], choreo: ["✦", "Choreo"], glide: ["⌒", "Gleiten"] };
   let listenOn = false;
   function drawBand() {
     const cv = $("pBand"), w = cv.offsetWidth, h = cv.offsetHeight; if (!w) return;
