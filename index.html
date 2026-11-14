@@ -95,13 +95,16 @@ h2 { font-family: var(--font-display); font-size: 22px; text-transform: uppercas
 
 /* Lauf */
 #hud { position: absolute; inset: 0; pointer-events: none; }
-#chips { position: absolute; left: 10px; top: 8px; display: flex; gap: 5px; }
-.chip { font-family: var(--font-display); font-size: 11px; letter-spacing: 0.06em; text-transform: uppercase; font-weight: 600; padding: 3px 7px; background: rgba(241,231,210,0.88); border: 2px solid var(--ink-deep); color: var(--ink); white-space: nowrap; }
-.chip.now { background: var(--gold); }
-.chip.ok { background: var(--green); color: var(--paper); }
-.chip.fall, .chip.miss { background: var(--red); color: var(--paper); }
-.chip.under { background: var(--warn); color: var(--paper); }
-.ibtn { position: absolute; right: 10px; top: 8px; width: 34px; height: 34px; border: 2px solid var(--ink-deep); background: rgba(241,231,210,0.9); font-size: 22px; line-height: 1; pointer-events: auto; font-family: var(--font-display); }
+#chips { position: absolute; left: 10px; top: 8px; display: flex; align-items: center; gap: 0; padding: 4px 6px; background: rgba(12,17,34,0.62); border: 1px solid rgba(243,201,105,0.28); box-shadow: 0 2px 10px rgba(0,0,0,0.25); }
+/* 0.60 (Mat: „die grauen Buttons schauen furchtbar aus“): kein Knopf-Look mehr, sondern eine schmale Programmleiste wie im Fernsehen */
+.chip { position: relative; font-family: var(--font-display); font-size: 11px; letter-spacing: 0.07em; text-transform: uppercase; font-weight: 600; padding: 2px 8px 3px; color: rgba(241,231,210,0.55); white-space: nowrap; }
+.chip + .chip::before { content: ""; position: absolute; left: -1.5px; top: 50%; width: 3px; height: 3px; margin-top: -1.5px; border-radius: 50%; background: rgba(241,231,210,0.3); }
+.chip.now { color: #FFE7A0; text-shadow: 0 0 8px rgba(243,201,105,0.55); }
+.chip.now::after { content: ""; position: absolute; left: 8px; right: 8px; bottom: -3px; height: 2px; background: var(--gold); }
+.chip.ok { color: #9FDDB0; }
+.chip.fall, .chip.miss { color: #F08A74; }
+.chip.under { color: #F0B070; }
+.ibtn { position: absolute; right: 10px; top: 8px; width: 32px; height: 32px; border: 1px solid rgba(243,201,105,0.28); background: rgba(12,17,34,0.62); color: #F1E7D2; box-shadow: 0 2px 10px rgba(0,0,0,0.25); font-size: 20px; line-height: 1; pointer-events: auto; font-family: var(--font-display); }
 
 /* Ergebnis */
 table { border-collapse: collapse; width: 100%; font-size: 12.5px; }
@@ -873,7 +876,7 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
       <div class="srow">Stufe <span class="opts" id="sHelp"></span></div>
       <div class="srow sub" id="sHelpTxt"></div>
       <div class="srow">Klang <span class="opts" id="sPreset"></span></div>
-      <div class="srow">Ton <span class="opts" id="sSound"></span></div>
+      <div class="srow">Ton <span class="opts"><span class="opts" id="sSound"></span><button class="pill" id="sBuzz">Vibration</button></span></div>
       <div class="srow">Figur <span class="opts" id="sFig"></span></div>
       <div class="srow">Verzögerung <span class="opts"><button class="pill" id="sLm">−</button><b class="num" id="sLat"></b><button class="pill" id="sLp">+</button></span></div>
       <p class="note">Mit Bluetooth-Kopfhörern kommt der Ton später an. Zeigt das Ergebnis immer „eher zu spät“, hier die Verzögerung erhöhen.</p>
@@ -4597,7 +4600,7 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
 /* COLD MEDAL EISKUNSTLAUF – Ablauf, Bildschirme, Eingabe, Taktband, Ergebnis, Spielstand. */
 (function () {
   "use strict";
-  const VERSION = "0.59";
+  const VERSION = "0.60";
   // Seiten-Einstellungen aus dem Build (eigenes Hosting: Adresse, Hoster, Impressum); im claude.ai-Artefakt leer
   const SITE = Object.assign({ web: false, url: "", impressum: null }, {"web": true, "supabase": {"url": "https://pqpvgkslozsekjywpdrf.supabase.co", "key": "sb_publishable_KkKe9jchmXYp_-OEmB8WLQ_gZLXrRhF"}, "url": "https://matpeins-debug.github.io/cold-medal-eiskunstlauf/", "hoster": "GitHub Pages (GitHub Inc., USA)", "drittland": "GitHub ist nach dem EU-US Data Privacy Framework zertifiziert; die Übermittlung in die USA stützt sich auf den Angemessenheitsbeschluss der EU-Kommission dazu.", "impressum": {"name": "", "adresse": "", "mail": ""}} || {});
   const M = window.EKMusic, K = window.EKSkate, F = window.EKFig, SC = window.EKScene, PASS = window.CMPass;
@@ -4663,7 +4666,7 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
 
   // ------------------------------------------------------------------ Spielstand (nur auf diesem Gerät; Aussehen zieht später in pass/ um)
   const KEY = "coldmedal-eiskunstlauf";
-  const DEF = { v: 1, prog: null, name: "", nat: "AUT", look: F.DEF_LOOK, help: "norm", lv3: 1, progAuto: true, saved: [], passSeen: 0, season: null, places: ["wien"], trophies: [], recs: [], grps: [], gseen: {}, onOk: 0, sound: 1, fig3d: 1, preset: "salon", lat: 0, music: "donau", path: null, fx: [null, null, null, null, null, null, null, null], best: 0, bestTrain: 0, runs: 0, flowers: 0, toys: 0, album: [], tut: 0 };
+  const DEF = { v: 1, prog: null, name: "", nat: "AUT", look: F.DEF_LOOK, help: "norm", lv3: 1, progAuto: true, saved: [], passSeen: 0, season: null, places: ["wien"], trophies: [], recs: [], grps: [], gseen: {}, onOk: 0, sound: 1, fig3d: 1, preset: "salon", lat: 0, music: "donau", path: null, fx: [null, null, null, null, null, null, null, null], best: 0, bestTrain: 0, runs: 0, flowers: 0, toys: 0, album: [], tut: 0, buzz: 1 };
   function sanitize(o) {
     const S = Object.assign({}, DEF, { season: newSeason(1), places: ["wien"], trophies: [], look: F.cleanLook(null), prog: K.DEFAULT_SLOTS.slice(), path: K.DEF_PATH.slice(), album: [], grps: [], gseen: {}, recs: [], saved: [] });
     if (o && typeof o === "object") {
@@ -4818,7 +4821,7 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
     try {
       if (!ctxA) {
         const AC = window.AudioContext || window.webkitAudioContext; if (!AC) return;
-        ctxA = new AC({ latencyHint: "interactive" }); master = ctxA.createGain(); master.gain.value = S.sound ? 1 : 0; master.connect(ctxA.destination); player = M.Player(ctxA, master); // „Ton aus“ schaltet alles stumm, auch die Musik
+        ctxA = new AC({ latencyHint: "interactive" }); master = ctxA.createGain(); master.gain.value = S.sound ? 1 : 0; master.connect(ctxA.destination); player = M.Player(ctxA, master); [["ch0", 40, 1.1], ["ch1", 70, 1.1], ["ap0", 110, 3.6], ["ap1", 180, 3.6], ["ap2", 260, 3.6]].forEach(([k0, n0, sp], i) => setTimeout(() => { try { clapBuf(k0, n0, sp); } catch (e) { /* egal */ } }, 300 + i * 120)); // „Ton aus“ schaltet alles stumm, auch die Musik
         const sb = ctxA.createBufferSource(); sb.buffer = ctxA.createBuffer(1, 1, 22050); sb.connect(ctxA.destination); sb.start(0);
         // iPhone/iPad: die Ansage (Sprachausgabe) nimmt sich kurz den Ton; danach bleibt WebAudio sonst „unterbrochen“ und die
         // Musik ist weg. Sobald der Ton nicht mehr läuft, gleich wieder anwerfen.
@@ -4846,6 +4849,27 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
     if (master && ctxA) master.gain.setTargetAtTime(S.sound ? 1 : 0, ctxA.currentTime, 0.03);
     if (!S.sound) { try { if (window.speechSynthesis) window.speechSynthesis.cancel(); } catch (e) { /* egal */ } }
   }
+  // Klatschen und Jubel vorab als fertige Tonspur gerechnet (0.60): vorher baute jedes Klatschen 3 Klangbausteine, Applaus also
+  // bis zu 780 auf einmal – am iPhone ein spürbarer Ruckler genau nach jedem Element. Jetzt ist es eine einzige Tonspur.
+  const CLAPS = {};
+  function clapBuf(key, n, span) {
+    if (CLAPS[key]) return CLAPS[key];
+    const sr = ctxA.sampleRate, len = Math.ceil((span + 0.12) * sr), b = ctxA.createBuffer(1, len, sr), d = b.getChannelData(0);
+    let seed = key.length * 977 + n; const rnd = () => ((seed = (seed * 16807) % 2147483647) / 2147483647);
+    for (let i = 0; i < n; i++) {
+      const at = Math.floor(span * rnd() * Math.sqrt(rnd()) * sr), f = 1500 + rnd() * 2500, vol = 0.04 + rnd() * 0.05, dur = Math.floor(0.05 * sr);
+      // Bandpass (RBJ, Q 1.2) auf Rauschen, Hüllkurve 10 ms an, dann abklingen
+      const w = 2 * Math.PI * f / sr, al = Math.sin(w) / 2.4, a0 = 1 + al, b0 = al / a0, b2 = -al / a0, a1 = -2 * Math.cos(w) / a0, a2 = (1 - al) / a0;
+      let x1 = 0, x2 = 0, y1 = 0, y2 = 0; const att = Math.floor(0.01 * sr);
+      for (let j = 0; j < dur + att && at + j < len; j++) {
+        const x = rnd() * 2 - 1, y = b0 * x + b2 * x2 - a1 * y1 - a2 * y2; x2 = x1; x1 = x; y2 = y1; y1 = y;
+        const env = j < att ? j / att : Math.pow(0.0001, (j - att) / dur);
+        d[at + j] += y * env * vol;
+      }
+    }
+    return (CLAPS[key] = b);
+  }
+  function playBuf(b, vol) { const s0 = ctxA.createBufferSource(), g = ctxA.createGain(); s0.buffer = b; g.gain.value = vol; s0.connect(g); g.connect(player ? player.space : ctxA.destination); s0.start(); }
   function sfx(kind, lvl) {
     if (!ctxA || !S.sound) return;
     const c = ctxA, t = c.currentTime, out = player ? player.space : c.destination; // Geräusche klingen im selben Raum wie die Musik
@@ -4857,7 +4881,7 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
     };
     if (kind === "land") burst(t, 0.35, 3200, 0.8, 0.22);
     else if (kind === "fall") { burst(t, 0.25, 180, 0.7, 0.5, "lowpass"); burst(t + 0.05, 0.5, 2200, 0.6, 0.15); }
-    else if (kind === "applause") { const n = Math.round(60 + 200 * (lvl === undefined ? 1 : lvl)); for (let i = 0; i < n; i++) burst(t + Math.random() * 3.6 * Math.sqrt(Math.random()), 0.05, 1500 + Math.random() * 2500, 1.2, 0.04 + Math.random() * 0.05); }
+    else if (kind === "applause") { const L = lvl === undefined ? 1 : lvl, st = L < 0.4 ? 0 : L < 0.8 ? 1 : 2; playBuf(clapBuf("ap" + st, [110, 180, 260][st], 3.6), 0.85 + 0.3 * (L - [0.25, 0.6, 1][st])); }
     else if (kind === "boom") {
       // Feuerwerk: dumpfer Knall, danach Knistern
       burst(t, 1.1, 120, 0.7, 0.55, "lowpass"); burst(t, 0.05, 1800, 1, 0.12);
@@ -4890,7 +4914,8 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
         g.connect(out); o.start(at); o.stop(at + d + 0.3);
       }
     }
-    else if (kind === "cheer") { const n = Math.round(25 + 50 * lvl); for (let i = 0; i < n; i++) burst(t + Math.random() * 1.1 * Math.sqrt(Math.random()), 0.05, 1500 + Math.random() * 2500, 1.2, 0.025 + Math.random() * 0.035); }
+    else if (kind === "miss") { burst(t, 0.09, 260, 1.2, 0.16, "lowpass"); burst(t, 0.03, 900, 2, 0.05); } // daneben: kurzes, dumpfes „tock“ – hörbar, aber nicht strafend
+    else if (kind === "cheer") { const st = lvl < 0.55 ? 0 : 1; playBuf(clapBuf("ch" + st, st ? 70 : 40, 1.1), 0.62 * (0.8 + 0.4 * lvl)); }
   }
 
   // ------------------------------------------------------------------ Lauf
@@ -5163,6 +5188,16 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
   // Aufstehen nach einem Sturz: Pfeil ↑ oder einmal nach oben wischen; wer liegen bleibt, verpasst die nächsten Elemente, nach 6 s steht sie von selbst auf
   function nearBeat(t) { const bt = run.bt; let i = 0, best = 0; for (; i < bt.length; i++) if (Math.abs(bt[i] - t) < Math.abs(bt[best] - t)) best = i; return { i: best, d: t - bt[best] }; }
   function standUp(t) { run.down = null; run.fallUntil = t + 0.6; run.riseT = t; pop("wieder auf den Beinen", "#F1E7D2"); }
+  // Vibration: Android über navigator.vibrate, iPhone (Safari ab iOS 18) über den Schalter-Trick – ein unsichtbarer Schalter wird umgelegt, das gibt einen kurzen Tick
+  let buzzSw = null;
+  function buzz(st) {
+    if (!S.buzz || testMode) return;
+    try {
+      if (navigator.vibrate) { navigator.vibrate(st >= 3 ? [14, 40, 14] : st >= 1 ? 12 : 30); return; }
+      if (!buzzSw) { const l = document.createElement("label"), i = document.createElement("input"); i.type = "checkbox"; i.setAttribute("switch", ""); l.appendChild(i); l.style.cssText = "position:fixed;left:-99px;top:0;width:1px;height:1px;opacity:0;pointer-events:none"; document.body.appendChild(l); buzzSw = l; }
+      buzzSw.click();
+    } catch (e) { /* egal */ }
+  }
   // sofortige Rückmeldung: nächste passende Marke suchen
   function feedback(inp) {
     const r = run, k = r.k;
@@ -5184,6 +5219,7 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
       if (sm) { sm.hit = true; r.strokeT = inp.t; sfx("land"); }
       else if (!best && !PROG.elements.some((e) => { const [a0, z0] = elWindow(e, r.bt); return inp.t > a0 - 0.5 && inp.t < z0 + 0.5; })) {
         r.rate = { w: "NEBEN DEM TAKT", st: 0, c: "#E8705A", ms: 0, t: performance.now(), streak: 0 }; r.streak = 0;
+        r.ringFx = { t: performance.now(), c: "#E8705A", st: 0 }; sfx("miss"); buzz(0);
       }
     }
     // Sprung: Absprung merken für das Bild
@@ -5238,6 +5274,11 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
     const W2 = K.WIN.jump * 1000 * k;
     const rate = !best.ok ? { w: "FALSCH", st: 0, c: "#E8705A" } : a <= T.perfect ? { w: "PERFEKT", st: 3, c: "#F3C969" } : a <= T.good ? { w: "GUT", st: 2, c: "#8FD3A0" } : a <= W2 ? { w: ms < 0 ? "KNAPP · FRÜH" : "KNAPP · SPÄT", st: 1, c: "#F0A65A" } : { w: ms < 0 ? "ZU FRÜH" : "ZU SPÄT", st: 0, c: "#E8705A" };
     r.rate = Object.assign(rate, { ms, t: performance.now(), streak: r.streak });
+    // 0.60 Gefühl: der Ring selbst antwortet – Welle in der Farbe der Wertung, bei „perfekt“ doppelt mit Funken, daneben zittert er
+    r.ringFx = { t: performance.now(), c: rate.c, st: rate.st };
+    if (rate.st === 0) sfx("miss");
+    if (best.ok && a <= T.good && [5, 10, 20, 30, 50].includes(r.streak)) { pop(`Serie ${r.streak}!`, "#FFE7A0", true); sfx("cheer", r.streak >= 20 ? 0.8 : 0.45); r.burst = Math.max(r.burst, 0.6); }
+    buzz(rate.st);
     (r.meter = r.meter || []).push({ ms: best.ok ? ms : 0, c: rate.c, t: performance.now(), bad: !best.ok }); if (r.meter.length > 10) r.meter.shift();
   }
   // Karte nach jedem Element: Name, Punkte, Ausführung in Worten und Sternen
@@ -5634,6 +5675,7 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
       ctx.fillStyle = "rgba(20,27,37,0.55)"; ctx.beginPath(); ctx.arc(px, yc, rg + 2, 0, 7); ctx.fill();
       ctx.strokeStyle = "rgba(255,236,170,0.45)"; ctx.lineWidth = 1; ctx.beginPath(); ctx.arc(px, yc, rp, 0, 7); ctx.stroke();
       ctx.strokeStyle = `rgba(243,201,105,${0.55 + 0.45 * pu})`; ctx.lineWidth = 2.5 + 1.5 * pu; ctx.beginPath(); ctx.arc(px, yc, rg + 2 * pu, 0, 7); ctx.stroke();
+      drawRingFx(px, yc, rg);
     }
     // Hinweis zum nächsten Element
     const nx = PROG.elements.find((e) => { const [a, b] = elWindow(e, bt); return b > t && a - 2.6 < t; });
@@ -5686,7 +5728,7 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
     }
     ctx.textAlign = "center"; ctx.textBaseline = "middle"; ctx.fillStyle = "#F1E7D2"; ctx.font = "bold 15px " + font();
     ctx.fillText(t < a0 && i === 1 ? "⟳" : `${i}/${el.turns}`, fx, y + 1);
-    label(fx, y + R + 22, t < bt[el.from] ? (canHover() ? "LEERTASTE, WENN DER PUNKT OBEN IST" : "MIT DEM FINGER MITKREISEN") : canHover() ? "PUNKT OBEN = LEERTASTE" : "MITKREISEN, OBEN = SCHLAG");
+    label(fx, y + R + 22, t < bt[el.from] ? (canHover() ? "LEERTASTE, WENN DER PUNKT OBEN IST" : "TIPPEN, WENN DER PUNKT OBEN IST") : canHover() ? "PUNKT OBEN = LEERTASTE" : "PUNKT OBEN = TIPPEN");
     return true;
   }
   function riseCue(fx, y, t) {
@@ -5746,6 +5788,22 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
       for (let k = 0; k < 10; k++) { const a = -Math.PI / 2 + k * Math.PI / 5, rr = k % 2 ? size * 0.45 : size; ctx.lineTo(cx + Math.cos(a) * rr, y + Math.sin(a) * rr); }
       ctx.closePath(); ctx.fill();
     }
+  }
+  // Antwort des Trefferrings: Welle(n) in der Farbe der Wertung; perfekt = zwei Wellen und acht Funken, daneben = kurzes Zittern
+  function drawRingFx(px, yc, rg) {
+    const F0 = run.ringFx; if (!F0) return;
+    const age = (performance.now() - F0.t) / 1000; if (age > 0.45) return;
+    ctx.save(); ctx.strokeStyle = F0.c; ctx.fillStyle = F0.c;
+    if (F0.st === 0) {
+      const sh = Math.sin(age * 70) * 4 * (1 - age / 0.45);
+      ctx.globalAlpha = 0.9 * (1 - age / 0.45); ctx.lineWidth = 3; ctx.beginPath(); ctx.arc(px + sh, yc, rg + 2, 0, 7); ctx.stroke();
+    } else {
+      const u = age / 0.45, waves = F0.st >= 3 ? [0, 0.12] : [0];
+      for (const d of waves) { const v = clamp((age - d) / 0.33, 0, 1); if (v <= 0 || v >= 1) continue; ctx.globalAlpha = (1 - v) * 0.95; ctx.lineWidth = 6 * (1 - v) + 1.5; ctx.beginPath(); ctx.arc(px, yc, rg + 4 + v * (F0.st >= 2 ? 34 : 22), 0, 7); ctx.stroke(); }
+      if (F0.st >= 3) { ctx.globalAlpha = 1 - u; for (let k = 0; k < 8; k++) { const a = k * Math.PI / 4 + 0.3, rr = rg + 6 + u * 40; ctx.beginPath(); ctx.arc(px + Math.cos(a) * rr, yc + Math.sin(a) * rr * 0.8, 2.2 * (1 - u) + 0.6, 0, 7); ctx.fill(); } }
+      ctx.globalAlpha = 0.35 * (1 - u); ctx.beginPath(); ctx.arc(px, yc, rg, 0, 7); ctx.fill();
+    }
+    ctx.restore();
   }
   function drawRate(fx, fy, s) {
     const R0 = run.rate; if (!R0) return;
@@ -6121,15 +6179,23 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
   function watchFps(dtMs) {
     if (!SK3 || sk3Px <= 288 || dtMs > 200) return;
     fpsW.n++; fpsW.sum += dtMs;
-    if (fpsW.n < 90) return;
+    if (fpsW.n < 60) return;
     const avg = fpsW.sum / fpsW.n; fpsW.n = 0; fpsW.sum = 0;
-    if (avg > 33) { sk3Px = sk3Px > 384 ? 384 : 288; sk3Tried = false; SK3 = null; }
+    if (avg > 24) { sk3Px = sk3Px > 384 ? 384 : 288; sk3Tried = false; SK3 = null; } // unter etwa 42 Bildern je Sekunde: kleiner rechnen
+  }
+  // Das 3D-Bild einmal je Bild in eine 2D-Fläche kopieren, dann Spiegelbild und Figur daraus: aus einer WebGL-Fläche zu
+  // zeichnen zwingt Safari jedes Mal, auf die Grafikkarte zu warten – so nur einmal statt zweimal (0.60)
+  let BL = null;
+  function blit(img) {
+    if (!img || img.width < 2) return img;
+    if (!BL || BL.width !== img.width) { BL = document.createElement("canvas"); BL.width = BL.height = img.width; }
+    const g = BL.getContext("2d"); g.clearRect(0, 0, BL.width, BL.height); g.drawImage(img, 0, 0); return BL;
   }
   // Figur rendern (einmal je Bild); null = flach zeichnen
   function skaterImg(o) {
     const R = sk3(); if (!R) return null;
     const look = o.look || S.look;
-    return R.render({ pose: o.pose, turn: o.turn || 0, lift: o.lift || 0, look, swap: !!o.swap, hold: o.hold || null });
+    return blit(R.render({ pose: o.pose, turn: o.turn || 0, lift: o.lift || 0, look, swap: !!o.swap, hold: o.hold || null }));
   }
   // Geschenke in 3D (Figur3D.gift): einmal vorab je Art und Farbe 16 Ansichten rundherum in ein Bild gerechnet, dann nur noch kopiert
   const GIFT_KINDS = [["rose", "#C23B2A"], ["rose", "#E07A8B"], ["rose", "#F3C969"], ["rose", "#F1E7D2"], ["teddy", "#9C6A3E"], ["star", "#F3C969"]], GN = 16, GPX = 72;
@@ -6227,7 +6293,7 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
     // 30° und mehr je Bild und wirkt wie eine Pappe, die umklappt. Wie bei einer Fernsehkamera: zwei, drei blasse Zwischenstände.
     {
       const om = dt > 0 && run.lastTurnVis !== undefined ? (fo.turn - run.lastTurnVis) / dt : 0; run.lastTurnVis = fo.turn;
-      if (Math.abs(om) > 7 && Math.abs(om) < 80) {
+      if (Math.abs(om) > 7 && Math.abs(om) < 80 && !(sk3() && !(run.hov ?? (run.hov = canHover())))) { // am Handy mit 3D-Figur ohne Zwischenstände: jeder kostet ein ganzes 3D-Bild
         const n = Math.abs(om) > 20 ? 3 : 2, step = om * Math.min(dt, 1 / 30) / (n + 1);
         ctx.save();
         for (let k = sk3() ? 1 : n; k >= 1; k--) { const go = Object.assign({}, fo, { turn: fo.turn - step * k * (sk3() ? 2 : 1) }); ctx.globalAlpha = 0.3 / k; drawSkater(go, skaterImg(go)); }
@@ -7035,7 +7101,7 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
       o = ["T", "S", "Lo", "F", "Lz", "A"].map((f) => { const id = pRot + f + (pCombo ? "+" + pRot + pCombo : ""); return opt(id, (rk ? "⚡ " : "") + CAT["1" + f].name, dec(CAT[id].base) + " P." + (rk ? " · Wagnis" : "")); }).join("");
       tw = `<button class="tg${pRot === 1 ? " on" : ""}" data-rot="1">einfach</button><button class="tg${pRot === 2 ? " on" : ""}" data-rot="2">doppelt</button><button class="tg risk${rk ? " on" : ""}" data-rot="3" title="Wagnis: nur ganz sauber steht er, sonst Sturz">⚡ dreifach</button>`
         + (rk ? `<span>Wagnis: unsauber = Sturz</span>` : `<span>+</span><button class="tg${!pCombo ? " on" : ""}" data-combo="">allein</button><button class="tg${pCombo === "T" ? " on" : ""}" data-combo="T">+ Toeloop</button><button class="tg${pCombo === "Lo" ? " on" : ""}" data-combo="Lo">+ Rittberger</button>`);
-    } else if (pCat === "spin") { o = ["USp", "SSp", "CSp"].map((id) => opt(id, CAT[id].name, `bis ${dec(CAT[id].levels[3])} P.`)).join(""); tw = `<span>Mit dem Finger kreisen, jede Runde auf den Schlag.</span>`; }
+    } else if (pCat === "spin") { o = ["USp", "SSp", "CSp"].map((id) => opt(id, CAT[id].name, `bis ${dec(CAT[id].levels[3])} P.`)).join(""); tw = `<span>Tippen, wenn der Punkt oben ist – jeder Treffer eine Umdrehung.</span>`; }
     else if (pCat === "steps") { o = opt("StSq", "Schrittfolge", "zwei Abschnitte"); tw = `<span>Im Takt tippen, sie läuft eine Schlangenlinie mit Dreiern und Twizzles – braucht zwei Abschnitte.</span>`; }
     else if (pCat === "choreo") { o = ["ChSp", "ChIB", "ChPB", "ChTw"].map((id) => opt(id, CAT[id].name, "Ausdruck")).join(""); tw = `<span>Tippen, wenn die Figur kommt – zählt zur Präsentation.</span>`; }
     else {
@@ -7160,6 +7226,7 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
     $("sHelpTxt").textContent = { anf: "langsamer, weite Fenster, kein Sturz, Hinweise immer · Wertung ×0,8", norm: "Original-Tempo, Hinweise am Anfang, Vorschlag im Kürplan · Wertung ×1", pro: "schneller, sehr enge Fenster, Weltklasse-Feld, keine Zeichen über der Läuferin; leerer Kürplan zum Selbst-Choreografieren (der alte liegt in „Meine Küren“), Choreo-Note zählt doppelt · Wertung ×1,15" }[S.help] || "";
     pills("sPreset", Object.entries(M.PRESETS).map(([k, v]) => [k, v.name]), S.preset, (v) => (S.preset = v));
     pills("sSound", [[1, "An"], [0, "Aus"]], S.sound, (v) => { S.sound = v; applySound(); });
+    $("sBuzz").className = "pill" + (S.buzz ? " on" : ""); $("sBuzz").onclick = () => { S.buzz = S.buzz ? 0 : 1; if (S.buzz) buzz(2); save(); fillSet(); };
     pills("sFig", [[1, "3D"], [0, "Flach"]], S.fig3d, (v) => { S.fig3d = v; });
     $("sLat").textContent = nb(`${S.lat} ms`);
   }
