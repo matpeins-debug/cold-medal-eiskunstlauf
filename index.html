@@ -615,6 +615,10 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
 .lBtns { display: flex; gap: 10px; align-items: center; margin-top: 4px; }
 .lBtns .big { min-width: 170px; }
 
+/* 0.61 Format der Station im Intro */
+.intro .fmt { margin: 6px 0 0; padding: 6px 10px; border-left: 3px solid var(--gold); background: rgba(243,201,105,0.12); font-size: 12.5px; line-height: 1.35; }
+.intro .fmt b { margin-right: 6px; }
+
 /* Cold Medal Games · Fenster „Deine Figur“ (pass/pass.css)
    Aussehen wie die Menüs des Skispringens: Papier mit Doppelrahmen, Knöpfe wie Druckmarken, Futura für Titel und Knöpfe,
    Buchschrift für Lesetext. Farben und Schriften kommen aus den Variablen des Spiels (alle Spiele der Reihe haben sie),
@@ -899,6 +903,7 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
         <p><b>Das Taktband</b> Alles kommt von rechts in den <em>goldenen Ring</em>. Gedrückt wird genau dann – bei den farbigen Zeichen und bei den kleinen <em>weißen Ringen</em> (Abstoß, gibt Schwung). Die feinen Striche zählen nur den Takt.</p>
       </div>
       <div class="iPlaces" id="iPlaces" hidden></div>
+      <p class="fmt" id="iFmt" hidden></p>
       <p class="own" id="iOwn" hidden>✦ Experte: Du choreografierst selbst. Belege im Kürplan alle acht Abschnitte – die Choreo-Note zählt doppelt.</p>
       <button class="big red go" id="iGo"><span>Los</span></button>
     </div>
@@ -4600,7 +4605,7 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
 /* COLD MEDAL EISKUNSTLAUF – Ablauf, Bildschirme, Eingabe, Taktband, Ergebnis, Spielstand. */
 (function () {
   "use strict";
-  const VERSION = "0.60";
+  const VERSION = "0.61";
   // Seiten-Einstellungen aus dem Build (eigenes Hosting: Adresse, Hoster, Impressum); im claude.ai-Artefakt leer
   const SITE = Object.assign({ web: false, url: "", impressum: null }, {"web": true, "supabase": {"url": "https://pqpvgkslozsekjywpdrf.supabase.co", "key": "sb_publishable_KkKe9jchmXYp_-OEmB8WLQ_gZLXrRhF"}, "url": "https://matpeins-debug.github.io/cold-medal-eiskunstlauf/", "hoster": "GitHub Pages (GitHub Inc., USA)", "drittland": "GitHub ist nach dem EU-US Data Privacy Framework zertifiziert; die Übermittlung in die USA stützt sich auf den Angemessenheitsbeschluss der EU-Kommission dazu.", "impressum": {"name": "", "adresse": "", "mail": ""}} || {});
   const M = window.EKMusic, K = window.EKSkate, F = window.EKFig, SC = window.EKScene, PASS = window.CMPass;
@@ -4706,7 +4711,44 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
   const IN_CODE = { down: "d", up: "u", circle: "c" }, DIR_CODE = { l: "l", r: "r", u: "h", d: "t" }, CODE_IN = { d: ["down"], u: ["up"], c: ["circle"], l: ["swipe", "l"], r: ["swipe", "r"], h: ["swipe", "u"], t: ["swipe", "d"] };
   // ------------------------------------------------------------------ Saison: vier Wettbewerbe an vier Orten, Punkte nach Platz,
   // zum Schluss die Gala der Eisrevue. Jede Saison wird das Feld stärker; erreichte Orte bleiben fürs Training frei.
-  const SEASON = [{ id: "wien", boost: 0 }, { id: "davos", boost: 2 }, { id: "stmoritz", boost: 4 }, { id: "revue", boost: 6, finale: true }];
+  // 0.61 (Mat: „ob es wirklich viermal das Gleiche braucht“): jede Station hat ihr eigenes Format
+  //   Wien: Kurzprogramm – fünf statt acht Abschnitte, Pflichtelemente vorgegeben (eigene Musik und Laufweg)
+  //   Davos: Kür mit Aufgabe – erfüllt = +3 Punkte (wechselt je Saison: ohne Sturz, im Takt, Serie)
+  //   St. Moritz: Schaulaufen – das Publikum gibt Punkte für Show-Effekte, Choreo-Figuren und Serien
+  //   Finale (Gala der Eisrevue): die große Kür, alles zählt
+  const SEASON = [{ id: "wien", boost: 0, fmt: "short" }, { id: "davos", boost: 2, fmt: "task" }, { id: "stmoritz", boost: 4, fmt: "show" }, { id: "revue", boost: 6, finale: true, fmt: "free" }];
+  const FMT = { short: "Kurzprogramm", task: "Kür mit Aufgabe", show: "Schaulaufen", free: "Große Kür" };
+  const SHORT_SLOTS = { anf: ["1T", "USp", "StSq", "~", "1S"], norm: ["2T", "USp", "StSq", "~", "2S"], pro: ["2A", "CSp", "StSq", "~", "2Lz+2T"] }; // Schritte brauchen zwei Abschnitte
+  const SHORT_N = 5; // Abschnitte im Kurzprogramm
+  const TASKS = [
+    { id: "clean", name: "Ohne Sturz", txt: "Lauf die Kür ohne Sturz.", ok: (res) => !res.falls },
+    { id: "takt", name: "Im Takt", txt: "Bleib im Schnitt höchstens 50 ms neben dem Schlag.", ok: (res) => res.timing && res.timing.mean <= 50 },
+    { id: "serie", name: "Serie 12", txt: "Triff 12 Zeichen am Stück gut oder perfekt.", ok: (res, r) => r.bestStreak >= 12 },
+  ];
+  const TASK_PTS = 3;
+  const curFmt = () => (S.season && SEASON[S.season.ev] ? SEASON[S.season.ev].fmt : "free");
+  const curTask = () => TASKS[((S.season && S.season.n) || 1) % TASKS.length];
+  // Kurzprogramm: Pflichtelemente auf die ersten fünf Abschnitte, Schlusspose am Ende des fünften
+  function cutShort(prog) {
+    const sec = prog.sec, end = (sec.first + sec.len * SHORT_N) * 3;
+    prog.sec = Object.assign({}, sec, { n: SHORT_N, end, peak: (sec.peak || []).filter((i) => i < SHORT_N) });
+    const pose = prog.elements.find((e) => e.kind === "pose"); if (pose) pose.at = end;
+    prog.short = true; prog.name = "Kurzprogramm: " + (K.MUSIC_NAME[prog.music] || prog.music);
+    return prog;
+  }
+  function shortProg(music, lvl, path) { return cutShort(K.buildProgram(SHORT_SLOTS[lvl] || SHORT_SLOTS.norm, music, lvl, path)); }
+  // Gegnerfeld fürs Kurzprogramm kleiner rechnen: so viel wie ein perfektes Kurzprogramm im Vergleich zur perfekten Kür bringt
+  const shortF = {};
+  function shortFactor(lvl, music) {
+    const key = lvl + music; if (shortF[key]) return shortF[key];
+    try {
+      const L = LEVELS[lvl] || LEVELS.norm, bt = M.grid(M.SCORES[music], Math.round(M.SCORES[music].bpm * L.tempo), true);
+      const a = shortProg(music, lvl, null), b = K.buildProgram(K.DEFAULT_SLOTS, music, lvl, null);
+      const ja = K.judge(a, bt, K.perfectInputs(a, bt, 0), { k: L.k, level: L }), jb = K.judge(b, bt, K.perfectInputs(b, bt, 0), { k: L.k, level: L });
+      shortF[key] = clamp(ja.total / jb.total, 0.35, 0.8);
+    } catch (e) { shortF[key] = 0.55; }
+    return shortF[key];
+  }
   const SEASON_PTS = [12, 10, 8, 7, 6, 5];
   function newSeason(n) { return { n, ev: 0, pts: {}, done: [] }; }
   function cleanSeason(o) {
@@ -4726,7 +4768,7 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
     const look = F.cleanLook(r.look);
     return { v: 1, id: String(r.id || "").slice(0, 16), at: +r.at || 0, mode: r.mode === "train" ? "train" : "comp", name: String(r.name || "").replace(/[<>&"]/g, "").slice(0, 14), nat: /^[A-Z]{3}$/.test(r.nat) ? r.nat : "AUT",
       look, music: r.music, slots: K.cleanSlots(r.slots), fx: K.cleanFx(r.fx), path: K.cleanPath(r.path), lvl: ["anf", "norm", "pro"].includes(r.lvl) ? r.lvl : "norm", cap: [8, 9, 10].includes(r.cap) ? r.cap : 9,
-      place: SC.PLACES[r.place] ? r.place : "wien", seed: (+r.seed >>> 0) || 7, in: r.in.replace(/[^0-9a-z;]/g, ""), total: +r.total || 0, rank: +r.rank || 0,
+      place: SC.PLACES[r.place] ? r.place : "wien", seed: (+r.seed >>> 0) || 7, in: r.in.replace(/[^0-9a-z;]/g, ""), total: +r.total || 0, rank: +r.rank || 0, fmt: ["short", "task", "show", "free"].includes(r.fmt) ? r.fmt : "free",
       board: Array.isArray(r.board) ? r.board.slice(0, 8).map((b) => ({ name: String(b.name || "").replace(/[<>&"]/g, "").slice(0, 20), nat: /^[A-Z]{3}$/.test(b.nat) ? b.nat : "", total: +b.total || 0, me: !!b.me })) : null };
   }
   let S = sanitize(null);
@@ -4962,12 +5004,14 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
     opt = opt || {};
     const fake = !!opt.fake || testMode || !player, rec = opt.replay || null;
     usePlace(rec ? rec.place : grpRun && mode === "comp" ? "wien" : mode === "comp" ? SEASON[S.season.ev].id : trainPlace || SEASON[S.season.ev].id);
-    if (rec) { SCORE = M.SCORES[rec.music]; PROG = K.buildProgram(rec.slots, rec.music, rec.lvl, rec.path); PROG.look = rec.look; PROG.fx = rec.fx.slice(); PROG.planCap = rec.cap; }
-    else { useMusic(); PROG = K.buildProgram(S.prog, SCORE.id, S.help, S.path); PROG.look = S.look; PROG.fx = S.fx.slice(); PROG.planCap = planCap(); }
+    if (rec) { SCORE = M.SCORES[rec.music]; PROG = rec.fmt === "short" ? shortProg(rec.music, rec.lvl, rec.path) : K.buildProgram(rec.slots, rec.music, rec.lvl, rec.path); PROG.look = rec.look; PROG.fx = rec.fx.slice(); PROG.planCap = rec.cap; }
+    else { useMusic(); const sh = mode === "comp" && !grpRun && curFmt() === "short"; PROG = sh ? shortProg(SCORE.id, S.help, S.path) : K.buildProgram(S.prog, SCORE.id, S.help, S.path); PROG.look = S.look; PROG.fx = S.fx.slice(); PROG.planCap = planCap(); }
     const lv = rec ? LEVELS[rec.lvl] || LEVELS.norm : LV(), bt = M.grid(SCORE, Math.round(SCORE.bpm * lv.tempo), true);
     run = { mode, lv, bt, marks: buildMarks(bt), inputs: [], fake, fakeT: -0.6, lastT: 0, done: {}, pops: [], p: 0, camX: WW / 2 - W / 2,
       grp: !rec && grpRun && mode === "comp" ? Object.assign({}, grpRun) : null, dir: 1, face: 0, trail: [], trailT: 0, turn: 0, spinV: 0, jump: null, fallUntil: -1, landUntil: -1, lastSwipe: null, posed: false, finished: false, k: kHelp(), paint: { pts: [], marks: [], t: 0 }, sparks: [], burstQ: 0, lastQ: null, pos: null, intensity: 0.6, cheer: 0, burst: 0, streak: 0, bestStreak: 0, accI: 0, throws: null, intT: 0, seed: (Date.now() & 0xffff) || 7 };
     run.raw = []; run.look = rec ? rec.look : S.look;
+    run.fmt = rec ? rec.fmt || "free" : mode === "comp" && !grpRun ? curFmt() : "free";
+    if (PROG.short) run.endT = bt[PROG.sec.end] + 3.2; // Kurzprogramm: nach der Schlusspose ist Schluss, auch wenn die Musik weiterginge
     if (run.grp) run.seed = run.grp.s;
     if (rec) {
       // Aufzeichnung ansehen: gleicher Zufall, gleiche Eingaben; ohne Auftritt, ohne Taktband – wie im Fernsehen
@@ -5023,7 +5067,15 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
   // das Feld im Wettkampf: dieselbe Rechnung vor der Kür (Aufwärmgruppe) und in der Wertung
   function aiBoard(r) {
     const ev = SEASON[(S.season && S.season.ev) || 0] || SEASON[0], n = (S.season && S.season.n) || 1;
-    return K.field(r.seed, 5, (r.lv.field || 0) + ev.boost + 3 * (n - 1)).map((b) => Object.assign({}, b, { total: Math.round(b.total * r.lv.factor * 100) / 100 }));
+    const fmt = r.fmt || "free", sf = fmt === "short" ? shortFactor(S.help, SCORE.id) : 1;
+    let sd = (r.seed * 7 + 13) >>> 0; const R = () => ((sd = (sd * 16807) % 2147483647) / 2147483647);
+    return K.field(r.seed, 5, (r.lv.field || 0) + ev.boost + 3 * (n - 1)).map((b) => {
+      const f = r.lv.factor * sf, o = Object.assign({}, b, { tes: Math.round(b.tes * f * 100) / 100, pcsTotal: Math.round(b.pcsTotal * f * 100) / 100, total: Math.round(b.total * f * 100) / 100 });
+      // Aufgabe: etwa die Hälfte schafft sie; Schaulaufen: Publikumspunkte 2 bis 8
+      const bon = fmt === "task" ? (R() < 0.5 ? TASK_PTS : 0) : fmt === "show" ? Math.round((2 + R() * 6) * 4) / 4 : 0;
+      if (bon) { o.bonus = bon; o.total = Math.round((o.total + bon) * 100) / 100; }
+      return o;
+    });
   }
   // Aussehen der Gegnerinnen aus dem Namen: immer gleich, aber jede anders
   function aiLook(name) {
@@ -5883,6 +5935,7 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
     render(t, dt * sl);
     if (run.slow && t >= run.slow.b) { endSlow(); return; }
     if (run.lesson && !run.finished && t > run.lesson.endT) { lessonDone(); return; }
+    if (run.endT && !run.finished && t > run.endT) { finish(); return; }
     if (!run.finished && t > run.bt[run.bt.length - 1] + 3.8) finish();
   }
   // ------------------------------------------------------------------ Ansehen wie im Fernsehen: volles Bild mit Musik, keine Knöpfe.
@@ -6362,6 +6415,20 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
       r.seasonTxt = `Saison ${z.n}: du ${pos}. mit ${me.pts} Punkten${pos > 1 ? ` (vorn ${lead.name}, ${lead.pts})` : lead === me && T[1] ? ` (vor ${T[1].name}, ${T[1].pts})` : ""}. Weiter ${nx.finale ? "zum Finale: Gala der Eisrevue" : "in " + SC.PLACES[nx.id].name}${fresh ? " · neuer Ort fürs Training frei" : ""}.`;
     }
   }
+  // Punkte aus dem Format der Station: Aufgabe erfüllt (+3) oder Publikumswertung beim Schaulaufen
+  function fmtBonus(r, res) {
+    r.fmtTxt = "";
+    if (r.fmt === "task") {
+      const T = curTask(), ok = !!T.ok(res, r);
+      res.bonus = ok ? TASK_PTS : 0; r.fmtTxt = ok ? `✓ Aufgabe „${T.name}“ erfüllt: +${TASK_PTS} Punkte.` : `✗ Aufgabe „${T.name}“ nicht geschafft.`;
+    } else if (r.fmt === "show") {
+      const fxN = (PROG.fx || []).filter(Boolean).length, ex = res.presParts ? res.presParts.exprOk : 0, sr = Math.floor((r.bestStreak || 0) / 5);
+      const gifts = (r.throws || []).length;
+      const b = Math.round(Math.min(10, fxN * 1 + ex * 1.5 + sr * 0.5 + Math.min(2, gifts * 0.1)) * 4) / 4;
+      res.bonus = b; r.fmtTxt = `Publikum: +${dec(b)} (${fxN} Show-Effekte, ${ex} Choreo-Figuren, Serie ${r.bestStreak || 0}).`;
+    } else if (r.fmt === "short") r.fmtTxt = "Kurzprogramm mit Pflichtelementen.";
+    if (res.bonus) res.total = Math.round((res.total + res.bonus) * 100) / 100;
+  }
   // ------------------------------------------------------------------ Ergebnis
   function finish() {
     const r = run; r.finished = true; r.finishT = r.lastT; r.finishAt = performance.now(); ambience(false);
@@ -6377,6 +6444,7 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
       if (res.total > S.best) S.best = res.total;
     } else if (r.mode === "comp") {
       const ev = SEASON[S.season.ev]; r.season = { ev: S.season.ev, n: S.season.n, id: ev.id };
+      fmtBonus(r, res);
       board = aiBoard(r).concat([{ name: S.name || "Du", nat: S.nat, tes: res.tes, pcsTotal: res.pcsTotal, ded: res.ded, total: res.total, me: true }]);
       board.sort((a, b) => b.total - a.total); rank = board.findIndex((x) => x.me) + 1;
       if (res.total > S.best) S.best = res.total;
@@ -6384,7 +6452,7 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
     } else if (res.total > S.bestTrain) S.bestTrain = res.total;
     // Aufzeichnung behalten (die letzten acht), damit man die Kür ansehen und später in der Gruppe zeigen kann
     r.rec = cleanRec({ id: Date.now().toString(36), at: Date.now(), mode: r.mode, name: S.name, nat: S.nat, look: S.look, music: SCORE.id, place: P().id, slots: S.prog, fx: S.fx, path: S.path, lvl: S.help, cap: planCap(),
-      seed: r.seed, in: r.raw.join(";"), total: res.total, rank });
+      seed: r.seed, in: r.raw.join(";"), total: res.total, rank, fmt: r.fmt });
     if (r.rec) { r.rec.board = board ? board.map((b) => ({ name: b.name, nat: b.nat, total: b.total, me: !!b.me })) : null; S.recs.unshift(r.rec); S.recs = S.recs.slice(0, 8); }
     save();
     if (r.grp && r.rec) grpPost(r, res);   // in der Gruppe melden, mit Aufzeichnung
@@ -6490,7 +6558,7 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
   }
   function showResult(res, board, rank) {
     const gr = run.grp || (run.replay && run.replay.grp);
-    $("rKick").textContent = `${P().name.toUpperCase()} · ${gr ? `GRUPPE · RUNDE ${gr.k}` : run.mode === "comp" ? "KÜR · WETTKAMPF" : "TRAINING"} · ${SCORE.short.toUpperCase()} · ${run.lv.name.toUpperCase()}${run.lv.factor !== 1 ? ` ×${dec(run.lv.factor)}` : ""}`;
+    $("rKick").textContent = `${P().name.toUpperCase()} · ${gr ? `GRUPPE · RUNDE ${gr.k}` : run.mode === "comp" ? (FMT[run.fmt] || "Kür").toUpperCase() : "TRAINING"} · ${SCORE.short.toUpperCase()} · ${run.lv.name.toUpperCase()}${run.lv.factor !== 1 ? ` ×${dec(run.lv.factor)}` : ""}`;
     $("rSplit").innerHTML = nb(`Technik ${dec(res.tes)} · Komponenten ${dec(res.pcsTotal)}`) + (res.ded ? ` · <b>Abzug −${res.ded}</b>` : "")
       + `<br><small>${nb(`Komposition ${dec(res.pcs.comp)} · Präsentation ${dec(res.pcs.pres)} (Takt ${dec(res.presParts.takt)}, Ausdruck ${dec(res.presParts.ausdruck)}${res.presParts.expr ? ` ${res.presParts.exprOk}/${res.presParts.expr} ✦` : ""}, Ausstrahlung ${dec(res.presParts.ausstrahlung)}) · Können ${dec(res.pcs.skill)}${res.strokes && res.strokes.n ? ` (Abstöße ${res.strokes.hit}/${res.strokes.n})` : ""} · Choreo-Note ${dec(res.plan.total)}`)}</small>`;
     const tm = res.timing;
@@ -6503,7 +6571,7 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
     }).join("");
     $("rBoard").innerHTML = board ? board.map((b, i) => `<tr class="${b.me ? "me" : ""}"><td class="n">${i + 1}.</td><td class="nm">${esc(b.name)} <small>${b.nat}</small></td><td class="n">${dec(b.total)}</td></tr>`).join("")
       : `<tr><td>Bestes Training</td><td class="n">${dec(S.bestTrain)}</td></tr><tr><td>Bester Wettkampf</td><td class="n">${dec(S.best)}</td></tr>`;
-    $("rTip").textContent = run.grpErr ? "Nicht gemeldet: " + run.grpErr : run.seasonTxt || tipFor(res);
+    $("rTip").textContent = run.grpErr ? "Nicht gemeldet: " + run.grpErr : ((run.fmtTxt ? run.fmtTxt + " " : "") + (run.seasonTxt || tipFor(res)));
     $("rMenu").textContent = gr ? "Gruppe" : "Menü";
     // Preisgericht
     const J = K.jury(res, run.seed || 7);
@@ -6580,10 +6648,10 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
   function fillMenu() {
     const ev = SEASON[S.season.ev], PL = SC.PLACES[ev.id]; usePlace(ev.id); trainPlace = null;
     $("mPlace").textContent = PL.name; $("mVenue").textContent = PL.venue; $("mFact").textContent = PL.fact; $("bPlace").classList.remove("open");
-    $("mStops").innerHTML = SEASON.map((e, i) => `<span class="${i < S.season.ev ? "done" : i === S.season.ev ? "on" : ""}">${esc(SC.PLACES[e.id].name)}</span>`).join("");
+    $("mStops").innerHTML = SEASON.map((e, i) => `<span class="${i < S.season.ev ? "done" : i === S.season.ev ? "on" : ""}" title="${esc(FMT[e.fmt])}">${esc(SC.PLACES[e.id].name)}</span>`).join("");
     $("mFlag").innerHTML = flag(S.nat || "AUT", 22, 14); $("mName").textContent = (S.name || "Deine Figur").trim();
     const me = seasonTable().find((x) => x.me), pos = seasonTable().findIndex((x) => x.me) + 1;
-    $("mBest").textContent = nb(`Saison ${S.season.n} · ${ev.finale ? "Finale: Gala der Eisrevue" : `Wettbewerb ${S.season.ev + 1} von ${SEASON.length}`}${me ? ` · du ${pos}. mit ${me.pts} Pkt` : ""}`);
+    $("mBest").textContent = nb(`Saison ${S.season.n} · ${ev.finale ? "Finale: Gala der Eisrevue" : `${S.season.ev + 1}/${SEASON.length} ${FMT[ev.fmt]}`}${me ? ` · du ${pos}. mit ${me.pts} Pkt` : ""}`);
     fillPlanCard();
     $("mFoot").textContent = `Version ${VERSION} · inoffizielles Fanspiel`;
     fillGrpBtn(); loadMy();
@@ -6595,7 +6663,13 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
     pendingMode = mode;
     $("iOwn").hidden = !needOwn(); $("iGo").querySelector("span").textContent = needOwn() ? "Zum Kürplan" : "Los";
     const ev = SEASON[S.season.ev], pl = SC.PLACES[mode === "comp" ? ev.id : trainPlace || ev.id];
-    $("iKick").textContent = grpRun ? `GRUPPE ${grpRun.name.toUpperCase()} · RUNDE ${grpRun.k} · ${useMusic().short.toUpperCase()}` : mode === "comp" ? `SAISON ${S.season.n} · ${ev.finale ? "FINALE" : `WETTBEWERB ${S.season.ev + 1}/${SEASON.length}`} · ${pl.name.toUpperCase()}` : `TRAINING · ${pl.name.toUpperCase()}`;
+    $("iKick").textContent = grpRun ? `GRUPPE ${grpRun.name.toUpperCase()} · RUNDE ${grpRun.k} · ${useMusic().short.toUpperCase()}` : mode === "comp" ? `SAISON ${S.season.n} · ${ev.finale ? "FINALE" : `${S.season.ev + 1}/${SEASON.length}`} · ${FMT[ev.fmt].toUpperCase()} · ${pl.name.toUpperCase()}` : `TRAINING · ${pl.name.toUpperCase()}`;
+    const fm = $("iFmt"), sl = SHORT_SLOTS[S.help] || SHORT_SLOTS.norm;
+    fm.hidden = mode !== "comp" || !!grpRun;
+    fm.innerHTML = ev.fmt === "short" ? `<b>Kurzprogramm</b> Kürzer, mit Pflichtelementen: ${sl.filter((id) => id !== "~").map((id) => esc(K.CATALOG[id].name)).join(", ")}. Deine Musik und dein Laufweg bleiben.`
+      : ev.fmt === "task" ? `<b>Aufgabe: ${esc(curTask().name)}</b> ${esc(curTask().txt)} Geschafft = +${TASK_PTS} Punkte.`
+      : ev.fmt === "show" ? `<b>Schaulaufen</b> Das Publikum wertet mit: Punkte für jeden Show-Effekt im Kürplan, getroffene Choreo-Figuren ✦ und lange Serien.`
+      : `<b>Die große Kür</b> Deine ganze Kür vor vollem Haus – hier wird die Saison entschieden.`;
     // Training an jedem erreichten Ort
     const ip = $("iPlaces"); ip.hidden = mode === "comp" || !!grpRun || S.places.length < 2;
     ip.innerHTML = `<small>ORT</small>` + S.places.map((id) => `<button class="tg${pl.id === id ? " on" : ""}" data-pl="${id}">${esc(SC.PLACES[id].name)}</button>`).join("");
