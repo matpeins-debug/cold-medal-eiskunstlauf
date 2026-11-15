@@ -1864,7 +1864,9 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
   // Schlangenlinie: nur links/rechts, meist im Wechsel auf die Eins (Kantenwechsel mit Dreier bzw. Gegendreier);
   // zweimal dieselbe Richtung = Twizzle (weiter in dieselbe Drehrichtung)
   const STEP_PATTERN = [[0, "r"], [3, "l"], [6, "r"], [7, "r"], [9, "l"], [12, "r"], [15, "l"], [16, "l"], [18, "r"], [21, "l"], [22, "l"], [24, "r"]];
-  const DEFAULT_SLOTS = ["2T", "2S", "USp", null, "StSq", "~", "2Lo", null];
+  // 0.66 (Mat: „eine Kür endet mit einem Höhepunkt“): der letzte Abschnitt ist eine Schlusspirouette, die in die Pose mündet
+  const DEFAULT_SLOTS = ["2T", "2S", "USp", null, "StSq", "~", "2Lo", "CSp"];
+  const OLD_DEFAULT = ["2T", "2S", "USp", null, "StSq", "~", "2Lo", null];
 
   // Plan prüfen: Liste von Hinweisen, leer = gültig
   function check(slots) {
@@ -1914,7 +1916,8 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
     const cands = [];
     for (let tries = 0; tries < 600 && cands.length < 140; tries++) {
       const sl = new Array(n).fill(null);
-      const st = 1 + Math.floor(rnd() * (n - 2)); sl[st] = "StSq"; sl[st + 1] = "~";
+      const st = 1 + Math.floor(rnd() * (n - 3)); sl[st] = "StSq"; sl[st + 1] = "~"; // nie im letzten Abschnitt: der gehört der Schlusspirouette
+      { const used = new Set(), sp = SUG.spin.filter((x) => !used.has(x)); sl[n - 1] = pick(sp); } // Schlusspirouette
       for (let i = 0; i < n; i++) {
         if (sl[i]) continue;
         const pref = moods[i][1].filter((k) => k !== "steps");
@@ -2253,7 +2256,7 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
     return list;
   }
 
-  root.EKSkate = { PATHS, DEF_PATH, RINK, cleanPath, navNew, pathStep, pathTrack, suggestPath, scoredBig, tB, suggest, elWindow, strokeBeats, jury, JUDGES, PROGRAMS, CATALOG, RULES, SECTIONS, DEFAULT_SLOTS, check, cleanSlots, buildProgram, plan, MOODS, COSTUME, MUSIC_NAME, FX, FX_MAX, cleanFx, maxBase, WIN, judge, goeFrom, perfectInputs, field, PCS_FACTOR };
+  root.EKSkate = { PATHS, DEF_PATH, RINK, cleanPath, navNew, pathStep, pathTrack, suggestPath, scoredBig, tB, suggest, elWindow, strokeBeats, jury, JUDGES, PROGRAMS, CATALOG, RULES, SECTIONS, DEFAULT_SLOTS, OLD_DEFAULT, check, cleanSlots, buildProgram, plan, MOODS, COSTUME, MUSIC_NAME, FX, FX_MAX, cleanFx, maxBase, WIN, judge, goeFrom, perfectInputs, field, PCS_FACTOR };
 })(typeof window !== "undefined" ? window : globalThis);
 
 /* Cold Medal Games · gemeinsame Figur (figur/figur.js, global CMFigur)
@@ -4667,7 +4670,7 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
 /* COLD MEDAL EISKUNSTLAUF – Ablauf, Bildschirme, Eingabe, Taktband, Ergebnis, Spielstand. */
 (function () {
   "use strict";
-  const VERSION = "0.65";
+  const VERSION = "0.66";
   // Seiten-Einstellungen aus dem Build (eigenes Hosting: Adresse, Hoster, Impressum); im claude.ai-Artefakt leer
   const SITE = Object.assign({ web: false, url: "", impressum: null }, {"web": true, "supabase": {"url": "https://pqpvgkslozsekjywpdrf.supabase.co", "key": "sb_publishable_KkKe9jchmXYp_-OEmB8WLQ_gZLXrRhF"}, "url": "https://matpeins-debug.github.io/cold-medal-eiskunstlauf/", "hoster": "GitHub Pages (GitHub Inc., USA)", "drittland": "GitHub ist nach dem EU-US Data Privacy Framework zertifiziert; die Übermittlung in die USA stützt sich auf den Angemessenheitsbeschluss der EU-Kommission dazu.", "impressum": {"name": "", "adresse": "", "mail": ""}} || {});
   const M = window.EKMusic, K = window.EKSkate, F = window.EKFig, SC = window.EKScene, PASS = window.CMPass;
@@ -4756,9 +4759,12 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
       if (M.PRESETS[o.preset]) S.preset = o.preset;
       if (Number.isFinite(o.lat)) S.lat = clamp(Math.round(o.lat / 10) * 10, -200, 400);
       S.prog = K.cleanSlots(o.prog);
+      if (S.prog.join() === K.OLD_DEFAULT.join()) S.prog = K.DEFAULT_SLOTS.slice(); // 0.66: alter Standardplan endete ohne Höhepunkt
       // gespeicherte Küren (höchstens 8): Name, Plan, Show, Musik, ob es ein Vorschlag war
       if (Array.isArray(o.saved)) S.saved = o.saved.slice(0, 8).filter((x) => x && Array.isArray(x.prog)).map((x) => ({ name: String(x.name || "Kür").replace(/[<>&"]/g, "").slice(0, 24), prog: K.cleanSlots(x.prog), fx: K.cleanFx(x.fx), path: K.cleanPath(x.path), music: M.KUER.includes(x.music) ? x.music : "donau", auto: !!x.auto, date: String(x.date || "").slice(0, 12) }));
       S.progAuto = typeof o.progAuto === "boolean" ? o.progAuto : S.prog.join() === K.DEFAULT_SLOTS.join();
+      // automatisch vorgeschlagene Pläne ohne Schlusspirouette: letzten Abschnitt nachrüsten, wenn die Regeln es zulassen
+      if (S.progAuto && !S.prog[7]) for (const sp of ["CSp", "SSp", "USp"]) { const a = S.prog.slice(); a[7] = sp; if (!K.check(a).length) { S.prog = a; break; } }
       if (M.KUER.includes(o.music)) S.music = o.music;
       S.fx = K.cleanFx(o.fx);
       S.path = K.cleanPath(o.path);
@@ -5087,7 +5093,8 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
       run.entry = { t: 0, phase: 0, x: WW / 2 - 820, face: 0, sp: null }; ambience(true);
       $("chips").style.visibility = "hidden"; // Programmleiste erst mit der eigenen Musik – vorher laufen die anderen, dann der Auftritt
       // im Wettkampf (nicht in der Gruppe, nicht beim Ansehen): erst laufen die zwei vor dir
-      if (mode === "comp" && !run.grp && !rec) {
+      // 0.66 (Mat: „die zwei Vorgeschalteten sind immer gleich, das braucht es nicht“): Aufwärmgruppe ausgeschaltet, Code bleibt
+      if (WARMUP && mode === "comp" && !run.grp && !rec) {
         const bd = aiBoard(run).sort((a, b) => b.total - a.total);
         run.entry.phase = -1; run.entry.warm = { t: 0, i: 0, board: bd, list: [bd[1], bd[0]].map((b) => Object.assign({ look: aiLook(b.name) }, b)) };
       }
@@ -5152,6 +5159,7 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
   }
   // Spannung vor der großen Kür: die letzten zwei vor dir laufen im Zeitraffer, ihre Noten kommen, dann der Zwischenstand
   // und was du für Gold brauchst. Tippen überspringt.
+  const WARMUP = false;
   const WARM_T = 8.6; // je Vorläuferin: ruhig hereingleiten, ein Sprung, eine Pirouette, Schlusspose, Applaus, Note (0.64: vorher 5,4 s – wirkte gehetzt)
   function warmFrame(dt) {
     const E = run.entry, Wm = E.warm; Wm.t += dt;
@@ -5933,6 +5941,22 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
       ctx.closePath(); ctx.fill();
     }
   }
+  // Schlusspunkt (0.66): auf dem letzten Akkord geht das Saallicht aus, nur der Spot bleibt auf ihr, ein heller Blitz,
+  // das Publikum springt auf. Nach gut drei Sekunden kommt das Licht langsam zurück (Verbeugung, Blumen).
+  function drawFinale(fo, t) {
+    const pe = PROG && PROG.elements.find((e) => e.kind === "pose"); if (!pe || !run.bt || run.honor || run.lesson) return;
+    const tp = run.bt[pe.at], u = t - tp + 0.15;
+    if (u < 0 || u > 6) return;
+    if (!run.finT) { run.finT = true; run.flash = 1; run.burst = Math.max(run.burst || 0, 1); run.cheer = 1; if (!run.fake) { sfx("woo", 0.9); sfx("applause", 0.9); } emitSparks(40, fo.x, fo.y - 60 * fo.s, 50, 160, true); }
+    const f = u < 0.35 ? smooth(u / 0.35) : u < 3.2 ? 1 : 1 - smooth((u - 3.2) / 2.2);
+    const cx = fo.x, cy = fo.y - 55 * fo.s, g = ctx.createRadialGradient(cx, cy, 60 * fo.s, cx, cy, 300);
+    g.addColorStop(0, "rgba(4,6,16,0)"); g.addColorStop(0.35, `rgba(4,6,16,${0.45 * f})`); g.addColorStop(1, `rgba(4,6,16,${0.78 * f})`);
+    ctx.save(); ctx.fillStyle = g; ctx.fillRect(-WW, -H, WW * 3, H * 3);
+    // Lichtkegel von oben auf sie
+    const k = ctx.createLinearGradient(cx, cy - 260, cx, fo.y + 10); k.addColorStop(0, `rgba(255,244,220,0)`); k.addColorStop(1, `rgba(255,244,220,${0.22 * f})`);
+    ctx.fillStyle = k; ctx.beginPath(); ctx.moveTo(cx - 14, cy - 260); ctx.lineTo(cx + 14, cy - 260); ctx.lineTo(cx + 70 * fo.s, fo.y + 8); ctx.lineTo(cx - 70 * fo.s, fo.y + 8); ctx.closePath(); ctx.fill();
+    ctx.restore();
+  }
   // Antwort des Trefferrings: Welle(n) in der Farbe der Wertung; perfekt = zwei Wellen und acht Funken, daneben = kurzes Zittern
   function drawRingFx(px, yc, rg) {
     const F0 = run.ringFx; if (!F0) return;
@@ -6445,6 +6469,7 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
         ctx.restore();
       }
     }
+    drawFinale(fo, t);
     { const im = skaterImg(fo); drawReflection(fo, im); drawSkater(fo, im); }
     // Glitzer: bei Treffern, Eisstaub in Pirouetten und bei Landungen
     {
