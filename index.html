@@ -637,6 +637,26 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
 .tGrid.three:has(#bGrp[hidden]) { grid-template-columns: 1fr 1fr; }
 .tGrid.three:has(#bGrp[hidden]) #bAlbum { grid-column: auto; }
 
+/* 0.68 Kür in drei Fragen */
+#scrWiz .card.wiz { width: 580px; box-sizing: border-box; margin: 0 auto; display: flex; flex-direction: column; gap: 8px; align-items: center; text-align: center; padding: 12px 16px; }
+#scrWiz h2 { font-family: var(--font-display); font-size: 26px; letter-spacing: 0.04em; color: var(--ink); margin: 0; }
+.wOpts { width: 100%; display: grid; gap: 6px; }
+.wOpts.music { grid-template-columns: repeat(4, 1fr); }
+.wOpts.three { grid-template-columns: repeat(3, 1fr); gap: 10px; }
+.wOpt { display: flex; flex-direction: column; align-items: flex-start; justify-content: center; gap: 2px; min-height: 40px; padding: 5px 8px; text-align: left; background: #FBF4E4; border: 2px solid var(--ink-deep); box-shadow: 2px 2px 0 var(--ink-deep);
+  font-family: var(--font-display); font-weight: 700; font-size: 13px; letter-spacing: 0.03em; color: var(--ink); }
+.wOpt small { font-family: var(--font-body); font-weight: 400; font-size: 10.5px; opacity: 0.75; letter-spacing: 0; }
+.wOpts.three .wOpt { min-height: 118px; padding: 10px 12px; font-size: 18px; text-transform: uppercase; }
+.wOpts.three .wOpt small { font-size: 12.5px; text-transform: none; opacity: 0.85; line-height: 1.3; }
+.wOpts.three .wOpt .ic { font-size: 26px; line-height: 1; }
+.wOpt.on { background: linear-gradient(180deg, #F3D58A, #DDA43B); border-color: #8C6A2A; }
+.wOpt .pl { font-size: 10px; color: var(--red); }
+.wSum { width: 100%; display: flex; flex-wrap: wrap; gap: 5px; justify-content: center; }
+.wSum span { padding: 4px 8px; border: 1.5px solid var(--ink-deep); background: #FBF4E4; font-family: var(--font-display); font-size: 12.5px; font-weight: 700; }
+.wSum span.jump { border-left: 5px solid #DDA43B; } .wSum span.spin { border-left: 5px solid #8FB3DA; } .wSum span.steps { border-left: 5px solid #8CC79A; } .wSum span.choreo { border-left: 5px solid #C9A0D6; } .wSum span.glide { border-left: 5px solid #9EC3E6; }
+.wNote { margin: 0; font-size: 13.5px; line-height: 1.35; max-width: 540px; min-height: 18px; }
+#scrWiz .lBtns { display: flex; gap: 10px; align-items: center; justify-content: center; }
+
 /* Cold Medal Games · Fenster „Deine Figur“ (pass/pass.css)
    Aussehen wie die Menüs des Skispringens: Papier mit Doppelrahmen, Knöpfe wie Druckmarken, Futura für Titel und Knöpfe,
    Buchschrift für Lesetext. Farben und Schriften kommen aus den Variablen des Spiels (alle Spiele der Reihe haben sie),
@@ -826,7 +846,7 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
       <span id="mCodeW" hidden><button class="chipBtn" id="bCode">Code</button></span>
       <button class="chipBtn icoBtn" id="bSet" aria-label="Optionen"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h10M18 7h2M4 17h4M12 17h8" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><circle cx="16" cy="7" r="2.3" fill="none" stroke="currentColor" stroke-width="2"/><circle cx="10" cy="17" r="2.3" fill="none" stroke="currentColor" stroke-width="2"/></svg></button>
     </div>
-    <button class="planCard" id="bProg"><span class="pcHead"><b>MEINE KÜR</b><i id="mPiece"></i><em id="mNote"></em></span><span class="pcStrip" id="mStrip"></span><span class="pcFoot">Kürplan gestalten <b>›</b></span></button>
+    <button class="planCard" id="bProg"><span class="pcHead"><b>MEINE KÜR</b><i id="mPiece"></i><em id="mNote"></em></span><span class="pcStrip" id="mStrip"></span><span class="pcFoot">Selbst einstellen <b>›</b></span></button>
     <button class="tNote" id="bInfo"><span id="mFoot"></span> · <u>Info &amp; Datenschutz</u></button>
   </section>
 
@@ -885,6 +905,16 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
     </div>
   </section>
 
+  <section class="scr" id="scrWiz" hidden>
+    <!-- Kür in drei Fragen (0.68, Mat zum Kürplan: „das überfordert“): Musik, Stil, Show – daraus entsteht die Kür; der volle Editor bleibt hinter „Selbst einstellen“ -->
+    <div class="card wiz">
+      <span class="kicker" id="wKick"></span>
+      <h2 id="wTitle"></h2>
+      <div class="wOpts" id="wOpts"></div>
+      <p class="wNote" id="wNote"></p>
+      <div class="lBtns"><button class="mid" id="wBack">Zurück</button><button class="mid" id="wOwn">Selbst einstellen</button><button class="big red" id="wGo"><span>Weiter</span></button></div>
+    </div>
+  </section>
   <section class="scr" id="scrLesson" hidden>
     <!-- Erste Schritte (0.59): drei kurze geführte Übungen vor der ersten Kür, jede Eingabe einzeln -->
     <div class="card lesson">
@@ -4692,7 +4722,7 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
 /* COLD MEDAL EISKUNSTLAUF – Ablauf, Bildschirme, Eingabe, Taktband, Ergebnis, Spielstand. */
 (function () {
   "use strict";
-  const VERSION = "0.67";
+  const VERSION = "0.68";
   // Seiten-Einstellungen aus dem Build (eigenes Hosting: Adresse, Hoster, Impressum); im claude.ai-Artefakt leer
   const SITE = Object.assign({ web: false, url: "", impressum: null }, {"web": true, "supabase": {"url": "https://pqpvgkslozsekjywpdrf.supabase.co", "key": "sb_publishable_KkKe9jchmXYp_-OEmB8WLQ_gZLXrRhF"}, "url": "https://matpeins-debug.github.io/cold-medal-eiskunstlauf/", "hoster": "GitHub Pages (GitHub Inc., USA)", "drittland": "GitHub ist nach dem EU-US Data Privacy Framework zertifiziert; die Übermittlung in die USA stützt sich auf den Angemessenheitsbeschluss der EU-Kommission dazu.", "impressum": {"name": "", "adresse": "", "mail": ""}} || {});
   const M = window.EKMusic, K = window.EKSkate, F = window.EKFig, SC = window.EKScene, PASS = window.CMPass;
@@ -4797,6 +4827,8 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
       if (Number.isFinite(o.tut)) S.tut = clamp(Math.floor(o.tut), 0, 9);
       if (o.buzz === 0) S.buzz = 0;
       if (o.g1) S.g1 = 1;
+      if (["safe", "mid", "wow"].includes(o.wStyle)) S.wStyle = o.wStyle;
+      if ([0, 1, 3].includes(o.wShow)) S.wShow = o.wShow;
     }
     return S;
   }
@@ -6771,7 +6803,7 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
   }
 
   // ------------------------------------------------------------------ Bildschirme
-  const SCREENS = ["scrLesson", "scrMenu", "scrGrp", "scrLook", "scrSet", "scrIntro", "scrRes", "scrInfo", "scrProg", "scrPaint", "scrAlbum"];
+  const SCREENS = ["scrLesson", "scrWiz", "scrMenu", "scrGrp", "scrLook", "scrSet", "scrIntro", "scrRes", "scrInfo", "scrProg", "scrPaint", "scrAlbum"];
   function show(id) { for (const s of SCREENS) $(s).hidden = s !== id; if (id === "scrMenu") { grpRun = null; fillMenu(); } }
   // Fahne wie im Skispringen (dieselbe Zeichnung), dazu Niederlande und Kanada
   function flag(code, w, h) {
@@ -6911,7 +6943,7 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
   const withTut = (f) => () => { unlock(); if (!testMode && (S.tut || 0) < LESSONS.length) { lessonThen = f; openLesson(Math.min(S.tut || 0, LESSONS.length - 1)); return; } f(); };
   $("bComp").onclick = withTut(() => { if (!S.name) { openLook(() => intro("comp"), { ask: true, title: "Wie heißt du?" }); return; } intro("comp"); });
   $("bTrain").onclick = withTut(() => intro("train"));
-  $("bStep1").onclick = () => $("bProg").onclick();
+  $("bStep1").onclick = () => openWiz();
   $("sTut").onclick = () => { S.tut = 0; save(); lessonThen = null; openLesson(0); };
   $("iGo").onclick = () => { unlock(); if (needOwn()) { $("bProg").onclick(); return; } startRun(pendingMode); };
   $("abort").onclick = abortRun;
@@ -7445,6 +7477,77 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
   }
   $("pPlay").onclick = () => listen(!listenOn);
   // Kürplan im Menü: das Herz der Kür – Stück, Choreo-Note und die acht Abschnitte auf einen Blick
+  // ------------------------------------------------------------------ Kür in drei Fragen
+  // 1 Musik (Antippen = Probehören) · 2 Stil (sicher / ausgewogen / spektakulär) · 3 Show (keine / ein Höhepunkt / großes Spektakel) · Ergebnis
+  const STYLES = [
+    { id: "safe", name: "Sicher", ic: "◡", txt: "Einfache Sprünge, kein Wagnis. Gut zum Ankommen – wenig Sturzgefahr." },
+    { id: "mid", name: "Ausgewogen", ic: "◠", txt: "Doppelsprünge, Pirouetten und Choreo im Gleichgewicht. Der beste Start." },
+    { id: "wow", name: "Spektakulär", ic: "✶", txt: "Die schwersten Sprünge und Kombinationen. Viele Punkte – wenn alles sitzt." },
+  ];
+  const SHOWS = [
+    { id: 0, name: "Keine", ic: "○", txt: "Nur du und die Musik." },
+    { id: 1, name: "Ein Höhepunkt", ic: "✺", txt: "Ein Feuerwerk genau dort, wo die Musik am größten ist." },
+    { id: 3, name: "Großes Spektakel", ic: "✦✺✦", txt: "Drei Effekte, jeweils dort, wo sie zur Musik passen – gut fürs Schaulaufen." },
+  ];
+  let wiz = null;
+  function openWiz() { if (listenOn) listen(false); wiz = { step: 0, music: S.music, style: S.wStyle || "mid", show: S.wShow != null ? S.wShow : 1, res: null }; fillWiz(); show("scrWiz"); }
+  const slotVal = (sl) => sl.reduce((a, id) => { const c = id && id !== "~" && CAT[id]; return a + (!c ? 0 : c.kind === "jump" ? c.base + (c.risk ? 0.8 : 0) : c.levels ? c.levels[c.levels.length - 1] : 0); }, 0);
+  function wizBuild() {
+    const mus = wiz.music, look = S.look, cands = [];
+    for (let i = 0; i < 18; i++) { const sl = K.suggest(mus, look, Math.random); const risky = sl.some((x) => CAT[x] && CAT[x].risk); cands.push({ sl, v: slotVal(sl), risky }); }
+    let pool = wiz.style === "safe" ? cands.filter((c) => !c.risky) : cands; if (!pool.length) pool = cands;
+    pool.sort((a, b) => a.v - b.v);
+    const pick = wiz.style === "safe" ? pool[0] : wiz.style === "wow" ? pool[pool.length - 1] : pool[Math.floor(pool.length / 2)];
+    const sl = pick.sl.slice();
+    // Show: Effekte nacheinander dorthin, wo sie die Choreo-Note am meisten heben
+    let fx = [null, null, null, null, null, null, null, null];
+    const order = wiz.show === 3 ? ["fire", "fog", "confetti"] : wiz.show === 1 ? ["fire"] : [];
+    for (const f of order) {
+      let best = null, bv = -1;
+      const pk = (K.SECTIONS[mus] && K.SECTIONS[mus].peak) || [4, 5];
+      for (let i = 0; i < 8; i++) {
+        if (fx[i] || ((f === "fire" || f === "confetti") && i < 3)) continue; // Knaller nie gleich am Anfang
+        const t = fx.slice(); t[i] = f;
+        const v = K.plan(sl, look, mus, t).total + (f === "fire" && pk.includes(i) ? 0.02 : 0) + (f === "confetti" && i === 7 ? 0.02 : 0) + (f === "fog" && (i === 1 || i === 2) ? 0.02 : 0);
+        if (v > bv) { bv = v; best = t; }
+      }
+      if (best) fx = K.cleanFx(best);
+    }
+    wiz.res = { sl, fx, path: K.suggestPath(sl) };
+  }
+  function fillWiz() {
+    const W = wiz, o = $("wOpts"), steps = ["Welche Musik?", "Welcher Stil?", "Wie viel Show?", "Deine Kür"];
+    $("wKick").textContent = W.step < 3 ? `DEINE KÜR · FRAGE ${W.step + 1} VON 3` : "DEINE KÜR · FERTIG";
+    $("wTitle").textContent = steps[W.step];
+    $("wBack").hidden = W.step === 0; $("wGo").querySelector("span").textContent = W.step < 2 ? "Weiter" : W.step === 2 ? "Kür bauen" : "Fertig";
+    $("wOwn").textContent = W.step === 3 ? "Neu mischen" : "Selbst einstellen";
+    if (W.step === 0) {
+      o.className = "wOpts music";
+      o.innerHTML = M.KUER.map((id) => `<button class="wOpt${id === W.music ? " on" : ""}" data-m="${id}">${esc(M.SCORES[id].short)}<small>${esc(M.SCORES[id].composer.replace(/,.*$/, ""))}</small>${id === W.music && listenOn ? `<span class="pl">♪ spielt – nochmal tippen: Stopp</span>` : ""}</button>`).join("");
+      o.querySelectorAll("[data-m]").forEach((b) => (b.onclick = () => { const m = b.dataset.m; if (m === W.music && listenOn) listen(false); else { W.music = m; S.music = m; listen(true); } fillWiz(); }));
+      $("wNote").textContent = "Antippen zum Anhören. Die Musik bestimmt den Bogen deiner Kür.";
+    } else if (W.step === 1 || W.step === 2) {
+      const L0 = W.step === 1 ? STYLES : SHOWS, cur = W.step === 1 ? W.style : W.show;
+      o.className = "wOpts three";
+      o.innerHTML = L0.map((x) => `<button class="wOpt${x.id === cur ? " on" : ""}" data-v="${x.id}"><span class="ic">${x.ic}</span>${esc(x.name)}<small>${esc(x.txt)}</small></button>`).join("");
+      o.querySelectorAll("[data-v]").forEach((b) => (b.onclick = () => { if (W.step === 1) W.style = b.dataset.v; else W.show = +b.dataset.v; fillWiz(); }));
+      $("wNote").textContent = W.step === 1 ? "Du kannst das jederzeit ändern." : "Show-Effekte kosten keine Kraft, machen aber Eindruck beim Publikum.";
+    } else {
+      const R0 = W.res, pl = K.plan(R0.sl, S.look, W.music, R0.fx);
+      o.className = "wSum";
+      o.innerHTML = R0.sl.map((id, i) => { if (id === "~" || !id) return ""; const c = CAT[id]; return `<span class="${c.kind}">${i + 1}. ${esc(c.name)}${R0.fx[i] ? " " + (K.FX[R0.fx[i]] ? "· " + esc(K.FX[R0.fx[i]]) : "") : ""}</span>`; }).join("");
+      $("wNote").innerHTML = `♪ ${esc(M.SCORES[W.music].short)} · ${esc(STYLES.find((x) => x.id === W.style).name)} · Choreo-Note <b>${dec(pl.total)}</b><br>Gefällt dir nicht? „Neu mischen“ baut eine andere Kür im selben Stil.`;
+    }
+  }
+  $("wBack").onclick = () => { if (wiz.step > 0) { wiz.step--; fillWiz(); } };
+  $("wGo").onclick = () => {
+    if (listenOn) listen(false);
+    if (wiz.step < 2) { wiz.step++; fillWiz(); return; }
+    if (wiz.step === 2) { wizBuild(); wiz.step = 3; fillWiz(); return; }
+    const R0 = wiz.res; S.music = wiz.music; S.prog = R0.sl.slice(); S.fx = R0.fx.slice(); S.path = R0.path.slice(); S.progAuto = true; S.wStyle = wiz.style; S.wShow = wiz.show; S.g1 = 1; save();
+    fillMenu(); show("scrMenu");
+  };
+  $("wOwn").onclick = () => { if (listenOn) listen(false); if (wiz.step === 3) { wizBuild(); fillWiz(); return; } S.music = wiz.music; save(); $("bProg").onclick(); };
   function fillPlanCard() {
     useMusic();
     const sl = K.cleanSlots(S.prog), pl = K.plan(sl, S.look, SCORE.id, S.fx, planCap(), S.path);
