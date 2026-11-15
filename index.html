@@ -69,7 +69,7 @@ h2 { font-family: var(--font-display); font-size: 22px; text-transform: uppercas
 .pill.on { background: var(--ink); color: var(--paper); }
 .foot { margin-top: auto; font-size: 10.5px; line-height: 1.25; color: var(--muted); }
 .note { font-size: 12.5px; color: var(--muted); line-height: 1.35; }
-.done { align-self: flex-end; position: absolute; right: 16px; bottom: 14px; }
+.mid.done { align-self: flex-end; position: absolute; right: 16px; bottom: 14px; }
 .opts { display: inline-flex; flex-wrap: wrap; gap: 5px; align-items: center; }
 .srow { display: flex; align-items: center; justify-content: space-between; gap: 10px; font-family: var(--font-display); font-weight: 600; letter-spacing: 0.04em; }
 #sLat { min-width: 64px; text-align: center; }
@@ -663,6 +663,10 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
 .wOpt.play { animation: wPlay 1.2s ease-in-out infinite; }
 @keyframes wPlay { 50% { box-shadow: 2px 2px 0 var(--ink-deep), 0 0 14px rgba(243,201,105,0.9); } }
 
+/* 0.71: Einstellungen passen wieder aufs iPhone SE (Fertig in der letzten Zeile statt darüber gelegt) */
+#scrSet .card { gap: 7px; padding: 10px 16px 12px; }
+#scrSet #sDone { margin-left: 8px; }
+
 /* Cold Medal Games · Fenster „Deine Figur“ (pass/pass.css)
    Aussehen wie die Menüs des Skispringens: Papier mit Doppelrahmen, Knöpfe wie Druckmarken, Futura für Titel und Knöpfe,
    Buchschrift für Lesetext. Farben und Schriften kommen aus den Variablen des Spiels (alle Spiele der Reihe haben sie),
@@ -941,9 +945,8 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
       <div class="srow">Ton <span class="opts"><span class="opts" id="sSound"></span><button class="pill" id="sBuzz">Vibration</button></span></div>
       <div class="srow">Figur <span class="opts" id="sFig"></span></div>
       <div class="srow">Verzögerung <span class="opts"><button class="pill" id="sLm">−</button><b class="num" id="sLat"></b><button class="pill" id="sLp">+</button></span></div>
-      <p class="note">Mit Bluetooth-Kopfhörern kommt der Ton später an. Zeigt das Ergebnis immer „eher zu spät“, hier die Verzögerung erhöhen.</p>
-      <div class="srow">Erste Schritte <span class="opts"><button class="pill" id="sTut">Nochmal üben</button></span></div>
-      <button class="mid red done" id="sDone">Fertig</button>
+      <p class="note">Bluetooth-Kopfhörer: zeigt das Ergebnis immer „eher zu spät“, hier erhöhen.</p>
+      <div class="srow">Erste Schritte <span class="opts"><button class="pill" id="sTut">Nochmal üben</button><button class="mid red" id="sDone">Fertig</button></span></div>
     </div>
   </section>
 
@@ -4728,7 +4731,7 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
 /* COLD MEDAL EISKUNSTLAUF – Ablauf, Bildschirme, Eingabe, Taktband, Ergebnis, Spielstand. */
 (function () {
   "use strict";
-  const VERSION = "0.70";
+  const VERSION = "0.71";
   // Seiten-Einstellungen aus dem Build (eigenes Hosting: Adresse, Hoster, Impressum); im claude.ai-Artefakt leer
   const SITE = Object.assign({ web: false, url: "", impressum: null }, {"web": true, "supabase": {"url": "https://pqpvgkslozsekjywpdrf.supabase.co", "key": "sb_publishable_KkKe9jchmXYp_-OEmB8WLQ_gZLXrRhF"}, "url": "https://matpeins-debug.github.io/cold-medal-eiskunstlauf/", "hoster": "GitHub Pages (GitHub Inc., USA)", "drittland": "GitHub ist nach dem EU-US Data Privacy Framework zertifiziert; die Übermittlung in die USA stützt sich auf den Angemessenheitsbeschluss der EU-Kommission dazu.", "impressum": {"name": "", "adresse": "", "mail": ""}} || {});
   const M = window.EKMusic, K = window.EKSkate, F = window.EKFig, SC = window.EKScene, PASS = window.CMPass;
