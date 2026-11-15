@@ -667,6 +667,27 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
 #scrSet .card { gap: 7px; padding: 10px 16px 12px; }
 #scrSet #sDone { margin-left: 8px; }
 
+/* 0.72 Musikwahl größer (Mat: „am iPhone ein bisschen klein“, Titel unten abgeschnitten) und Klang gleich darunter */
+#scrWiz .card.wiz { width: min(760px, calc(100vw - 20px)); gap: 7px; padding: 10px 14px 12px; }
+#scrWiz h2 { font-size: 22px; }
+.wOpts.music { grid-template-columns: repeat(4, 1fr); gap: 6px; }
+.wOpts.music .wOpt { height: 44px; padding: 4px 9px; justify-content: center; gap: 2px; }
+.wOpts.music .wOpt b { font-size: 14.5px; line-height: 1.2; }
+.wOpts.music .wOpt small { font-size: 11.5px; line-height: 1.2; }
+.wNote.kl { display: flex; flex-wrap: wrap; gap: 5px; justify-content: center; align-items: center; }
+.wNote.kl .wKl { font-family: var(--font-display); font-weight: 700; font-size: 11px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--red); margin-right: 4px; }
+.wNote.kl .pill { padding: 5px 9px; font-size: 12px; }
+#scrWiz .card.wiz { max-width: none; }
+#scrWiz .kicker { font-size: 10.5px; }
+#scrWiz h2 { font-size: 20px; line-height: 1.1; }
+.wOpts.music .wOpt { height: 42px; }
+.wNote.kl { flex-wrap: nowrap; gap: 4px; }
+.wNote.kl .pill { padding: 4px 7px; font-size: 11px; white-space: nowrap; }
+#scrWiz .lBtns .mid, #scrWiz .lBtns .big { height: 40px; }
+#scrWiz .card.wiz { width: 780px; } /* Maße in Bühnen-Pixeln: die Bühne wird als Ganzes skaliert, vw passt hier nicht */
+.wNote.kl { max-width: none; }
+.wNote.kl .pill { flex-shrink: 0; min-width: 0; }
+
 /* Cold Medal Games · Fenster „Deine Figur“ (pass/pass.css)
    Aussehen wie die Menüs des Skispringens: Papier mit Doppelrahmen, Knöpfe wie Druckmarken, Futura für Titel und Knöpfe,
    Buchschrift für Lesetext. Farben und Schriften kommen aus den Variablen des Spiels (alle Spiele der Reihe haben sie),
@@ -1343,9 +1364,10 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
     piano: { gain: 0.75, name: "Klavier", mel: ["piano"], acc: "piano", pad: false },
     strings: { gain: 1.3, name: "Streicher", mel: ["strings"], acc: "pizz", pad: true },
     box: { gain: 1.3, name: "Spieluhr", mel: ["box"], acc: "box", pad: false },
-    // Tanzorchester wie auf einer Schellackplatte der 1920er: Geige und gedämpfte Trompete, Klarinette eine Oktave tiefer,
-    // Banjo nach, Tuba auf der Eins, Besen auf der Trommel; schmaler Klang wie aus dem Trichter, leises Knistern
-    band: { gain: 1.45, name: "Orchester 1920er", mel: ["strings", "trumpet", "clarinet"], acc: "band", pad: false, retro: true },
+    // Salonorchester (0.72, Mat: „das Orchester hört sich nicht gut an“ – vorher Sägezahn-Trompete, Banjo auf jedem Akkordton und
+    // Grammofon-Filter mit Knistern, das klang nach Kamm und Blech): Geigen führen, Klarinette weich eine Oktave tiefer,
+    // Harfe zupft die Akkorde, Kontrabass gezupft auf der Eins, ganz leiser Besen; voller, warmer Raumklang ohne Filter
+    band: { gain: 1.5, name: "Salonorchester", mel: ["strings", "clarinet"], acc: "band", pad: true },
   };
 
   function Player(ctx, out) {
@@ -1455,45 +1477,46 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
       o2.connect(g2); g2.connect(dest); o2.start(t); o2.stop(t + 0.15);
     }
 
-    // gedämpfte Trompete (Wah-Dämpfer): Sägezahn durch einen wandernden Bandpass, schnelles Vibrato
+    // gedämpfte Trompete (Wah-Dämpfer) – seit 0.72 nicht mehr im Orchester, bleibt für alte Aufrufe
     function trumpet(t, m, dur, vel, dest) {
       const f = mf(m), len = Math.max(0.1, dur), o = c.createOscillator(), bp = c.createBiquadFilter(), g = c.createGain();
       o.type = "sawtooth"; o.frequency.value = f;
       bp.type = "bandpass"; bp.Q.value = 2.2; bp.frequency.setValueAtTime(900, t); bp.frequency.linearRampToValueAtTime(1700, t + 0.08); bp.frequency.setTargetAtTime(1300, t + 0.1, 0.2);
       g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(0.11 * vel, t + 0.03); g.gain.setTargetAtTime(0.07 * vel, t + 0.04, 0.15); g.gain.setTargetAtTime(0, t + len, 0.06);
-      const vib = c.createOscillator(), vg = c.createGain(); vib.frequency.value = 6.2; vg.gain.setValueAtTime(0, t); vg.gain.linearRampToValueAtTime(len > 0.4 ? 9 : 0, t + Math.min(0.4, len));
-      vib.connect(vg); vg.connect(o.detune); vib.start(t); vib.stop(t + len + 0.4);
       o.connect(bp); bp.connect(g); g.connect(dest); o.start(t); o.stop(t + len + 0.4);
     }
-    // Klarinette: Rechteck (ungerade Obertöne), weich, eine Oktave tiefer als die Melodie
+    // Klarinette: Grundton (Sinus) plus wenige ungerade Obertöne, weicher Ansatz, spätes leichtes Vibrato, eine Oktave tiefer
+    const clarWave = (() => { const re = new Float32Array(10), im = new Float32Array(10); im[1] = 1; im[3] = 0.32; im[5] = 0.14; im[7] = 0.06; im[2] = 0.04; return c.createPeriodicWave(re, im); })();
     function clarinet(t, m, dur, vel, dest) {
-      const f = mf(m - 12), len = Math.max(0.1, dur), o = c.createOscillator(), lp = c.createBiquadFilter(), g = c.createGain();
-      o.type = "square"; o.frequency.value = f; lp.type = "lowpass"; lp.frequency.value = Math.min(2600, f * 5); lp.Q.value = 0.3;
-      g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(0.045 * vel, t + 0.05); g.gain.setTargetAtTime(0, t + len, 0.08);
+      const f = mf(m - 12), len = Math.max(0.12, dur), o = c.createOscillator(), lp = c.createBiquadFilter(), g = c.createGain();
+      o.setPeriodicWave(clarWave); o.frequency.value = f; lp.type = "lowpass"; lp.frequency.value = Math.min(3000, f * 6); lp.Q.value = 0.2;
+      g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(0.05 * vel, t + 0.07); g.gain.setTargetAtTime(0.042 * vel, t + 0.08, 0.3); g.gain.setTargetAtTime(0, t + len, 0.1);
+      const vib = c.createOscillator(), vg = c.createGain(); vib.frequency.value = 5; vg.gain.setValueAtTime(0, t); vg.gain.linearRampToValueAtTime(len > 0.6 ? 5 : 0, t + Math.min(0.7, len));
+      vib.connect(vg); vg.connect(o.detune); vib.start(t); vib.stop(t + len + 0.5);
       o.connect(lp); lp.connect(g); g.connect(dest); o.start(t); o.stop(t + len + 0.5);
     }
-    // Banjo: hell gezupft, sehr kurz, mit metallischem Oberton
+    // Harfe: weich gezupft (Dreieck + leiser Oktav-Sinus), klingt kurz nach – trägt die Akkorde (früher Banjo)
     function banjo(t, m, vel, dest) {
-      const f = mf(m + 12), o = c.createOscillator(), o2 = c.createOscillator(), hp = c.createBiquadFilter(), g = c.createGain();
-      o.type = "sawtooth"; o.frequency.value = f; o2.type = "square"; o2.frequency.value = f * 2.01;
-      hp.type = "highpass"; hp.frequency.value = 500;
-      g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(0.06 * vel, t + 0.002); g.gain.setTargetAtTime(0, t + 0.004, 0.07);
-      o.connect(hp); o2.connect(hp); hp.connect(g); g.connect(dest); o.start(t); o2.start(t); o.stop(t + 0.5); o2.stop(t + 0.5);
+      const f = mf(m + 12), o = c.createOscillator(), o2 = c.createOscillator(), lp = c.createBiquadFilter(), g = c.createGain(), g2 = c.createGain();
+      o.type = "triangle"; o.frequency.value = f; o2.type = "sine"; o2.frequency.value = f * 2; g2.gain.value = 0.3;
+      lp.type = "lowpass"; lp.frequency.setValueAtTime(Math.min(6000, f * 7), t); lp.frequency.exponentialRampToValueAtTime(Math.max(400, f * 2), t + 0.6);
+      g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(0.07 * vel, t + 0.004); g.gain.setTargetAtTime(0, t + 0.006, 0.32);
+      o.connect(lp); o2.connect(g2); g2.connect(lp); lp.connect(g); g.connect(dest); o.start(t); o2.start(t); o.stop(t + 1.6); o2.stop(t + 1.6);
     }
-    // Tuba: rund und weich auf der Eins
+    // Kontrabass gezupft: runder Ton, kurzer Anschlag, klingt etwa eine halbe Sekunde (früher Tuba)
     function tuba(t, m, dur, vel, dest) {
-      const f = mf(m), len = Math.min(dur, 0.6), o = c.createOscillator(), o2 = c.createOscillator(), lp = c.createBiquadFilter(), g = c.createGain();
-      o.type = "triangle"; o.frequency.value = f; o2.type = "sawtooth"; o2.frequency.value = f; lp.type = "lowpass"; lp.frequency.value = f * 4;
-      const g2 = c.createGain(); g2.gain.value = 0.25;
-      g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(0.3 * vel, t + 0.04); g.gain.setTargetAtTime(0, t + len, 0.08);
-      o.connect(lp); o2.connect(g2); g2.connect(lp); lp.connect(g); g.connect(dest); o.start(t); o2.start(t); o.stop(t + len + 0.5); o2.stop(t + len + 0.5);
+      const f = mf(m), o = c.createOscillator(), o2 = c.createOscillator(), lp = c.createBiquadFilter(), g = c.createGain(), g2 = c.createGain();
+      o.type = "sine"; o.frequency.value = f; o2.type = "triangle"; o2.frequency.value = f * 2; g2.gain.value = 0.18;
+      lp.type = "lowpass"; lp.frequency.value = Math.min(900, f * 5);
+      g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(0.32 * vel, t + 0.008); g.gain.setTargetAtTime(0, t + 0.012, 0.22);
+      o.connect(lp); o2.connect(g2); g2.connect(lp); lp.connect(g); g.connect(dest); o.start(t); o2.start(t); o.stop(t + 1.2); o2.stop(t + 1.2);
     }
-    // Besen auf der kleinen Trommel
+    // Besen auf der kleinen Trommel: nur ein Hauch
     function brush(t, vel, dest) {
       const nb = c.createBufferSource(); nb.buffer = noise; const bp = c.createBiquadFilter(), g = c.createGain();
-      bp.type = "bandpass"; bp.frequency.value = 4200; bp.Q.value = 0.7;
-      g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(0.05 * vel, t + 0.015); g.gain.setTargetAtTime(0, t + 0.03, 0.05);
-      nb.loop = true; nb.connect(bp); bp.connect(g); g.connect(dest); nb.start(t); nb.stop(t + 0.3);
+      bp.type = "bandpass"; bp.frequency.value = 3400; bp.Q.value = 0.5;
+      g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(0.018 * vel, t + 0.03); g.gain.setTargetAtTime(0, t + 0.05, 0.07);
+      nb.loop = true; nb.connect(bp); bp.connect(g); g.connect(dest); nb.start(t); nb.stop(t + 0.4);
     }
 
     // Liegeakkord der Streicher, sehr leise, füllt den Raum
@@ -1524,7 +1547,7 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
       start(id, opt) {
         this.stop();
         opt = opt || {};
-        this.score = typeof id === "string" ? SCORES[id] : id; this.preset = PRESETS[opt.preset] ? opt.preset : PRESETS[this.preset] ? this.preset : "salon"; // unbekannte Klangfarbe: Klavier + Streicher statt Stille this.swing = opt.swing !== undefined ? opt.swing : this.swing;
+        this.score = typeof id === "string" ? SCORES[id] : id; this.preset = PRESETS[opt.preset] ? opt.preset : PRESETS[this.preset] ? this.preset : "salon"; /* unbekannte Klangfarbe: Klavier + Streicher statt Stille */ this.swing = opt.swing !== undefined ? opt.swing : this.swing;
         this.bpm = opt.bpm || this.score.bpm; this.all = !!opt.all;
         this.voices = c.createGain(); this.voices.gain.value = PRESETS[this.preset].gain || 1;
         if (PRESETS[this.preset].retro) {
@@ -1581,19 +1604,19 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
             const vel = e.fin ? 0.8 : e.acc ? 1 : 0.85, short = e.dur <= 0.5;
             pr.mel.forEach((ins) => {
               if (ins === "piano") piano(t, e.m, dur, vel * (pr.mel.length > 1 ? 0.8 : 1), d);
-              else if (ins === "strings") strings(t, e.m, short ? dur * 0.9 : dur, vel * (pr.acc === "band" ? 0.8 : 1), pr.mel.length > 1 ? rd : d, short);
+              else if (ins === "strings") strings(t, e.m, short ? dur * 0.9 : dur, vel, pr.acc === "band" ? d : pr.mel.length > 1 ? rd : d, short);
               else if (ins === "trumpet") trumpet(t, e.m, short ? dur * 0.85 : dur, vel, d);
               else if (ins === "clarinet") clarinet(t, e.m, dur, vel, rd);
               else box(t, e.m, dur, vel, d);
             });
             if (!pr.mel.includes("strings")) box(t, e.m + 12, dur, vel * 0.32, rd);
           } else if (e.part === "bass") {
-            if (pr.acc === "band") { tuba(t, e.m, dur, 0.9, d); if (!e.fin) brush(t, 0.6, d); }
+            if (pr.acc === "band") tuba(t, e.m, dur, 0.9, d);
             else if (pr.acc === "box") box(t, e.m + 12, dur, 0.55, d);
             else if (pr.acc === "pizz") pizz(t, e.m, dur, 0.9, d);
             else piano(t, e.m, Math.max(dur, sp * 0.9), 0.75, d);
           } else if (e.part === "chord") {
-            if (pr.acc === "band") { banjo(t, e.m, e.fin ? 0.6 : 0.8, d); if (e.beat !== this.lastBrush) { this.lastBrush = e.beat; brush(t, 1, d); } }
+            if (pr.acc === "band") { banjo(t, e.m, e.fin ? 0.7 : 0.55, d); if (!e.fin && e.beat !== this.lastBrush) { this.lastBrush = e.beat; brush(t, 1, d); } }
             else if (pr.acc === "box") { if (e.m === Math.max(...CH_LAST(e))) box(t, e.m, dur, 0.3, d); }
             else if (pr.acc === "pizz") pizz(t, e.m, dur, 0.42, d);
             else piano(t, e.m, e.fin ? dur : e.arp ? sp * 1.6 : sp * 0.55, e.fin ? 0.5 : e.arp ? 0.3 : 0.36, d);
@@ -4731,7 +4754,7 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
 /* COLD MEDAL EISKUNSTLAUF – Ablauf, Bildschirme, Eingabe, Taktband, Ergebnis, Spielstand. */
 (function () {
   "use strict";
-  const VERSION = "0.71";
+  const VERSION = "0.72";
   // Seiten-Einstellungen aus dem Build (eigenes Hosting: Adresse, Hoster, Impressum); im claude.ai-Artefakt leer
   const SITE = Object.assign({ web: false, url: "", impressum: null }, {"web": true, "supabase": {"url": "https://pqpvgkslozsekjywpdrf.supabase.co", "key": "sb_publishable_KkKe9jchmXYp_-OEmB8WLQ_gZLXrRhF"}, "url": "https://matpeins-debug.github.io/cold-medal-eiskunstlauf/", "hoster": "GitHub Pages (GitHub Inc., USA)", "drittland": "GitHub ist nach dem EU-US Data Privacy Framework zertifiziert; die Übermittlung in die USA stützt sich auf den Angemessenheitsbeschluss der EU-Kommission dazu.", "impressum": {"name": "", "adresse": "", "mail": ""}} || {});
   const M = window.EKMusic, K = window.EKSkate, F = window.EKFig, SC = window.EKScene, PASS = window.CMPass;
@@ -7584,21 +7607,23 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
     $("wBack").hidden = W.step === 0; $("wGo").querySelector("span").textContent = W.step < 2 ? "Weiter" : W.step === 2 ? "Kür bauen" : "Fertig";
     $("wOwn").textContent = W.step === 3 ? "Neu mischen" : "Selbst einstellen";
     if (W.step === 0) {
-      o.className = "wOpts music";
+      o.className = "wOpts music"; $("wNote").className = "wNote kl";
       // kompakt (0.69, Mats iPhone: Karten zu hoch, Knöpfe abgeschnitten): eine Zeile Titel, darunter nur der Nachname
       o.innerHTML = M.KUER.map((id) => { const sc = M.SCORES[id], last = sc.composer.replace(/,.*$/, "").replace(/\s*\(.*\)/, "").split(" ").pop();
         return `<button class="wOpt${id === W.music ? " on" : ""}${id === W.music && listenOn ? " play" : ""}" data-m="${id}"><b>${id === W.music && listenOn ? "♪ " : ""}${esc(sc.short)}</b><small>${esc(last)}</small></button>`; }).join("");
       o.querySelectorAll("[data-m]").forEach((b) => (b.onclick = () => { const m = b.dataset.m; if (m === W.music && listenOn) listen(false); else { W.music = m; S.music = m; listen(true, true); } fillWiz(); }));
-      $("wNote").textContent = listenOn ? `♪ ${M.SCORES[W.music].title} – nochmal tippen zum Anhalten.` : "Antippen zum Anhören.";
+      // Klangfarbe gleich hier wählen (0.72, Mat): Antippen spielt das gewählte Stück in dieser Besetzung
+      $("wNote").innerHTML = `<span class="wKl">Klang</span>` + Object.entries(M.PRESETS).map(([k, v]) => `<button class="pill${k === S.preset ? " on" : ""}" data-p="${k}">${esc(v.name)}</button>`).join("");
+      $("wNote").querySelectorAll("[data-p]").forEach((b) => (b.onclick = () => { S.preset = b.dataset.p; save(); listen(true, true); fillWiz(); }));
     } else if (W.step === 1 || W.step === 2) {
       const L0 = W.step === 1 ? STYLES : SHOWS, cur = W.step === 1 ? W.style : W.show;
       o.className = "wOpts three";
       o.innerHTML = L0.map((x) => `<button class="wOpt${x.id === cur ? " on" : ""}" data-v="${x.id}"><span class="ic">${x.ic}</span>${esc(x.name)}<small>${esc(x.txt)}</small></button>`).join("");
       o.querySelectorAll("[data-v]").forEach((b) => (b.onclick = () => { if (W.step === 1) W.style = b.dataset.v; else W.show = +b.dataset.v; fillWiz(); }));
-      $("wNote").textContent = W.step === 1 ? "Du kannst das jederzeit ändern." : "Show-Effekte kosten keine Kraft, machen aber Eindruck beim Publikum.";
+      $("wNote").className = "wNote"; $("wNote").textContent = W.step === 1 ? "Du kannst das jederzeit ändern." : "Show-Effekte kosten keine Kraft, machen aber Eindruck beim Publikum.";
     } else {
       const R0 = W.res, pl = K.plan(R0.sl, S.look, W.music, R0.fx);
-      o.className = "wSum";
+      o.className = "wSum"; $("wNote").className = "wNote";
       o.innerHTML = R0.sl.map((id, i) => { if (id === "~" || !id) return ""; const c = CAT[id]; return `<span class="${c.kind}">${i + 1}. ${esc(c.name)}${R0.fx[i] ? " " + (K.FX[R0.fx[i]] ? "· " + esc(K.FX[R0.fx[i]]) : "") : ""}</span>`; }).join("");
       $("wNote").innerHTML = `♪ ${esc(M.SCORES[W.music].short)} · ${esc(STYLES.find((x) => x.id === W.style).name)} · Choreo-Note <b>${dec(pl.total)}</b><br>Gefällt dir nicht? „Neu mischen“ baut eine andere Kür im selben Stil.`;
     }
