@@ -1266,7 +1266,7 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
         ev.push({ beat: t0 + (+b - 1), m: midi(n), dur: d ? +d : 1, part: "mel", acc: (+b - 1) % P === 0 });
       });
     });
-    const tEnd = score.bars.length * M, ch = CH[score.end], fd = M === 3 ? 4 : 6;
+    const tEnd = score.bars.length * M, ch = CH[score.end], fd = M === 3 ? 1.8 : 2.4; // Schlussakkord in Sekunden (0.70, Mat: „die Musik soll genau dann enden, wenn die Kür endet“ – vorher 4 s Nachklang)
     ev.push({ beat: tEnd, m: midi(ch.b[0]) - 12, dur: fd, part: "bass" });
     ev.push({ beat: tEnd, m: 0, dur: fd, part: "pad", chord: ch.c.map(midi) });
     ch.c.forEach((n) => ev.push({ beat: tEnd, m: midi(n), dur: fd, part: "chord", fin: true }));
@@ -2154,7 +2154,7 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
   // Abstöße im Takt: zwischen den Elementen stößt sich die Läuferin jeden zweiten Takt auf der Eins ab. Wer genau dort tippt,
   // läuft mit Schwung (Können/Laufen); Tippen neben dem Takt zählt dagegen. Liefert die Schlag-Nummern (Index in bt).
   function strokeBeats(prog, bt) {
-    const sec = prog.sec || SEC0, from = sec.first, to = sec.first + sec.len * sec.n, wins = prog.elements.map((e) => elWindow(e, bt)), out = [];
+    const sec = prog.sec || SEC0, from = prog.noIntro ? sec.first : 1, to = sec.first + sec.len * sec.n, wins = prog.elements.map((e) => elWindow(e, bt)), out = [];
     for (let bar = from; bar < to; bar += prog.strokeEvery || 2) {
       const b = bar * 3; if (!bt[b]) continue;
       if (wins.some(([a, z]) => bt[b] > a - 0.5 && bt[b] < z + 0.5)) continue;
@@ -4728,7 +4728,7 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
 /* COLD MEDAL EISKUNSTLAUF – Ablauf, Bildschirme, Eingabe, Taktband, Ergebnis, Spielstand. */
 (function () {
   "use strict";
-  const VERSION = "0.69";
+  const VERSION = "0.70";
   // Seiten-Einstellungen aus dem Build (eigenes Hosting: Adresse, Hoster, Impressum); im claude.ai-Artefakt leer
   const SITE = Object.assign({ web: false, url: "", impressum: null }, {"web": true, "supabase": {"url": "https://pqpvgkslozsekjywpdrf.supabase.co", "key": "sb_publishable_KkKe9jchmXYp_-OEmB8WLQ_gZLXrRhF"}, "url": "https://matpeins-debug.github.io/cold-medal-eiskunstlauf/", "hoster": "GitHub Pages (GitHub Inc., USA)", "drittland": "GitHub ist nach dem EU-US Data Privacy Framework zertifiziert; die Übermittlung in die USA stützt sich auf den Angemessenheitsbeschluss der EU-Kommission dazu.", "impressum": {"name": "", "adresse": "", "mail": ""}} || {});
   const M = window.EKMusic, K = window.EKSkate, F = window.EKFig, SC = window.EKScene, PASS = window.CMPass;
@@ -4840,7 +4840,7 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
   }
   // Aufzeichnung einer Kür: nur Plan, Figur und die Eingaben mit Zeit (ms) – daraus entsteht beim Ansehen alles neu (wie die
   // Geister im Skispringen, aber noch kleiner). Eingabe-Kürzel: d = drücken, u = loslassen, c = kreisen, l/r/h/t = Pfeil links/rechts/hoch/tief.
-  const IN_CODE = { down: "d", up: "u", circle: "c" }, DIR_CODE = { l: "l", r: "r", u: "h", d: "t" }, CODE_IN = { d: ["down"], u: ["up"], c: ["circle"], l: ["swipe", "l"], r: ["swipe", "r"], h: ["swipe", "u"], t: ["swipe", "d"] };
+  const IN_CODE = { down: "d", up: "u", circle: "c", show: "s" }, DIR_CODE = { l: "l", r: "r", u: "h", d: "t" }, CODE_IN = { d: ["down"], u: ["up"], c: ["circle"], s: ["show"], l: ["swipe", "l"], r: ["swipe", "r"], h: ["swipe", "u"], t: ["swipe", "d"] };
   // ------------------------------------------------------------------ Saison: vier Wettbewerbe an vier Orten, Punkte nach Platz,
   // zum Schluss die Gala der Eisrevue. Jede Saison wird das Feld stärker; erreichte Orte bleiben fürs Training frei.
   // 0.61 (Mat: „ob es wirklich viermal das Gleiche braucht“): jede Station hat ihr eigenes Format
@@ -5133,6 +5133,9 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
       else if (e.kind === "glide") out.push({ t: bt[e.tk], t2: bt[e.end], kind: "glide", el: e });
     }
     for (const b of K.strokeBeats(PROG, bt)) out.push({ t: bt[b], kind: "stroke" }); // Abstoß im Takt zwischen den Elementen
+    // 0.70 Show-Einsatz mit der linken Hand: auf der Eins jedes Abschnitts mit Effekt ein ✺ – nur wer ihn trifft, zündet den Effekt
+    const sec = PROG.sec || K.SECTIONS.donau;
+    (PROG.fx || []).forEach((f, i) => { if (f && i < sec.n) { const b = (sec.first + sec.len * i) * 3; if (bt[b]) out.push({ t: bt[b], kind: "show", fx: f, i }); } });
     return out.sort((a, b) => a.t - b.t);
   }
   const elWindow = K.elWindow;
@@ -5141,7 +5144,7 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
     const fake = !!opt.fake || testMode || !player, rec = opt.replay || null;
     usePlace(rec ? rec.place : grpRun && mode === "comp" ? "wien" : mode === "comp" ? SEASON[S.season.ev].id : trainPlace || SEASON[S.season.ev].id);
     if (rec) { SCORE = M.SCORES[rec.music]; PROG = rec.fmt === "short" ? shortProg(rec.music, rec.lvl, rec.path) : K.buildProgram(rec.slots, rec.music, rec.lvl, rec.path); PROG.look = rec.look; PROG.fx = rec.fx.slice(); PROG.planCap = rec.cap; }
-    else { useMusic(); const sh = mode === "comp" && !grpRun && curFmt() === "short"; PROG = sh ? shortProg(SCORE.id, S.help, S.path) : K.buildProgram(S.prog, SCORE.id, S.help, S.path); PROG.look = S.look; PROG.fx = S.fx.slice(); PROG.planCap = planCap(); }
+    else { useMusic(); const sh = mode === "comp" && !grpRun && curFmt() === "short"; PROG = sh ? shortProg(SCORE.id, S.help, S.path) : K.buildProgram(S.prog, SCORE.id, S.help, S.path); PROG.look = S.look; PROG.fx = sh ? [null, null, null, null, null, null, null, null] : S.fx.slice(); /* Pflicht ohne Show */ PROG.planCap = planCap(); }
     const lv = rec ? LEVELS[rec.lvl] || LEVELS.norm : LV(), bt = M.grid(SCORE, Math.round(SCORE.bpm * lv.tempo), true);
     run = { mode, lv, bt, marks: buildMarks(bt), inputs: [], fake, fakeT: -0.6, lastT: 0, done: {}, pops: [], p: 0, camX: WW / 2 - W / 2,
       grp: !rec && grpRun && mode === "comp" ? Object.assign({}, grpRun) : null, dir: 1, face: 0, trail: [], trailT: 0, turn: 0, spinV: 0, jump: null, fallUntil: -1, landUntil: -1, lastSwipe: null, posed: false, finished: false, k: kHelp(), paint: { pts: [], marks: [], t: 0 }, sparks: [], burstQ: 0, lastQ: null, pos: null, intensity: 0.6, cheer: 0, burst: 0, streak: 0, bestStreak: 0, accI: 0, throws: null, intT: 0, seed: (Date.now() & 0xffff) || 7 };
@@ -5380,9 +5383,22 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
     if (!run.replay && run.raw.length < 1500) run.raw.push(Math.round(t * 1000) + (type === "swipe" ? DIR_CODE[dir] : IN_CODE[type]));
     // am Boden: nur Pfeil nach oben (oder nach oben wischen) hilft – damit steht sie auf; alles andere geht nicht
     if (run.down) { if (type === "swipe" && dir === "u" && t > run.down.t0 + 0.4) standUp(t); else if (type !== "up") run.down.shake = t; return; }
+    if (type === "show") { showPress(t); return; }
     const inp = { t, type }; if (dir) inp.dir = dir;
     run.inputs.push(inp);
     feedback(inp);
+  }
+  // Show-Knopf: nächster ✺ im Fenster → Effekt zündet für diesen Abschnitt; daneben: leises „tock“, nichts passiert
+  const SHOW_WIN = 0.3;
+  function showPress(t) {
+    run.showT = performance.now();
+    const m = run.marks.find((x) => x.kind === "show" && !x.hit && Math.abs(x.t - t) <= SHOW_WIN * run.k);
+    if (!m) { sfx("miss"); run.ringFx = { t: performance.now(), c: "#C9A0D6", st: 0, show: true }; buzz(0); return; }
+    m.hit = true; run.fxHit = run.fxHit || {}; run.fxHit[m.i] = true;
+    const ms = Math.round((t - m.t) * 1000); run.showOk = (run.showOk || 0) + 1;
+    pop(`✺ ${K.FX[m.fx] || "Show"}!`, "#F3D58A", true); sfx("cheer", 0.6); run.burst = Math.max(run.burst || 0, 0.7); buzz(3);
+    run.ringFx = { t: performance.now(), c: "#F3D58A", st: 3, show: true };
+    if (run.meter) { run.meter.push({ ms, c: "#E9C8EE", t: performance.now() }); }
   }
   // Aufstehen nach einem Sturz: Pfeil ↑ oder einmal nach oben wischen; wer liegen bleibt, verpasst die nächsten Elemente, nach 6 s steht sie von selbst auf
   function nearBeat(t) { const bt = run.bt; let i = 0, best = 0; for (; i < bt.length; i++) if (Math.abs(bt[i] - t) < Math.abs(bt[best] - t)) best = i; return { i: best, d: t - bt[best] }; }
@@ -5531,6 +5547,8 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
     if (!run) return; e.preventDefault(); pointerDown = true;
     try { cv.setPointerCapture(e.pointerId); } catch (er) { /* egal */ }
     const [x, y] = stagePoint(e.clientX, e.clientY); track.pts = [[x, y, performance.now()]];
+    // linker Knopf (unten links) = Show; alles andere ist der Hauptknopf wie bisher
+    if (hasShow() && Math.hypot(x - PAD_L.x, y - PAD_L.y) < PAD_L.r + 22 && !run.entry && !run.replay && !run.finished) { pointerDown = false; addInput("show"); return; }
     addInput("down");
     // Pirouette: Tippen genügt wie die Leertaste (Kreisen geht weiterhin); 0.59 – zwei Bewegungen für alles: tippen und halten
     if (inWindow("spin")) { addInput("circle"); run.spinV = 1; track.acc = 0; }
@@ -5550,6 +5568,7 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
     if (e.repeat) { e.preventDefault(); return; }
     if (e.key === " " || e.key === "Enter") { e.preventDefault(); addInput("down"); if (inWindow("spin")) { addInput("circle"); run.spinV = 1; } }
     else if (KEYDIR[e.key]) { e.preventDefault(); addInput("swipe", KEYDIR[e.key]); }
+    else if (e.key === "f" || e.key === "F" || e.key === "Shift") { e.preventDefault(); addInput("show"); } // linke Hand: Show
   });
   window.addEventListener("keyup", (e) => { if (run && (e.key === " " || e.key === "Enter")) { e.preventDefault(); addInput("up"); } });
   const canHover = () => window.matchMedia && window.matchMedia("(hover: hover) and (pointer: fine)").matches;
@@ -5837,6 +5856,34 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
   // im mittleren und hinteren Teil belaufen (Tiefe 0,20…0,60 statt 0,22…0,82, Kufen nie im unteren Drittel bei Taktband, Takt-Meter
   // und Wertung); dafür steht die Kamera um ZOOM0 näher, damit sie gleich groß bleibt. Das Kür-Bild rechnet weiter mit der ganzen Fläche.
   const DEP0 = 0.40, DEPK = 0.016, ZOOM0 = 1.1;
+  // Zwei Knöpfe (0.70, Mat: „mit der linken Hand die Show, wie bei Schneeball und Biathlon, aber super edel“):
+  // links SHOW (nur wenn der Kürplan Effekte hat), rechts KÜR (Sprünge, Pirouetten, Schritte – tippen geht weiter überall)
+  const PAD_L = { x: 58, y: 292, r: 26 }, PAD_R = { x: W - 58, y: 292, r: 26 };
+  const hasShow = () => !!(run && run.marks && run.marks.some((m) => m.kind === "show"));
+  function drawPads(t) {
+    if (!hasShow() || run.entry || run.replay || run.honor || run.finished) return;
+    const now = performance.now(), kb = canHover();
+    const pad = (P0, glyph, cap, key, appr, flash, dim) => {
+      ctx.save();
+      if (appr > 0) { // Anflug-Ring: schrumpft genau auf den Schlag
+        const rr = P0.r + 4 + 34 * (1 - appr); ctx.strokeStyle = `rgba(243,213,138,${0.25 + 0.65 * appr})`; ctx.lineWidth = 2; ctx.beginPath(); ctx.arc(P0.x, P0.y, rr, 0, 7); ctx.stroke();
+        const g = ctx.createRadialGradient(P0.x, P0.y, P0.r * 0.6, P0.x, P0.y, P0.r * 1.9); g.addColorStop(0, `rgba(243,201,105,${0.35 * appr})`); g.addColorStop(1, "rgba(243,201,105,0)"); ctx.fillStyle = g; ctx.beginPath(); ctx.arc(P0.x, P0.y, P0.r * 1.9, 0, 7); ctx.fill();
+      }
+      ctx.globalAlpha = dim ? 0.55 : 1;
+      const bg = ctx.createRadialGradient(P0.x - 6, P0.y - 8, 2, P0.x, P0.y, P0.r); bg.addColorStop(0, flash > 0 ? `rgba(243,213,138,${0.5 + 0.5 * flash})` : "rgba(40,50,84,0.92)"); bg.addColorStop(1, "rgba(10,14,30,0.92)");
+      ctx.fillStyle = bg; ctx.beginPath(); ctx.arc(P0.x, P0.y, P0.r, 0, 7); ctx.fill();
+      ctx.strokeStyle = "#E3B860"; ctx.lineWidth = 1.6; ctx.stroke(); ctx.strokeStyle = "rgba(243,213,138,0.35)"; ctx.lineWidth = 1; ctx.beginPath(); ctx.arc(P0.x, P0.y, P0.r - 4, 0, 7); ctx.stroke();
+      ctx.fillStyle = flash > 0.3 ? "#141B25" : "#F3D58A"; ctx.textAlign = "center"; ctx.textBaseline = "middle"; ctx.font = "700 18px " + font(); ctx.fillText(glyph, P0.x, P0.y + 1);
+      ctx.font = "700 9px " + font(); ctx.fillStyle = "#F1E7D2"; ctx.fillText(cap.split("").join("\u200A"), P0.x, P0.y + P0.r + 10);
+      if (kb) { ctx.font = "600 8.5px " + font(); ctx.fillStyle = "rgba(241,231,210,0.6)"; ctx.fillText(key, P0.x, P0.y + P0.r + 21); }
+      ctx.restore();
+    };
+    const nextShow = run.marks.find((m) => m.kind === "show" && !m.hit && m.t > t - 0.3 && m.t - t < 1.4);
+    const ap = nextShow ? clamp(1 - (nextShow.t - t) / 1.4, 0, 1) : 0, fl = run.showT ? clamp(1 - (now - run.showT) / 350, 0, 1) : 0;
+    pad(PAD_L, "✺", "SHOW", "F", ap, fl, !nextShow);
+    const nb0 = nearBeat(t), pulse = clamp(1 - Math.abs(nb0.d) / 0.1, 0, 1) * 0.5;
+    pad(PAD_R, "●", "KÜR", "LEERTASTE", 0, pulse, false);
+  }
   const LANE_X = W / 2; // Trefferpunkt: alles Wichtige sitzt hier unten in der Mitte
   function drawLane(t) {
     const y0 = 350, h = 34, px = LANE_X, pps = 175;
@@ -5865,7 +5912,12 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
       // Experte: Zeichen tauchen erst kurz vor dem Ring auf – man muss die Musik hören, nicht nur schauen
       const vis = run.lv.reveal ? clamp((run.lv.reveal - (m.t - t)) / 0.25, 0, 1) : 1; if (vis <= 0) continue;
       ctx.globalAlpha = (x2 < px - 6 ? 0.35 : 1) * vis; // Vergangenes links vom Ring tritt zurück
-      if (m.kind === "stroke") {
+      if (m.kind === "show") {
+        // Show-Einsatz: eigene Spur über dem Band (linke Hand), Raute mit ✺, gezündet golden
+        const ys = y0 - 12; ctx.fillStyle = m.hit ? "#F3D58A" : "rgba(12,17,34,0.85)"; ctx.strokeStyle = "#E9C8EE"; ctx.lineWidth = 1.5;
+        ctx.beginPath(); ctx.moveTo(x, ys - 10); ctx.lineTo(x + 10, ys); ctx.lineTo(x, ys + 10); ctx.lineTo(x - 10, ys); ctx.closePath(); ctx.fill(); ctx.stroke();
+        ctx.fillStyle = m.hit ? "#141B25" : "#F3D58A"; ctx.font = "bold 11px " + font(); ctx.fillText("✺", x, ys + 1);
+      } else if (m.kind === "stroke") {
         // Abstoß: kleiner weißer Ring auf der Eins, getroffen wird er golden
         ctx.strokeStyle = m.hit ? "#F3C969" : "rgba(241,231,210,0.9)"; ctx.lineWidth = 2; ctx.fillStyle = m.hit ? "#F3C969" : "rgba(20,27,37,0.6)";
         ctx.beginPath(); ctx.arc(x, yc, 7, 0, 7); ctx.fill(); ctx.stroke();
@@ -5923,7 +5975,7 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
     if (j && j.t1 === null && t >= j.t0 && t < j.land + 0.4) return { kind: "holding", m: run.marks.find((x) => x.kind === "hold" && x.el === j.el), j };
     const g = run.glideH;
     if (g && g.t1 === null && t >= g.t0 && t < g.end + 0.4) return { kind: "holding", glide: true, m: run.marks.find((x) => x.kind === "glide" && x.el === g.el), j: g };
-    return { m: run.marks.find((x) => x.t > t - 0.12 && x.t - t < 1.25 && !(x.kind === "hold" && run.jump && run.jump.el === x.el) && !(x.kind === "glide" && run.glideH && run.glideH.el === x.el)) };
+    return { m: run.marks.find((x) => x.kind !== "show" && x.t > t - 0.12 && x.t - t < 1.25 && !(x.kind === "hold" && run.jump && run.jump.el === x.el) && !(x.kind === "glide" && run.glideH && run.glideH.el === x.el)) };
   }
   // Pirouette: ein Punkt läuft im Kreis und ist genau auf jedem Schlag ⟳ oben. Mit dem Finger mitkreisen
   // (am Rechner: Leertaste, wenn der Punkt oben ist). Der eigene Kreis wächst als heller Bogen mit.
@@ -6058,7 +6110,7 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
   function drawCard() {
     const C = run.card; if (!C) return;
     const age = (performance.now() - C.t) / 1000; if (age > 2.2) return;
-    const al = age < 0.15 ? age / 0.15 : age > 1.8 ? 1 - (age - 1.8) / 0.4 : 1, w = 220, h = 50, x = LANE_X + 150, y = 262 - (age < 0.15 ? (0.15 - age) * 60 : 0);
+    const al = age < 0.15 ? age / 0.15 : age > 1.8 ? 1 - (age - 1.8) / 0.4 : 1, w = 220, h = 50, x = LANE_X + 120, y = 262 - (age < 0.15 ? (0.15 - age) * 60 : 0);
     ctx.save(); ctx.globalAlpha = al;
     ctx.fillStyle = "rgba(15,23,48,0.88)"; ctx.fillRect(x, y, w, h); ctx.strokeStyle = C.bad ? "#E8705A" : "#F3C969"; ctx.lineWidth = 1.5; ctx.strokeRect(x + 0.5, y + 0.5, w - 1, h - 1);
     ctx.textBaseline = "alphabetic"; ctx.textAlign = "left"; ctx.fillStyle = "#F1E7D2"; ctx.font = "700 13px " + font(); ctx.fillText(C.name, x + 10, y + 19);
@@ -6295,7 +6347,8 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
     const sec = K.SECTIONS[PROG.music] || K.SECTIONS.donau, bt = run.bt, b0 = sec.first * 3;
     let bi = run.showBi || 0; while (bi + 1 < bt.length && bt[bi + 1] <= t) bi++; while (bi > 0 && bt[bi] > t) bi--; run.showBi = bi;
     const beat = bi + clamp((t - bt[bi]) / ((bt[bi + 1] || bt[bi] + 0.4) - bt[bi]), 0, 1), i = Math.floor((beat - b0) / 12);
-    return { i, beat, bi, rel: beat - b0 - i * 12, fx: i >= 0 && i < sec.n ? (PROG.fx || [])[i] : null };
+    const f0 = i >= 0 && i < sec.n ? (PROG.fx || [])[i] : null;
+    return { i, beat, bi, rel: beat - b0 - i * 12, fx: f0 && run.fxHit && run.fxHit[i] ? f0 : null }; // nur gezündete Effekte (Show-Knopf)
   }
   function showUpdate(t, fx, fy) {
     const S0 = showAt(t);
@@ -6562,7 +6615,7 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
       ctx.strokeStyle = `rgba(243,201,105,${1 - u})`; ctx.lineWidth = 3 * (1 - u) + 1; ctx.beginPath(); ctx.ellipse(zcx + (fx - zcx) * Z, fyz, 30 + 140 * u, 8 + 30 * u, 0, 0, 7); ctx.stroke();
     }
     scene.vignette(ctx);
-    if (run.honor) drawHonor(t); else if (run.slow) drawSlow(t); else if (run.replay) drawTV(t); else { drawLane(t); drawPops(zcx + (fx - zcx) * Z, zcy + (fy - zcy) * Z, s * Z); }
+    if (run.honor) drawHonor(t); else if (run.slow) drawSlow(t); else if (run.replay) drawTV(t); else { drawLane(t); drawPads(t); drawPops(zcx + (fx - zcx) * Z, zcy + (fy - zcy) * Z, s * Z); }
     updateChips(t);
   }
   const IDLE = { face: 0, trail: [], tt: 0 };
@@ -6608,10 +6661,10 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
       const T = curTask(), ok = !!T.ok(res, r);
       res.bonus = ok ? TASK_PTS : 0; r.fmtTxt = ok ? `✓ Aufgabe „${T.name}“ erfüllt: +${TASK_PTS} Punkte.` : `✗ Aufgabe „${T.name}“ nicht geschafft.`;
     } else if (r.fmt === "show") {
-      const fxN = (PROG.fx || []).filter(Boolean).length, ex = res.presParts ? res.presParts.exprOk : 0, sr = Math.floor((r.bestStreak || 0) / 5);
+      const fxN = run.fxHit ? Object.keys(run.fxHit).length : 0, ex = res.presParts ? res.presParts.exprOk : 0, sr = Math.floor((r.bestStreak || 0) / 5);
       const gifts = (r.throws || []).length;
       const b = Math.round(Math.min(10, fxN * 1 + ex * 1.5 + sr * 0.5 + Math.min(2, gifts * 0.1)) * 4) / 4;
-      res.bonus = b; r.fmtTxt = `Publikum: +${dec(b)} (${fxN} Show-Effekte, ${ex} Choreo-Figuren, Serie ${r.bestStreak || 0}).`;
+      res.bonus = b; r.fmtTxt = `Publikum: +${dec(b)} (${fxN} Show-Effekte gezündet, ${ex} Choreo-Figuren, Serie ${r.bestStreak || 0}).`;
     }
     if (res.bonus) res.total = Math.round((res.total + res.bonus) * 100) / 100;
   }
@@ -7612,6 +7665,7 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
   document.addEventListener("visibilitychange", () => { if (document.hidden && run && !run.finished) abortRun(); });
 
   // ------------------------------------------------------------------ Testzugang
+  function withShow(ins) { return ins.concat(run.marks.filter((m) => m.kind === "show").map((m) => ({ t: m.t + 0.01, type: "show" }))).sort((a, b) => a.t - b.t); }
   window.__ek = { get audio() { return ctxA ? { state: ctxA.state, playing: !!(player && player.playing), t: +ctxA.currentTime.toFixed(2) } : null; },
     VERSION, get S() { return S; }, get run() { return run; }, get prog() { return PROG; }, sanitize, K, M,
     test(on) { testMode = !!on; },
@@ -7623,7 +7677,7 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
     input: addInput,
     // ganze Kür mit Eingaben um off Sekunden versetzt
     autoplay(off) {
-      const ins = K.perfectInputs(PROG, run.bt, off || 0);
+      const ins = withShow(K.perfectInputs(PROG, run.bt, off || 0));
       for (const i of ins) { this.stepTo(i.t); addInput(i.type, i.dir); }
       this.stepTo(run.bt[run.bt.length - 1] + 4);
     },
@@ -7632,7 +7686,7 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
     use3d(on) { force3d = !!on; },
     lesson(i) { startLesson(i || 0); run.manual = true; return !!run.lesson; },
     lessonEnd() { if (run && run.lesson) lessonDone(); return $("lRes").textContent; },
-    playTo(t) { const ins = K.perfectInputs(PROG, run.bt, 0); run._pi = run._pi || 0; while (run._pi < ins.length && ins[run._pi].t <= t) { const i = ins[run._pi++]; this.stepTo(i.t); addInput(i.type, i.dir); } this.stepTo(t); },
+    playTo(t) { const ins = withShow(K.perfectInputs(PROG, run.bt, 0)); run._pi = run._pi || 0; while (run._pi < ins.length && ins[run._pi].t <= t) { const i = ins[run._pi++]; this.stepTo(i.t); addInput(i.type, i.dir); } this.stepTo(t); },
     watch(i) { watch(S.recs[i || 0]); if (run) run.manual = true; return !!(run && run.replay); },
     seek(t) { tvSeekTo(t); },
     honor() { if (run) { run.manual = false; startHonor(run); if (run.honor) run.honor.title = run.honorTitle || ""; } return !!(run && run.honor); },
