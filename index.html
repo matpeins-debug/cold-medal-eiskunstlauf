@@ -619,6 +619,24 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
 .intro .fmt { margin: 6px 0 0; padding: 6px 10px; border-left: 3px solid var(--gold); background: rgba(243,201,105,0.12); font-size: 12.5px; line-height: 1.35; }
 .intro .fmt b { margin-right: 6px; }
 
+/* 0.67 Leitfaden im Menü: drei Schritte */
+.steps { display: flex; flex-direction: column; gap: 6px; }
+.step { position: relative; display: flex; align-items: center; gap: 10px; height: 42px; padding: 0 12px 0 8px; border-radius: 4px; text-align: left;
+  background: var(--paper); color: var(--ink); border: 2px solid var(--ink-deep); box-shadow: 0 3px 0 var(--ink-deep);
+  font-family: "Plakat", var(--font-display); font-weight: 700; font-size: 17px; letter-spacing: 0.06em; text-transform: uppercase; }
+.step .t2 { flex: 1; display: flex; flex-direction: column; line-height: 1.05; min-width: 0; }
+.step .t2 small { font-family: var(--font-body); font-weight: 400; font-size: 11.5px; letter-spacing: 0; text-transform: none; opacity: 0.85; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.step i { font-style: normal; font-size: 20px; }
+.step .no { flex: none; display: grid; place-items: center; width: 26px; height: 26px; border-radius: 50%; border: 2px solid currentColor; font-size: 14px; letter-spacing: 0; }
+.step.done .no { background: #2E7D5B; border-color: #2E7D5B; color: #FBF4E4; }
+.step.next { outline: 3px solid var(--gold); outline-offset: 1px; }
+.step.goStep { height: 50px; background: var(--red); color: #FBF4E4; font-size: 20px; box-shadow: inset 0 0 0 2px var(--red), inset 0 0 0 3px rgba(251,244,228,0.5), 0 3px 0 var(--ink-deep); }
+.step:active { transform: translateY(2px); box-shadow: 0 1px 0 var(--ink-deep); }
+.tGrid.three { grid-template-columns: repeat(3, 1fr); gap: 8px; }
+.tGrid.three .tBtn { height: 38px; font-size: 15px; padding: 0 10px 0 12px; }
+.tGrid.three:has(#bGrp[hidden]) { grid-template-columns: 1fr 1fr; }
+.tGrid.three:has(#bGrp[hidden]) #bAlbum { grid-column: auto; }
+
 /* Cold Medal Games · Fenster „Deine Figur“ (pass/pass.css)
    Aussehen wie die Menüs des Skispringens: Papier mit Doppelrahmen, Knöpfe wie Druckmarken, Futura für Titel und Knöpfe,
    Buchschrift für Lesetext. Farben und Schriften kommen aus den Variablen des Spiels (alle Spiele der Reihe haben sie),
@@ -790,9 +808,13 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
          helle Knöpfe mit Pfeil, Ortskarte unten, Figur oben rechts; die Halle bleibt frei sichtbar -->
     <div class="tCol">
       <div class="tHead"><span class="tKick">EISKUNSTLAUF</span><h1 class="logo">Cold Medal</h1></div>
-      <div class="compRow"><button class="tBtn prim" id="bComp"><span class="t2"><span>Kür · Wettkampf</span><small id="mBest"></small></span><i>→</i></button></div>
-      <div class="tGrid">
-        <button class="tBtn sec" id="bTrain"><span>Training</span><i>›</i></button>
+      <!-- Leitfaden (0.67, Mat: „es muss mehr einen Leitfaden haben, damit ich mich auskenne“): drei Schritte, erledigte mit Haken -->
+      <div class="steps">
+        <button class="step" id="bStep1"><b class="no">1</b><span class="t2"><span>Kür zusammenstellen</span><small id="sSt1"></small></span><i>›</i></button>
+        <button class="step" id="bTrain"><b class="no">2</b><span class="t2"><span>Trainieren</span><small id="sSt2"></small></span><i>›</i></button>
+        <button class="step goStep" id="bComp"><b class="no">3</b><span class="t2"><span>Antreten</span><small id="mBest"></small></span><i>→</i></button>
+      </div>
+      <div class="tGrid three">
         <button class="tBtn sec grpBtn" id="bGrp" hidden><span>Gruppen</span><b class="nw" id="mGrpNw" hidden></b><i>›</i></button>
         <button class="tBtn sec" id="bMusic"><span>Musik</span><i>›</i></button>
         <button class="tBtn sec" id="bAlbum"><span>Album</span><i>›</i></button>
@@ -4670,7 +4692,7 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
 /* COLD MEDAL EISKUNSTLAUF – Ablauf, Bildschirme, Eingabe, Taktband, Ergebnis, Spielstand. */
 (function () {
   "use strict";
-  const VERSION = "0.66";
+  const VERSION = "0.67";
   // Seiten-Einstellungen aus dem Build (eigenes Hosting: Adresse, Hoster, Impressum); im claude.ai-Artefakt leer
   const SITE = Object.assign({ web: false, url: "", impressum: null }, {"web": true, "supabase": {"url": "https://pqpvgkslozsekjywpdrf.supabase.co", "key": "sb_publishable_KkKe9jchmXYp_-OEmB8WLQ_gZLXrRhF"}, "url": "https://matpeins-debug.github.io/cold-medal-eiskunstlauf/", "hoster": "GitHub Pages (GitHub Inc., USA)", "drittland": "GitHub ist nach dem EU-US Data Privacy Framework zertifiziert; die Übermittlung in die USA stützt sich auf den Angemessenheitsbeschluss der EU-Kommission dazu.", "impressum": {"name": "", "adresse": "", "mail": ""}} || {});
   const M = window.EKMusic, K = window.EKSkate, F = window.EKFig, SC = window.EKScene, PASS = window.CMPass;
@@ -4736,7 +4758,7 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
 
   // ------------------------------------------------------------------ Spielstand (nur auf diesem Gerät; Aussehen zieht später in pass/ um)
   const KEY = "coldmedal-eiskunstlauf";
-  const DEF = { v: 1, prog: null, name: "", nat: "AUT", look: F.DEF_LOOK, help: "norm", lv3: 1, progAuto: true, saved: [], passSeen: 0, season: null, places: ["wien"], trophies: [], recs: [], grps: [], gseen: {}, onOk: 0, sound: 1, fig3d: 1, preset: "salon", lat: 0, music: "donau", path: null, fx: [null, null, null, null, null, null, null, null], best: 0, bestTrain: 0, runs: 0, flowers: 0, toys: 0, album: [], tut: 0, buzz: 1 };
+  const DEF = { v: 1, prog: null, name: "", nat: "AUT", look: F.DEF_LOOK, help: "norm", lv3: 1, progAuto: true, saved: [], passSeen: 0, season: null, places: ["wien"], trophies: [], recs: [], grps: [], gseen: {}, onOk: 0, sound: 1, fig3d: 1, preset: "salon", lat: 0, music: "donau", path: null, fx: [null, null, null, null, null, null, null, null], best: 0, bestTrain: 0, runs: 0, flowers: 0, toys: 0, album: [], tut: 0, buzz: 1, g1: 0 };
   function sanitize(o) {
     const S = Object.assign({}, DEF, { season: newSeason(1), places: ["wien"], trophies: [], look: F.cleanLook(null), prog: K.DEFAULT_SLOTS.slice(), path: K.DEF_PATH.slice(), album: [], grps: [], gseen: {}, recs: [], saved: [] });
     if (o && typeof o === "object") {
@@ -4771,6 +4793,10 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
       S.album = Array.isArray(o.album) ? o.album.filter((a) => a && typeof a.img === "string" && a.img.startsWith("data:image/jpeg;base64,") && a.img.length < 250000)
         .slice(0, 8).map((a) => ({ img: a.img, date: String(a.date || "").slice(0, 12), score: String(a.score || "").slice(0, 12), venue: String(a.venue || "").slice(0, 40), rec: String(a.rec || "").slice(0, 16) })) : [];
       for (const k of ["best", "bestTrain", "runs", "flowers", "toys"]) if (Number.isFinite(o[k]) && o[k] >= 0) S[k] = +o[k];
+      // Erste Schritte, Vibration und Leitfaden merken (0.67: tut wurde bis hier nicht geladen – die Übungen kamen nach jedem Neuladen wieder)
+      if (Number.isFinite(o.tut)) S.tut = clamp(Math.floor(o.tut), 0, 9);
+      if (o.buzz === 0) S.buzz = 0;
+      if (o.g1) S.g1 = 1;
     }
     return S;
   }
@@ -4785,7 +4811,7 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
   //   St. Moritz: Schaulaufen – das Publikum gibt Punkte für Show-Effekte, Choreo-Figuren und Serien
   //   Finale (Gala der Eisrevue): die große Kür, alles zählt
   const SEASON = [{ id: "wien", boost: 0, fmt: "free" /* 0.65 (Mat): kein Kurzprogramm mehr – überall die ganze Kür */ }, { id: "davos", boost: 2, fmt: "task" }, { id: "stmoritz", boost: 4, fmt: "show" }, { id: "revue", boost: 6, finale: true, fmt: "free" }];
-  const FMT = { short: "Kurzprogramm", task: "Kür mit Aufgabe", show: "Schaulaufen", free: "Kür" };
+  const FMT = { short: "Pflicht", task: "Kür mit Aufgabe", show: "Schaulaufen", free: "Kür" };
   const SHORT_SLOTS = { anf: ["1T", "USp", "StSq", "~", "1S"], norm: ["2T", "USp", "StSq", "~", "2S"], pro: ["2A", "CSp", "StSq", "~", "2Lz+2T"] }; // Schritte brauchen zwei Abschnitte
   const SHORT_N = 5; // Abschnitte im Kurzprogramm
   const TASKS = [
@@ -4794,7 +4820,7 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
     { id: "serie", name: "Serie 12", txt: "Triff 12 Zeichen am Stück gut oder perfekt.", ok: (res, r) => r.bestStreak >= 12 },
   ];
   const TASK_PTS = 3;
-  const curFmt = () => (S.season && SEASON[S.season.ev] ? SEASON[S.season.ev].fmt : "free");
+  const curFmt = () => (S.season && S.season.stage === "pflicht" ? "short" : S.season && SEASON[S.season.ev] ? SEASON[S.season.ev].fmt : "free");
   const curTask = () => TASKS[((S.season && S.season.n) || 1) % TASKS.length];
   // Kurzprogramm: Pflichtelemente auf die ersten fünf Abschnitte, Schlusspose am Ende des fünften
   function cutShort(prog) {
@@ -4818,12 +4844,16 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
     return shortF[key];
   }
   const SEASON_PTS = [12, 10, 8, 7, 6, 5];
-  function newSeason(n) { return { n, ev: 0, pts: {}, done: [] }; }
+  // 0.67: jede Station hat zwei Teile – erst die Pflicht (kurz, vorgegebene Elemente), dann die eigene Kür; die Punkte werden addiert
+  function newSeason(n) { return { n, ev: 0, pts: {}, done: [], stage: "pflicht", seed: 0, pf: null }; }
   function cleanSeason(o) {
     const z = newSeason(Number.isFinite(o.n) && o.n >= 1 ? Math.min(999, Math.floor(o.n)) : 1);
     z.ev = Number.isFinite(o.ev) ? clamp(Math.floor(o.ev), 0, SEASON.length - 1) : 0;
     if (o.pts && typeof o.pts === "object") for (const k of Object.keys(o.pts).slice(0, 12)) if (Number.isFinite(o.pts[k])) z.pts[String(k).slice(0, 20)] = +o.pts[k];
     if (Array.isArray(o.done)) z.done = o.done.slice(0, 4).filter((d) => d && SC.PLACES[d.id]).map((d) => ({ id: d.id, rank: +d.rank || 0, total: +d.total || 0 }));
+    z.stage = o.stage === "kuer" ? "kuer" : "pflicht"; z.seed = (+o.seed >>> 0) || 0;
+    if (z.stage === "kuer" && o.pf && Number.isFinite(o.pf.total) && Array.isArray(o.pf.board)) z.pf = { total: +o.pf.total, rank: +o.pf.rank || 0, board: o.pf.board.slice(0, 8).map((b) => ({ name: String(b.name || "").slice(0, 30), nat: String(b.nat || "").slice(0, 3), total: +b.total || 0, me: !!b.me })) };
+    else { z.stage = "pflicht"; z.pf = null; }
     return z;
   }
   // Stand der Saison: [{ name, nat, pts, me }] nach Punkten
@@ -5081,6 +5111,7 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
     run.fmt = rec ? rec.fmt || "free" : mode === "comp" && !grpRun ? curFmt() : "free";
     if (PROG.short) run.endT = bt[PROG.sec.end] + 3.8; // Kurzprogramm: Musik endet mit dem Schlussakkord auf der Pose, dann Verbeugung wie bei der Kür
     if (run.grp) run.seed = run.grp.s;
+    else if (mode === "comp" && !rec) { if (!S.season.seed) { S.season.seed = run.seed; save(); } run.seed = S.season.seed; } // Pflicht und Kür einer Station: dasselbe Feld
     if (rec) {
       // Aufzeichnung ansehen: gleicher Zufall, gleiche Eingaben; ohne Auftritt, ohne Taktband – wie im Fernsehen
       Object.assign(run, { replay: rec, ri: 0, seed: rec.seed, mode: rec.mode });
@@ -6543,7 +6574,7 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
       const gifts = (r.throws || []).length;
       const b = Math.round(Math.min(10, fxN * 1 + ex * 1.5 + sr * 0.5 + Math.min(2, gifts * 0.1)) * 4) / 4;
       res.bonus = b; r.fmtTxt = `Publikum: +${dec(b)} (${fxN} Show-Effekte, ${ex} Choreo-Figuren, Serie ${r.bestStreak || 0}).`;
-    } else if (r.fmt === "short") r.fmtTxt = "Kurzprogramm mit Pflichtelementen.";
+    }
     if (res.bonus) res.total = Math.round((res.total + res.bonus) * 100) / 100;
   }
   // ------------------------------------------------------------------ Ergebnis
@@ -6560,12 +6591,24 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
       const gb = grpBoard(r, res); board = gb.board; rank = gb.rank;
       if (res.total > S.best) S.best = res.total;
     } else if (r.mode === "comp") {
-      const ev = SEASON[S.season.ev]; r.season = { ev: S.season.ev, n: S.season.n, id: ev.id };
+      const ev = SEASON[S.season.ev], z = S.season; r.season = { ev: z.ev, n: z.n, id: ev.id };
       fmtBonus(r, res);
       board = aiBoard(r).concat([{ name: S.name || "Du", nat: S.nat, tes: res.tes, pcsTotal: res.pcsTotal, ded: res.ded, total: res.total, me: true }]);
       board.sort((a, b) => b.total - a.total); rank = board.findIndex((x) => x.me) + 1;
-      if (res.total > S.best) S.best = res.total;
-      seasonAdd(r, board, rank, res);
+      if (r.fmt === "short") {
+        // Pflicht geschafft: Zwischenstand merken, als Nächstes die Kür an derselben Station
+        z.pf = { total: res.total, rank, board: board.map((b) => ({ name: b.name, nat: b.nat, total: b.total, me: !!b.me })) }; z.stage = "kuer";
+        r.stageTxt = `Nach der Pflicht: Platz ${rank} von ${board.length}. Jetzt deine Kür in ${SC.PLACES[ev.id].name} – die Punkte werden addiert.`;
+      } else {
+        // Kür: Pflicht dazuzählen (gleiches Feld, gleiche Namen), dann Wertung der Station
+        const pfb = (z.pf && z.pf.board) || [], pfOf = (b) => { const x = pfb.find((y) => (b.me ? y.me : y.name === b.name)); return x ? x.total : 0; };
+        board.forEach((b) => { b.kuer = b.total; b.pf = pfOf(b); b.total = Math.round((b.kuer + b.pf) * 100) / 100; });
+        board.sort((a, b) => b.total - a.total); rank = board.findIndex((x) => x.me) + 1;
+        const me = board.find((b) => b.me); r.stageTxt = z.pf ? `Gesamt ${dec(me.total)} = Pflicht ${dec(me.pf)} + Kür ${dec(me.kuer)}.` : "";
+        if (res.total > S.best) S.best = res.total;
+        z.stage = "pflicht"; z.pf = null; z.seed = 0;
+        seasonAdd(r, board, rank, Object.assign({}, res, { total: me.total }));
+      }
     } else if (res.total > S.bestTrain) S.bestTrain = res.total;
     // Aufzeichnung behalten (die letzten acht), damit man die Kür ansehen und später in der Gruppe zeigen kann
     r.rec = cleanRec({ id: Date.now().toString(36), at: Date.now(), mode: r.mode, name: S.name, nat: S.nat, look: S.look, music: SCORE.id, place: P().id, slots: S.prog, fx: S.fx, path: S.path, lvl: S.help, cap: planCap(),
@@ -6688,7 +6731,8 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
     }).join("");
     $("rBoard").innerHTML = board ? board.map((b, i) => `<tr class="${b.me ? "me" : ""}"><td class="n">${i + 1}.</td><td class="nm">${esc(b.name)} <small>${b.nat}</small></td><td class="n">${dec(b.total)}</td></tr>`).join("")
       : `<tr><td>Bestes Training</td><td class="n">${dec(S.bestTrain)}</td></tr><tr><td>Bester Wettkampf</td><td class="n">${dec(S.best)}</td></tr>`;
-    $("rTip").textContent = run.grpErr ? "Nicht gemeldet: " + run.grpErr : ((run.fmtTxt ? run.fmtTxt + " " : "") + (run.seasonTxt || tipFor(res)));
+    $("rTip").textContent = run.grpErr ? "Nicht gemeldet: " + run.grpErr : [run.stageTxt, run.fmt === "short" ? "" : run.fmtTxt, run.seasonTxt || (run.fmt === "short" ? "" : tipFor(res))].filter(Boolean).join(" ");
+    $("rAgain").textContent = run.mode === "comp" && run.fmt === "short" && !run.replay ? "Zur Kür" : "Nochmal";
     $("rMenu").textContent = gr ? "Gruppe" : "Menü";
     // Preisgericht
     const J = K.jury(res, run.seed || 7);
@@ -6768,7 +6812,13 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
     $("mStops").innerHTML = SEASON.map((e, i) => `<span class="${i < S.season.ev ? "done" : i === S.season.ev ? "on" : ""}" title="${esc(FMT[e.fmt])}">${esc(SC.PLACES[e.id].name)}</span>`).join("");
     $("mFlag").innerHTML = flag(S.nat || "AUT", 22, 14); $("mName").textContent = (S.name || "Deine Figur").trim();
     const me = seasonTable().find((x) => x.me), pos = seasonTable().findIndex((x) => x.me) + 1;
-    $("mBest").textContent = nb(`Saison ${S.season.n} · ${ev.finale ? "Finale: Gala der Eisrevue" : `${S.season.ev + 1}/${SEASON.length} ${FMT[ev.fmt]}`}${me ? ` · du ${pos}. mit ${me.pts} Pkt` : ""}`);
+    const stg = S.season.stage === "kuer" ? `Kür${S.season.pf ? ` (Pflicht: ${S.season.pf.rank}.)` : ""}` : "Pflicht";
+    $("mBest").textContent = nb(`${PL.name}: ${stg} · Saison ${S.season.n}, Station ${S.season.ev + 1}/${SEASON.length}${me ? ` · du ${pos}. mit ${me.pts} Pkt` : ""}`);
+    // Leitfaden: 1 Kür zusammenstellen · 2 Trainieren · 3 Antreten – erledigt = Haken, der nächste Schritt leuchtet
+    const d1 = !!S.g1, d2 = S.bestTrain > 0, nxt = !d1 ? 1 : !d2 ? 2 : 3;
+    $("sSt1").textContent = d1 ? `${M.SCORES[S.music] ? M.SCORES[S.music].short : ""} · ${S.prog.filter((x) => x && x !== "~").length} Elemente` : "Musik, Sprünge, Pirouetten – oder den Vorschlag nehmen";
+    $("sSt2").textContent = d2 ? `Bestwert ${dec(S.bestTrain)} · jederzeit üben` : "Deine Kür ohne Wertung üben";
+    [["bStep1", 1, d1], ["bTrain", 2, d2], ["bComp", 3, false]].forEach(([id, n, dn]) => { const b = $(id); b.classList.toggle("done", dn); b.classList.toggle("next", n === nxt); b.querySelector(".no").textContent = dn ? "✓" : n; });
     fillPlanCard();
     $("mFoot").textContent = `Version ${VERSION} · inoffizielles Fanspiel`;
     fillGrpBtn(); loadMy();
@@ -6780,13 +6830,15 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
     pendingMode = mode;
     $("iOwn").hidden = !needOwn(); $("iGo").querySelector("span").textContent = needOwn() ? "Zum Kürplan" : "Los";
     const ev = SEASON[S.season.ev], pl = SC.PLACES[mode === "comp" ? ev.id : trainPlace || ev.id];
-    $("iKick").textContent = grpRun ? `GRUPPE ${grpRun.name.toUpperCase()} · RUNDE ${grpRun.k} · ${useMusic().short.toUpperCase()}` : mode === "comp" ? `SAISON ${S.season.n} · ${ev.finale ? "FINALE" : `${S.season.ev + 1}/${SEASON.length}`} · ${FMT[ev.fmt].toUpperCase()} · ${pl.name.toUpperCase()}` : `TRAINING · ${pl.name.toUpperCase()}`;
+    $("iKick").textContent = grpRun ? `GRUPPE ${grpRun.name.toUpperCase()} · RUNDE ${grpRun.k} · ${useMusic().short.toUpperCase()}` : mode === "comp" ? `${pl.name.toUpperCase()} · ${S.season.stage === "pflicht" ? "TEIL 1: PFLICHT" : "TEIL 2: KÜR"} · SAISON ${S.season.n}${ev.finale ? " · FINALE" : ""}` : `TRAINING · ${pl.name.toUpperCase()}`;
     const fm = $("iFmt"), sl = SHORT_SLOTS[S.help] || SHORT_SLOTS.norm;
     fm.hidden = mode !== "comp" || !!grpRun;
-    fm.innerHTML = ev.fmt === "short" ? `<b>Kurzprogramm</b> Kürzer, mit Pflichtelementen: ${sl.filter((id) => id !== "~").map((id) => esc(K.CATALOG[id].name)).join(", ")}. Deine Musik und dein Laufweg bleiben.`
+    const pfr = S.season.pf ? ` Nach der Pflicht bist du ${S.season.pf.rank}. mit ${dec(S.season.pf.total)} Punkten.` : "";
+    fm.innerHTML = S.season.stage === "pflicht" ? `<b>Pflicht</b> Kurzes Programm mit vorgegebenen Elementen: ${sl.filter((id) => id !== "~").map((id) => esc(K.CATALOG[id].name)).join(", ")}. Danach läufst du deine Kür – die Punkte werden addiert.`
       : ev.fmt === "task" ? `<b>Aufgabe: ${esc(curTask().name)}</b> ${esc(curTask().txt)} Geschafft = +${TASK_PTS} Punkte.`
       : ev.fmt === "show" ? `<b>Schaulaufen</b> Das Publikum wertet mit: Punkte für jeden Show-Effekt im Kürplan, getroffene Choreo-Figuren ✦ und lange Serien.`
-      : ev.finale ? `<b>Finale</b> Deine ganze Kür vor vollem Haus – hier wird die Saison entschieden.` : `<b>Saisonauftakt</b> Deine ganze Kür, ohne Zusatzaufgabe – zeig, was du kannst.`;
+      : ev.finale ? `<b>Finale</b> Deine ganze Kür vor vollem Haus – hier wird die Saison entschieden.` : `<b>Kür</b> Deine eigene Kür.`;
+    if (mode === "comp" && S.season.stage === "kuer") fm.innerHTML += pfr;
     // Training an jedem erreichten Ort
     const ip = $("iPlaces"); ip.hidden = mode === "comp" || !!grpRun || S.places.length < 2;
     ip.innerHTML = `<small>ORT</small>` + S.places.map((id) => `<button class="tg${pl.id === id ? " on" : ""}" data-pl="${id}">${esc(SC.PLACES[id].name)}</button>`).join("");
@@ -6859,13 +6911,14 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
   const withTut = (f) => () => { unlock(); if (!testMode && (S.tut || 0) < LESSONS.length) { lessonThen = f; openLesson(Math.min(S.tut || 0, LESSONS.length - 1)); return; } f(); };
   $("bComp").onclick = withTut(() => { if (!S.name) { openLook(() => intro("comp"), { ask: true, title: "Wie heißt du?" }); return; } intro("comp"); });
   $("bTrain").onclick = withTut(() => intro("train"));
+  $("bStep1").onclick = () => $("bProg").onclick();
   $("sTut").onclick = () => { S.tut = 0; save(); lessonThen = null; openLesson(0); };
   $("iGo").onclick = () => { unlock(); if (needOwn()) { $("bProg").onclick(); return; } startRun(pendingMode); };
   $("abort").onclick = abortRun;
   $("rWatch").onclick = () => { if (run) watch(run.replay || run.rec); };
   $("pWatch").onclick = () => watch(S.recs.find((r) => r.id === paintRec));
   $("rHonor").onclick = () => { if (!run || !run.finished) return; unlock(); startHonor(run); if (run.honor) run.honor.title = run.honorTitle || ""; };
-  $("rAgain").onclick = () => { unlock(); startRun(run ? run.mode : "comp"); };
+  $("rAgain").onclick = () => { unlock(); if (run && run.mode === "comp" && run.fmt === "short" && !run.replay && !run.grp) { intro("comp"); show("scrIntro"); return; } startRun(run ? run.mode : "comp"); }; // nach der Pflicht: Intro der Kür
   $("rMenu").onclick = () => { const gr = run && (run.grp || (run.replay && run.replay.grp)); run = null; if (gr) backToGroup(); else show("scrMenu"); };
 
   // Gestalten: das Fenster „Deine Figur“ aus dem Pass der Reihe (../pass/pass-ui.js). Person und Farben gelten in allen Spielen;
@@ -7400,7 +7453,7 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
   }
   $("bProg").onclick = () => { if (listenOn) listen(false); pSel = 0; pCat = null; pSheet = null; const c = CAT[S.prog[0]]; if (c && c.kind === "jump") { pRot = c.rot; pCombo = c.combo ? c.combo[1].slice(1) : ""; } fillProg(); show("scrProg"); };
   $("pDef").onclick = () => { if (LV().own) return; useMusic(); S.prog = K.suggest(SCORE.id, S.look, Math.random, S.prog); S.path = K.suggestPath(S.prog); S.progAuto = true; save(); fillProg(); }; // jedes Mal ein anderer Plan, passend zum Stück
-  $("pDone").onclick = () => { if (listenOn) listen(false); fillPlanCard(); if (grpRun) { intro("comp"); return; } show("scrMenu"); };
+  $("pDone").onclick = () => { if (listenOn) listen(false); if (!S.g1) { S.g1 = 1; save(); } fillPlanCard(); fillMenu(); if (grpRun) { intro("comp"); return; } show("scrMenu"); };
 
   // Einstellungen
   function fillSet() {
