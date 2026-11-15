@@ -4758,7 +4758,7 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
 /* COLD MEDAL EISKUNSTLAUF – Ablauf, Bildschirme, Eingabe, Taktband, Ergebnis, Spielstand. */
 (function () {
   "use strict";
-  const VERSION = "0.73";
+  const VERSION = "0.74";
   // Seiten-Einstellungen aus dem Build (eigenes Hosting: Adresse, Hoster, Impressum); im claude.ai-Artefakt leer
   const SITE = Object.assign({ web: false, url: "", impressum: null }, {"web": true, "supabase": {"url": "https://pqpvgkslozsekjywpdrf.supabase.co", "key": "sb_publishable_KkKe9jchmXYp_-OEmB8WLQ_gZLXrRhF"}, "url": "https://matpeins-debug.github.io/cold-medal-eiskunstlauf/", "hoster": "GitHub Pages (GitHub Inc., USA)", "drittland": "GitHub ist nach dem EU-US Data Privacy Framework zertifiziert; die Übermittlung in die USA stützt sich auf den Angemessenheitsbeschluss der EU-Kommission dazu.", "impressum": {"name": "", "adresse": "", "mail": ""}} || {});
   const M = window.EKMusic, K = window.EKSkate, F = window.EKFig, SC = window.EKScene, PASS = window.CMPass;
@@ -6318,7 +6318,7 @@ tr.fall td.e, tr.miss td.e { color: var(--red); }
   }
   // nach dem Schlussakkord: Blumen und Stofftiere fliegen aufs Eis, mehr bei besserer Kür
   function drawThrows(t, sx, fy) {
-    const end = run.bt[run.bt.length - 1];
+    const end = PROG.short ? run.bt[PROG.sec.end] : run.bt[run.bt.length - 1]; // 0.74: auch nach der Pflicht (endet früher) – vorher kamen dort nie Blumen
     if (!run.throws && t > end + 0.5) {
       const res = K.judge(PROG, run.bt, run.inputs, { k: run.k, level: run.lv }), R = rngT(run.seed);
       const n = clamp(Math.round((res.total - 20) / 3), 2, 18), list = [];
